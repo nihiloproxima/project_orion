@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Default Cyan Theme */
+    --background: 230 25% 5%;
+    --foreground: 210 40% 98%;
+    --card: 230 25% 7%;
+    --card-foreground: 210 40% 98%;
+    --popover: 230 25% 7%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 160 100% 50%;
+    --primary-foreground: 230 25% 5%;
+    --secondary: 320 100% 50%;
+    --secondary-foreground: 230 25% 5%;
+    --muted: 230 25% 15%;
+    --muted-foreground: 210 40% 60%;
+    --accent: 270 100% 60%;
+    --accent-foreground: 230 25% 5%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 160 100% 50%;
+    --input: 230 25% 15%;
+    --ring: 160 100% 50%;
+    --radius: 0.25rem;
+  }
+
+  [data-theme="purple"] {
+    --primary: 270 100% 60%;
+    --primary-foreground: 230 25% 5%;
+    --secondary: 320 100% 60%;
+    --secondary-foreground: 230 25% 5%;
+    --accent: 190 100% 60%;
+    --accent-foreground: 230 25% 5%;
+    --border: 270 100% 60%;
+    --ring: 270 100% 60%;
+  }
+
+  [data-theme="blue"] {
+    --primary: 210 100% 50%;
+    --primary-foreground: 230 25% 5%;
+    --secondary: 240 100% 60%;
+    --secondary-foreground: 230 25% 5%;
+    --accent: 180 100% 50%;
+    --accent-foreground: 230 25% 5%;
+    --border: 210 100% 50%;
+    --ring: 210 100% 50%;
+  }
+
+  [data-theme="synthwave"] {
+    --primary: 320 100% 60%;
+    --primary-foreground: 230 25% 5%;
+    --secondary: 260 100% 60%;
+    --secondary-foreground: 230 25% 5%;
+    --accent: 180 100% 50%;
+    --accent-foreground: 230 25% 5%;
+    --border: 320 100% 60%;
+    --ring: 320 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-image: radial-gradient(
+        circle at 50% 50%,
+        hsl(var(--primary) / 0.05) 0%,
+        transparent 50%
+      ),
+      linear-gradient(
+        to bottom,
+        hsl(var(--primary) / 0.02) 0%,
+        transparent 100%
+      );
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .neon-border {
+    @apply border border-primary/50 shadow-[0_0_10px_theme(colors.primary.DEFAULT/30%)] transition-all duration-300;
+  }
+
+  .neon-text {
+    @apply text-primary drop-shadow-[0_0_8px_theme(colors.primary.DEFAULT/50%)];
+  }
+
+  .neon-text-secondary {
+    @apply text-secondary drop-shadow-[0_0_8px_theme(colors.secondary.DEFAULT/50%)];
+  }
+
+  .neon-text-accent {
+    @apply text-accent drop-shadow-[0_0_8px_theme(colors.accent.DEFAULT/50%)];
+  }
+
+  .cyber-grid {
+    background-image: linear-gradient(
+        hsl(var(--primary) / 0.1) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, hsl(var(--primary) / 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-attachment: fixed;
+  }
+}

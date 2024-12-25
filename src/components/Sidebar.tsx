@@ -1,0 +1,174 @@
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/auth";
+import { useTheme } from "../context/theme";
+import { Button } from "./ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import {
+  Settings,
+  LogOut,
+  Rocket,
+  Database,
+  Users,
+  Terminal,
+  Computer,
+  Building,
+} from "lucide-react";
+import { useGame } from "../contexts/GameContext";
+
+export function Sidebar() {
+  const { logout } = useAuth();
+  const { state } = useGame();
+  const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  return (
+    <div className="w-64 bg-black/95 border-r border-primary/30 h-full flex flex-col relative overflow-hidden font-mono">
+      {/* Matrix-like rain effect overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,255,0,0.03)1px,transparent_1px)] bg-[size:100%_2px] animate-matrix-rain pointer-events-none" />
+
+      {/* Terminal-like header */}
+      <div className="mb-8 p-4 border-b border-primary/30 relative">
+        <div className="flex">
+          <Terminal className="mt-2  mr-1 h-4 w-4 text-primary animate-pulse" />
+          <h2 className="text-xl font-bold text-primary tracking-wider effect">
+            EXOGENESIS
+          </h2>
+        </div>
+        <div className="text-xs text-primary/70 mt-2 typing-effect-delay">
+          <span className="inline-block w-2 h-2 bg-primary/80 animate-pulse mr-2" />
+          STATUS: CONNECTED
+        </div>
+      </div>
+
+      <div className="flex-1 px-4">
+        {state.selectedPlanet && (
+          <nav className="space-y-1">
+            {[
+              {
+                to: "/dashboard",
+                icon: Computer,
+                label: "MAIN_CONSOLE",
+                color: "primary",
+              },
+              {
+                to: "/structures",
+                icon: Building,
+                label: "STRUCTURES",
+                color: "primary",
+              },
+              {
+                to: "/fleet",
+                icon: Rocket,
+                label: "FLEET_CONTROL",
+                color: "violet",
+              },
+              {
+                to: "/resources",
+                icon: Database,
+                label: "RESOURCE_MATRIX",
+                color: "amber",
+              },
+              {
+                to: "/alliances",
+                icon: Users,
+                label: "ALLIANCE_NET",
+                color: "blue",
+              },
+              {
+                to: "/settings",
+                icon: Settings,
+                label: "SYS_CONFIG",
+                color: "cyan",
+              },
+            ].map((item) => (
+              <Link key={item.to} to={item.to}>
+                <Button
+                  variant="ghost"
+                  className={`w-full justify-start text-${
+                    item.color
+                  }-400 hover:bg-${item.color}-500/10 
+                  border border-transparent hover:border-${item.color}-500/30 
+                  group transition-all duration-300
+                  ${
+                    location.pathname === item.to
+                      ? `bg-${item.color}-500/10 border-${item.color}-500/30`
+                      : ""
+                  }`}
+                >
+                  <item.icon
+                    className={`mr-2 ${
+                      location.pathname === item.to
+                        ? "animate-pulse"
+                        : "group-hover:animate-pulse"
+                    }`}
+                  />
+                  <span
+                    className={`font-mono ${
+                      location.pathname === item.to
+                        ? "text-primary animate-glitch"
+                        : "group-hover:text-primary group-hover:animate-glitch"
+                    }`}
+                  >
+                    {`> ${item.label}`}
+                  </span>
+                </Button>
+              </Link>
+            ))}
+          </nav>
+        )}
+      </div>
+
+      {/* Theme selector with cyberpunk styling */}
+      <div className="p-4 border-t border-primary/30">
+        <Select defaultValue={theme} onValueChange={setTheme}>
+          <SelectTrigger className="w-full bg-black border-primary/30 text-primary hover:border-primary/60 transition-colors">
+            <SelectValue placeholder="SELECT_THEME" />
+          </SelectTrigger>
+          <SelectContent className="bg-black/95 border-primary/30">
+            {[
+              { value: "default", label: "MATRIX_GREEN", color: "emerald" },
+              { value: "purple", label: "NEON_PURPLE", color: "purple" },
+              { value: "blue", label: "CYBER_BLUE", color: "blue" },
+              { value: "synthwave", label: "SYNTHWAVE", color: "pink" },
+            ].map((item) => (
+              <SelectItem
+                key={item.value}
+                value={item.value}
+                className={`text-${item.color}-400 hover:bg-${item.color}-500/20`}
+              >
+                {`> ${item.label}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Logout section with warning styling */}
+      <div className="p-4 border-t border-red-500/30">
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
+          className="w-full justify-start text-red-500 hover:bg-red-500/10 
+            border border-transparent hover:border-red-500/30 
+            group transition-all duration-300"
+        >
+          <LogOut className="mr-2 group-hover:animate-pulse" />
+          <span className="font-mono group-hover:animate-glitch">
+            {">"} TERMINATE_SESSION
+          </span>
+        </Button>
+      </div>
+    </div>
+  );
+}
