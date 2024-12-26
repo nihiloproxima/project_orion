@@ -31,6 +31,6 @@ export interface Ship {
     status: ShipStatus;
     mission_type: MissionType | null;
     destination_planet_id: string | null;
-    departure_time: Date | null;
-    arrival_time: Date | null;
+    departure_time: number | null;
+    arrival_time: number | null;
 }

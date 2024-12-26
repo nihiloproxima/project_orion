@@ -1,5 +1,5 @@
 import { useGame } from "../contexts/GameContext";
-import { FlaskConical, Gem, Hammer, Zap } from "lucide-react";
+import { Beaker, Flame, Hammer, Microchip, Zap } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -7,61 +7,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { useEffect, useState } from "react";
+import { calculateHourlyRates } from "../lib/resourceCalculations";
 
 export function ResourceBar() {
-  const { state, selectPlanet } = useGame();
-  const [currentResources, setCurrentResources] = useState({
-    metal: 0,
-    crystal: 0,
-    deuterium: 0,
-    energy: 0,
-  });
-
-  useEffect(() => {
-    if (!state.resources) return;
-
-    // Initialize with current values
-    setCurrentResources({
-      metal: state.resources.metal,
-      crystal: state.resources.crystal,
-      deuterium: state.resources.deuterium,
-      energy: state.resources.energy,
-    });
-
-    // Update resources every second based on generation rates
-    const interval = setInterval(() => {
-      const secondsSinceLastUpdate =
-        (new Date().getTime() -
-          new Date(state.resources.last_update).getTime()) /
-        1000;
-
-      setCurrentResources({
-        metal:
-          state.resources.metal +
-          (state.resources.metal_generation_rate / 3600) *
-            secondsSinceLastUpdate,
-        crystal:
-          state.resources.crystal +
-          (state.resources.crystal_generation_rate / 3600) *
-            secondsSinceLastUpdate,
-        deuterium:
-          state.resources.deuterium +
-          (state.resources.deuterium_generation_rate / 3600) *
-            secondsSinceLastUpdate,
-        energy:
-          state.resources.energy +
-          (state.resources.energy_generation_rate / 3600) *
-            secondsSinceLastUpdate,
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [state.resources]);
+  const { state, selectPlanet, currentResources } = useGame();
 
   if (state.selectedPlanet === null) {
     return null;
   }
+
+  const hourlyGenerationRate = state.structuresConfig
+    ? calculateHourlyRates(
+        state.structures,
+        state.structuresConfig,
+        state.selectedPlanet.biome
+      )
+    : {
+        metal: 0,
+        microchips: 0,
+        deuterium: 0,
+        energy: 0,
+        science: 0,
+      };
 
   return (
     <div className="w-full bg-black/80 border-b border-primary/30 backdrop-blur-sm py-2 px-4 sticky top-0 z-50">
@@ -103,7 +70,7 @@ export function ResourceBar() {
                 <Hammer className="h-4 w-4 text-secondary" />
               </div>
               <span className="text-xs text-secondary font-medium">
-                +{state.resources?.metal_generation_rate || 0}
+                +{Math.floor(hourlyGenerationRate.metal)}
                 /h
               </span>
             </div>
@@ -111,15 +78,15 @@ export function ResourceBar() {
 
           <div className="flex items-center gap-2">
             <div className="flex flex-col items-end">
-              <span className="text-xs text-accent/70">CRYSTAL</span>
+              <span className="text-xs text-accent/70">microchips</span>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-accent font-bold">
-                  {Math.floor(currentResources.crystal)}
+                  {Math.floor(currentResources.microchips)}
                 </span>
-                <Gem className="h-4 w-4 text-accent" />
+                <Microchip className="h-4 w-4 text-accent" />
               </div>
               <span className="text-xs text-accent font-medium">
-                +{state.resources?.crystal_generation_rate || 0}
+                +{Math.floor(hourlyGenerationRate.microchips)}
                 /h
               </span>
             </div>
@@ -132,10 +99,26 @@ export function ResourceBar() {
                 <span className="font-mono text-primary font-bold">
                   {Math.floor(currentResources.deuterium)}
                 </span>
-                <FlaskConical className="h-4 w-4 text-primary" />
+                <Flame className="h-4 w-4 text-primary" />
               </div>
               <span className="text-xs text-primary font-medium">
-                +{state.resources?.deuterium_generation_rate || 0}
+                +{Math.floor(hourlyGenerationRate.deuterium)}
+                /h
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end">
+              <span className="text-xs text-blue-400/70">SCIENCE</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-blue-400 font-bold">
+                  {Math.floor(currentResources.science)}
+                </span>
+                <Beaker className="h-4 w-4 text-blue-400" />
+              </div>
+              <span className="text-xs text-blue-400 font-medium">
+                +{Math.floor(hourlyGenerationRate.science)}
                 /h
               </span>
             </div>
@@ -145,15 +128,36 @@ export function ResourceBar() {
             <div className="flex flex-col items-end">
               <span className="text-xs text-violet-400/70">ENERGY</span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-violet-400 font-bold">
-                  {Math.floor(currentResources.energy)}
+                <span
+                  className={`font-mono font-bold ${
+                    currentResources.energy_production >=
+                    currentResources.energy_consumption
+                      ? "text-violet-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {Math.floor(
+                    currentResources.energy_production -
+                      currentResources.energy_consumption
+                  )}
                 </span>
-                <Zap className="h-4 w-4 text-violet-400" />
+                <Zap
+                  className={`h-4 w-4 ${
+                    currentResources.energy_production >=
+                    currentResources.energy_consumption
+                      ? "text-violet-400"
+                      : "text-red-400"
+                  }`}
+                />
               </div>
-              <span className="text-xs text-violet-400 font-medium">
-                +{state.resources?.energy_generation_rate || 0}
-                /h
-              </span>
+              <div className="flex gap-1 text-xs font-medium">
+                <span className="text-green-400">
+                  +{Math.floor(currentResources.energy_production)}
+                </span>
+                <span className="text-red-400">
+                  -{Math.floor(currentResources.energy_consumption)}
+                </span>
+              </div>
             </div>
           </div>
         </div>

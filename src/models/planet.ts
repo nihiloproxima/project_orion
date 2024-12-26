@@ -9,6 +9,6 @@ export interface Planet {
     is_homeworld: boolean;
     biome: PlanetBiome;
     size_km: number;
-    created_at: Date;
-    updated_at: Date;
+    created_at: number;
+    updated_at: number;
 }

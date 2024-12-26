@@ -1,7 +1,7 @@
 import { PlanetBiome } from "./planet";
-import { StructuresConfig } from "./structures_config";
+import { StructureConfig } from "./structures_config";
 
-export type GameConfigData = StructuresConfig;
+export type GameConfigData = StructureConfig;
 
 export interface PlanetsConfig {
     planet_count: number;
@@ -17,5 +17,5 @@ export type GameConfig = {
     id: string;
     version: string;
     config_data: GameConfigData;
-    created_at: Date;
+    created_at: number;
 };

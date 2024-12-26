@@ -33,6 +33,11 @@ async function post(
 }
 
 export const api = {
+  admin: {
+    updateConfig: async (id: string, config_data: Record<string, any>) => {
+      return post("admin", "updateConfig", { id, config_data });
+    },
+  },
   users: {
     register: async (id: string, name: string) => {
       return post("users", "register", { id, name });
@@ -49,6 +54,12 @@ export const api = {
   structures: {
     construct: async (planetId: string, type: StructureType) => {
       return post("structures", "construct", { planet_id: planetId, type });
+    },
+    upgrade: async (planetId: string, structureId: string) => {
+      return post("structures", "upgrade", {
+        planet_id: planetId,
+        structure_id: structureId,
+      });
     },
   },
 };

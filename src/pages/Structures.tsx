@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ConstructionTimer } from "../components/ConstructionTimer";
 import { useGame } from "../contexts/GameContext";
 import {
   Card,
@@ -8,8 +8,11 @@ import {
 } from "../components/ui/card";
 import { Structure, StructureType } from "../models/structure";
 import { Button } from "../components/ui/button";
-import { Building2, AlertCircle } from "lucide-react";
-import { supabase } from "../lib/supabase";
+import { Building2 } from "lucide-react";
+import { ErrorBoundary } from "../components/ErrorBoundary";
+import { useEffect, useState } from "react";
+import { api } from "../lib/api";
+import { GameStructuresConfig } from "../models/structures_config";
 
 // Import structure images
 import metalMineImg from "../assets/structures/metal_mine.png";
@@ -18,8 +21,7 @@ import deuteriumSynthesizerImg from "../assets/structures/deuterium_synthesizer.
 import researchLabImg from "../assets/structures/research_lab.png";
 import shipYardImg from "../assets/structures/shipyard.png";
 import defenseFactoryImg from "../assets/structures/defense_factory.png";
-import { api } from "../lib/api";
-import { GameStructuresConfig } from "../models/structures_config";
+import microchipFactoryImg from "../assets/structures/microchip_factory.png";
 
 interface StructureInfo {
   type: StructureType;
@@ -63,6 +65,14 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
     icon: <Building2 className="h-5 w-5" />,
     image: researchLabImg,
   },
+  microchip_factory: {
+    type: "microchip_factory",
+    name: "Microchip Factory",
+    description: "Produces microchips",
+    productionType: "microchips",
+    icon: <Building2 className="h-5 w-5" />,
+    image: microchipFactoryImg,
+  },
   shipyard: {
     type: "shipyard",
     name: "Shipyard",
@@ -81,491 +91,362 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   },
 };
 
-interface ConstructionTimerProps {
-  finishTime: string;
-}
+const formatConstructionTime = (seconds: number) => {
+  if (seconds < 60) {
+    return `${Math.ceil(seconds)} seconds`;
+  }
+  if (seconds < 3600) {
+    return `${Math.ceil(seconds / 60)} minutes`;
+  }
+  if (seconds < 86400) {
+    return `${Math.ceil(seconds / 3600)} hours`;
+  }
+  return `${Math.ceil(seconds / 86400)} days`;
+};
 
-function ConstructionTimer({ finishTime }: ConstructionTimerProps) {
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [progress, setProgress] = useState(0);
+function StructureCard({
+  info,
+  existingStructure,
+  config,
+  state,
+}: {
+  info: StructureInfo;
+  existingStructure?: Structure;
+  config: GameStructuresConfig[keyof GameStructuresConfig];
+  state: any; // Replace with proper type
+}) {
+  const [structure, setStructure] = useState(existingStructure);
 
   useEffect(() => {
-    const finishTimeMs = new Date(finishTime).getTime();
-    const startTimeMs = new Date(finishTime).getTime() - 5 * 60 * 1000; // 5 minutes construction time
-    const total = finishTimeMs - startTimeMs;
+    setStructure(existingStructure);
+  }, [existingStructure]);
 
-    const updateTimer = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, finishTimeMs - now);
-      const elapsed = now - startTimeMs;
+  const onUpgrade = async (structure: Structure) => {
+    await api.structures.upgrade(state.selectedPlanet.id, structure.id);
+  };
 
-      setTimeRemaining(remaining);
-      // Calculate progress based on elapsed time
-      setProgress(Math.max(0, Math.min(100, (elapsed / total) * 100)));
+  const onConstruct = async (type: StructureType) => {
+    await api.structures.construct(state.selectedPlanet.id, type);
+  };
 
-      // Request next animation frame if still in progress
-      if (remaining > 0) {
-        requestAnimationFrame(updateTimer);
-      }
-    };
+  const calculateHourlyProduction = (structure: Structure) => {
+    if (!state.structuresConfig || structure.level === 0) return 0;
 
-    // Start animation loop
-    const animationId = requestAnimationFrame(updateTimer);
+    return structure.production_rate * 3600;
+  };
 
-    return () => {
-      cancelAnimationFrame(animationId);
-    };
-  }, [finishTime]);
+  const level = structure?.level ?? 0;
+  const upgradeCosts = {
+    metal: config.upgrade_cost.metal * (level + 1),
+    deuterium: config.upgrade_cost.deuterium * (level + 1),
+    microchips: config.upgrade_cost.microchips * (level + 1),
+    science: config.upgrade_cost.science * (level + 1),
+  };
 
-  if (timeRemaining <= 0) {
-    return;
-  }
+  const initialCosts = {
+    metal: config.initial_cost.metal,
+    deuterium: config.initial_cost.deuterium,
+    microchips: config.initial_cost.microchips,
+    science: config.initial_cost.science,
+  };
 
-  const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
-  const hours = Math.floor(
-    (timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-  );
-  const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-
-  const timeString = [
-    days > 0 && `${days}d`,
-    hours > 0 && `${hours}h`,
-    minutes > 0 && `${minutes}m`,
-    `${seconds}s`,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const constructionTime =
+    level === 0
+      ? config.construction_time_seconds
+      : config.construction_time_seconds *
+        config.construction_time_multiplier *
+        level;
 
   return (
-    <div className="space-y-2">
-      <div className="text-sm font-mono text-primary/70">
-        Time remaining: {timeString}
+    <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
+      <CardHeader className="flex flex-row items-start gap-6 pb-2">
+        <div className="w-1/3 aspect-square">
+          <img
+            src={info.image}
+            alt={info.name}
+            className="w-full h-full object-cover rounded-lg"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <CardTitle className="text-xl font-bold neon-text tracking-wide uppercase hover:scale-105 transition-transform">
+            {info.name}
+          </CardTitle>
+
+          <p className="text-sm text-muted-foreground">{info.description}</p>
+
+          {structure && info.productionType !== "none" && (
+            <div className="text-sm text-primary/70 font-medium">
+              Produces: {Math.floor(calculateHourlyProduction(structure))}{" "}
+              {info.productionType}/hour
+            </div>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4 pt-4 border-t border-primary/20">
+        {structure ? (
+          <ExistingStructureContent
+            structure={structure}
+            info={info}
+            upgradeCosts={upgradeCosts}
+            constructionTime={constructionTime}
+            onUpgrade={onUpgrade}
+          />
+        ) : (
+          <NewStructureContent
+            initialCosts={initialCosts}
+            constructionTime={constructionTime}
+            info={info}
+            onConstruct={onConstruct}
+          />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ExistingStructureContentProps {
+  structure: Structure;
+  info: StructureInfo;
+  upgradeCosts: {
+    metal: number;
+    deuterium: number;
+    microchips: number;
+    science: number;
+  };
+  constructionTime: number;
+  onUpgrade: (structure: Structure) => void;
+}
+
+function ExistingStructureContent({
+  structure,
+  info,
+  upgradeCosts,
+  constructionTime,
+  onUpgrade,
+}: ExistingStructureContentProps) {
+  const { currentResources } = useGame();
+
+  const canAfford =
+    currentResources.metal >= upgradeCosts.metal &&
+    currentResources.deuterium >= upgradeCosts.deuterium &&
+    currentResources.science >= upgradeCosts.science &&
+    currentResources.microchips >= upgradeCosts.microchips;
+
+  if (
+    structure.is_under_construction &&
+    structure.construction_finish_time &&
+    structure.construction_start_time
+  ) {
+    return (
+      <div className="space-y-4">
+        <div className="text-sm text-primary/70">Under Construction</div>
+        <ConstructionTimer
+          startTime={structure.construction_start_time}
+          finishTime={structure.construction_finish_time}
+        />
       </div>
-      <div className="relative h-2 bg-primary/10 rounded-full overflow-hidden">
-        <div
-          className="absolute inset-y-0 left-0 bg-primary/30"
-          style={{ width: `${progress}%` }}
-        />
-        <div
-          className="absolute inset-y-0 left-0 bg-primary animate-pulse"
-          style={{
-            width: "2px",
-            left: `${progress}%`,
-            boxShadow:
-              "0 0 10px theme(colors.primary.DEFAULT), 0 0 5px theme(colors.primary.DEFAULT)",
-          }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center text-[10px] text-primary/70 font-mono">
-          {Math.round(progress)}%
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-primary/70">Level {structure.level}</div>
+      <p className="text-sm text-muted-foreground">{info.description}</p>
+
+      <div className="space-y-2">
+        <div className="text-sm font-medium">Upgrade Costs:</div>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          {upgradeCosts.metal > 0 && (
+            <div
+              className={
+                currentResources.metal < upgradeCosts.metal
+                  ? "text-red-500"
+                  : "text-green-500"
+              }
+            >
+              Metal: {Math.floor(upgradeCosts.metal)}
+            </div>
+          )}
+          {upgradeCosts.deuterium > 0 && (
+            <div
+              className={
+                currentResources.deuterium < upgradeCosts.deuterium
+                  ? "text-red-500"
+                  : "text-green-500"
+              }
+            >
+              Deuterium: {Math.floor(upgradeCosts.deuterium)}
+            </div>
+          )}
+          {upgradeCosts.microchips > 0 && (
+            <div
+              className={
+                currentResources.microchips < upgradeCosts.microchips
+                  ? "text-red-500"
+                  : "text-green-500"
+              }
+            >
+              Microchips: {Math.floor(upgradeCosts.microchips)}
+            </div>
+          )}
+          {upgradeCosts.science > 0 && (
+            <div
+              className={
+                currentResources.science < upgradeCosts.science
+                  ? "text-red-500"
+                  : "text-green-500"
+              }
+            >
+              Science: {Math.floor(upgradeCosts.science)}
+            </div>
+          )}
         </div>
       </div>
+
+      <div className="text-sm">
+        Construction Time: {formatConstructionTime(constructionTime)}
+      </div>
+
+      <Button
+        className={`w-full ${!canAfford ? "opacity-50" : ""}`}
+        onClick={() => onUpgrade(structure)}
+        disabled={structure.is_under_construction || !canAfford}
+      >
+        {canAfford
+          ? `Upgrade to Level ${structure.level + 1}`
+          : "Not Enough Resources"}
+      </Button>
+    </div>
+  );
+}
+
+interface NewStructureContentProps {
+  initialCosts: {
+    metal: number;
+    deuterium: number;
+    microchips: number;
+    science: number;
+  };
+  constructionTime: number;
+  info: StructureInfo;
+  onConstruct: (type: StructureType) => void;
+}
+
+function NewStructureContent({
+  initialCosts,
+  constructionTime,
+  info,
+  onConstruct,
+}: NewStructureContentProps) {
+  const { currentResources } = useGame();
+
+  const canAfford =
+    currentResources.metal >= initialCosts.metal &&
+    currentResources.deuterium >= initialCosts.deuterium &&
+    currentResources.microchips >= initialCosts.microchips &&
+    currentResources.science >= initialCosts.science;
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-primary/70">Not Built</div>
+      <p className="text-sm text-muted-foreground">{info.description}</p>
+
+      <div className="space-y-2">
+        <div className="text-sm font-medium">Construction Costs:</div>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          {initialCosts.metal > 0 && (
+            <div
+              className={
+                currentResources.metal < initialCosts.metal
+                  ? "text-red-500"
+                  : "text-green-500"
+              }
+            >
+              Metal: {Math.floor(initialCosts.metal)}
+            </div>
+          )}
+          {initialCosts.deuterium > 0 && (
+            <div
+              className={
+                currentResources.deuterium < initialCosts.deuterium
+                  ? "text-red-500"
+                  : "text-green-500"
+              }
+            >
+              Deuterium: {Math.floor(initialCosts.deuterium)}
+            </div>
+          )}
+          {initialCosts.microchips > 0 && (
+            <div
+              className={
+                currentResources.microchips < initialCosts.microchips
+                  ? "text-red-500"
+                  : "text-green-500"
+              }
+            >
+              Microchips: {Math.floor(initialCosts.microchips)}
+            </div>
+          )}
+          {initialCosts.science > 0 && (
+            <div
+              className={
+                currentResources.science < initialCosts.science
+                  ? "text-red-500"
+                  : "text-green-500"
+              }
+            >
+              Science: {Math.floor(initialCosts.science)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="text-sm">
+        Construction Time: {formatConstructionTime(constructionTime)}
+      </div>
+
+      <Button
+        className={`w-full ${!canAfford ? "opacity-50" : ""}`}
+        onClick={() => onConstruct(info.type)}
+        disabled={!canAfford}
+      >
+        {canAfford ? "Construct" : "Not Enough Resources"}
+      </Button>
     </div>
   );
 }
 
 export function Structures() {
   const { state } = useGame();
-  const [structures, setStructures] = useState<Structure[]>([]);
-  const [loadingStructures, setLoadingStructures] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [constructing, setConstructing] = useState<string | null>(null);
-  const [structuresConfig, setStructuresConfig] =
-    useState<GameStructuresConfig | null>(null);
-  const [loadingStructuresConfig, setLoadingStructuresConfig] = useState(true);
-
-  useEffect(() => {
-    if (!loadingStructures || !loadingStructuresConfig) {
-      setLoading(false);
-    }
-  }, [loadingStructures, loadingStructuresConfig]);
-
-  useEffect(() => {
-    // Fetch initial structures config
-    const fetchStructuresConfig = async () => {
-      const { data, error } = await supabase
-        .from("game_configs")
-        .select("*")
-        .eq("id", "structures")
-        .single();
-
-      if (error) {
-        console.error("Error fetching structures config:", error);
-        return;
-      }
-
-      console.log("Fetched structures config:", data);
-      setStructuresConfig(data.config_data as GameStructuresConfig);
-      setLoadingStructuresConfig(false);
-    };
-
-    fetchStructuresConfig();
-
-    // Subscribe to structures config changes
-    const subscription = supabase
-      .channel("gameconfig-structures")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "game_configs",
-          filter: "id=eq.structures",
-        },
-        (payload: any) => {
-          console.log("Received structures config update", payload);
-          setStructuresConfig(payload.new.config_data);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!state.selectedPlanet) return;
-
-    const fetchStructures = async () => {
-      const { data, error } = await supabase
-        .from("structures")
-        .select("*")
-        .eq("planet_id", state.selectedPlanet?.id);
-
-      if (error) {
-        console.error("Error fetching structures:", error);
-        return;
-      }
-
-      setStructures(data || []);
-      setLoadingStructures(false);
-    };
-
-    fetchStructures();
-
-    // Subscribe to structure updates
-    const subscription = supabase
-      .channel(`structures-${state.selectedPlanet.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "structures",
-          filter: `planet_id=eq.${state.selectedPlanet.id}`,
-        },
-        (payload: any) => {
-          console.log("Received structure update", payload);
-          if (payload.eventType === "DELETE") {
-            setStructures((current) =>
-              current.filter((s) => s.id !== payload.old.id)
-            );
-          } else if (payload.eventType === "INSERT") {
-            setStructures((current) => [...current, payload.new]);
-          } else if (payload.eventType === "UPDATE") {
-            setStructures((current) =>
-              current.map((s) => (s.id === payload.new.id ? payload.new : s))
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [state.selectedPlanet]);
-
-  const calculateHourlyProduction = (structure: Structure) => {
-    if (!structuresConfig) return 0;
-    if (structure.level === 0) return 0;
-
-    const config =
-      structuresConfig[structure.type as keyof GameStructuresConfig];
-    const baseProduction = config.base_production_rate;
-    const levelBonus =
-      (structure.level - 1) * config.production_rate_increase_per_level;
-    const productionPerSecond = baseProduction * (1 + levelBonus);
-
-    const productionPerHour = productionPerSecond * 3600;
-    return productionPerHour;
-  };
-
-  const startConstruction = async (type: StructureType) => {
-    if (!state.selectedPlanet) return;
-
-    setConstructing(type);
-
-    try {
-      await api.structures.construct(state.selectedPlanet.id, type);
-    } catch (error) {
-      console.error("Error starting construction:", error);
-    } finally {
-      setConstructing(null);
-    }
-  };
-
-  const upgradeStructure = async (structure: Structure) => {
-    setConstructing(structure.type);
-    try {
-      const { error } = await supabase
-        .from("structures")
-        .update({
-          is_under_construction: true,
-          construction_finish_time: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes upgrade time
-        })
-        .eq("id", structure.id);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error upgrading structure:", error);
-    } finally {
-      setConstructing(null);
-    }
-  };
-
-  if (loading) {
-    return <div className="text-center neon-text">LOADING STRUCTURES...</div>;
-  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold neon-text mb-2">
-          PLANETARY STRUCTURES
-        </h1>
-        <p className="text-muted-foreground">
-          Manage and upgrade your planetary infrastructure
-        </p>
-      </div>
-
-      {loading ? (
-        <div className="text-center neon-text">LOADING STRUCTURES...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Object.entries(STRUCTURE_INFO).map(([type, info]) => {
-            const existingStructure = structures.find((s) => s.type === type);
-
-            return (
-              <Card
-                key={type}
-                className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300"
-              >
-                <CardHeader className="flex flex-col items-center gap-4 pb-2">
-                  <div className="w-full aspect-square">
-                    <img
-                      src={info.image}
-                      alt={info.name}
-                      className="w-full h-full object-cover rounded-t-lg"
-                    />
-                  </div>
-                  <CardTitle className="text-sm font-medium neon-text">
-                    {info.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    {info.description}
-                  </p>
-
-                  {existingStructure ? (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Level</span>
-                        <span className="font-mono">
-                          {existingStructure.level}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between text-sm">
-                        <span>Production</span>
-                        <span className="font-mono">
-                          {calculateHourlyProduction(existingStructure)}/hour
-                        </span>
-                      </div>
-
-                      {existingStructure.is_under_construction &&
-                      existingStructure.construction_finish_time !== null ? (
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center gap-2 text-yellow-500">
-                            <AlertCircle className="h-4 w-4" />
-                            <span className="text-sm">
-                              {existingStructure.level === 0
-                                ? "Constructing..."
-                                : "Upgrading..."}
-                            </span>
-                          </div>
-                          <ConstructionTimer
-                            finishTime={
-                              existingStructure.construction_finish_time
-                            }
-                          />
-                        </div>
-                      ) : (
-                        <>
-                          <div className="text-sm space-y-1">
-                            <div className="flex justify-between">
-                              <span>Metal Required:</span>
-                              <span
-                                className={`font-mono ${
-                                  state.resources.metal >=
-                                  structuresConfig?.[type5]!.upgrade_cost
-                                    .metal *
-                                    (existingStructure.level + 1)
-                                    ? "text-green-500"
-                                    : "text-red-500"
-                                }`}
-                              >
-                                {structuresConfig![type]!.upgrade_cost.metal *
-                                  (existingStructure.level + 1)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Deuterium Required:</span>
-                              <span
-                                className={`font-mono ${
-                                  state.resources.deuterium >=
-                                  structuresConfig![type]!.upgrade_cost
-                                    .deuterium *
-                                    (existingStructure.level + 1)
-                                    ? "text-green-500"
-                                    : "text-red-500"
-                                }`}
-                              >
-                                {structuresConfig![type]!.upgrade_cost
-                                  .deuterium *
-                                  (existingStructure.level + 1)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Energy Required:</span>
-                              <span
-                                className={`font-mono ${
-                                  state.resources.energy >=
-                                  structuresConfig![type]!.upgrade_cost.energy *
-                                    (existingStructure.level + 1)
-                                    ? "text-green-500"
-                                    : "text-red-500"
-                                }`}
-                              >
-                                {structuresConfig![type]!.upgrade_cost.energy *
-                                  (existingStructure.level + 1)}
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            onClick={() => upgradeStructure(existingStructure)}
-                            disabled={
-                              constructing !== null ||
-                              state.resources.metal <
-                                structuresConfig![type]!.upgrade_cost.metal *
-                                  (existingStructure.level + 1) ||
-                              state.resources.deuterium <
-                                structuresConfig![type]!.upgrade_cost
-                                  .deuterium *
-                                  (existingStructure.level + 1) ||
-                              state.resources.energy <
-                                structuresConfig![type]!.upgrade_cost.energy *
-                                  (existingStructure.level + 1)
-                            }
-                            className="w-full bg-primary hover:bg-primary/60"
-                          >
-                            {constructing !== null
-                              ? "Construction in Progress"
-                              : `Upgrade to Level ${
-                                  existingStructure.level + 1
-                                }`}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="text-sm space-y-1">
-                        <div className="flex justify-between">
-                          <span>Metal Required:</span>
-                          <span
-                            className={`font-mono ${
-                              state.resources.metal >=
-                              (structuresConfig![type]!.initial_cost.metal || 0)
-                                ? "text-green-500"
-                                : "text-red-500"
-                            }`}
-                          >
-                            {structuresConfig![type]!.initial_cost.metal || 0}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Deuterium Required:</span>
-                          <span
-                            className={`font-mono ${
-                              state.resources.deuterium >=
-                              (structuresConfig![type]!.initial_cost
-                                .deuterium || 0)
-                                ? "text-green-500"
-                                : "text-red-500"
-                            }`}
-                          >
-                            {structuresConfig![type]!.initial_cost.deuterium ||
-                              0}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Energy Required:</span>
-                          <span
-                            className={`font-mono ${
-                              state.resources.energy >=
-                              (structuresConfig![type]!.initial_cost.energy ||
-                                0)
-                                ? "text-green-500"
-                                : "text-red-500"
-                            }`}
-                          >
-                            {structuresConfig![type]!.initial_cost.energy || 0}
-                          </span>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => startConstruction(type as StructureType)}
-                        disabled={
-                          constructing !== null ||
-                          state.resources.metal <
-                            (structuresConfig![type]!.initial_cost.metal ||
-                              0) ||
-                          state.resources.deuterium <
-                            (structuresConfig![type]!.initial_cost.deuterium ||
-                              0) ||
-                          state.resources.energy <
-                            (structuresConfig![type]!.initial_cost.energy || 0)
-                        }
-                        className="w-full bg-primary hover:bg-primary/60"
-                      >
-                        {constructing !== null
-                          ? "Construction in Progress"
-                          : state.resources.metal <
-                              (structuresConfig![
-                                type as keyof GameStructuresConfig
-                              ].initial_cost.metal || 0) ||
-                            state.resources.deuterium <
-                              (structuresConfig![
-                                type as keyof GameStructuresConfig
-                              ].initial_cost.deuterium || 0) ||
-                            state.resources.energy <
-                              (structuresConfig![
-                                type as keyof GameStructuresConfig
-                              ].initial_cost.energy || 0)
-                          ? "Insufficient Resources"
-                          : "Construct"}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+    <ErrorBoundary>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold neon-text mb-2">
+            PLANETARY STRUCTURES
+          </h1>
+          <p className="text-muted-foreground">
+            Manage and upgrade your planetary infrastructure
+          </p>
         </div>
-      )}
-    </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Object.values(STRUCTURE_INFO).map((info) => (
+            <StructureCard
+              key={info.type}
+              info={info}
+              existingStructure={state.structures?.find(
+                (s) => s.type === info.type
+              )}
+              config={state.structuresConfig![info.type]}
+              state={state}
+            />
+          ))}
+        </div>
+      </div>
+    </ErrorBoundary>
   );
 }

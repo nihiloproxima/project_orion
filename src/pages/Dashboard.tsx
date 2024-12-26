@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rocket, Database } from "lucide-react";
+import { Rocket, MessageSquare, Users, Activity } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 import { Navigate } from "react-router-dom";
 
@@ -29,8 +29,28 @@ export function Dashboard() {
         </div>
       </div>
 
+      {/* Alert Message */}
+      <Card className="bg-red-900/30 border-red-500/50 backdrop-blur-sm animate-pulse">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-red-500 font-bold flex items-center gap-2">
+            ⚠️ ALERT: INCOMING HOSTILE FLEET
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-red-400 space-y-2">
+            <p>Hostile fleet detected approaching Colony Alpha-7</p>
+            <div className="font-mono text-xl">
+              Time until impact: <span className="text-red-500">14:32</span>
+            </div>
+            <div className="text-sm">
+              Fleet composition: 5 Battlecruisers, 12 Destroyers
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium neon-text">
@@ -48,96 +68,95 @@ export function Dashboard() {
 
         <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium neon-text-secondary">
-              METAL
+            <CardTitle className="text-sm font-medium neon-text">
+              ACTIVE PLAYERS
             </CardTitle>
-            <Database className="h-4 w-4 text-secondary" />
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {state.resources?.metal || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Base Resource</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium neon-text-accent">
-              CRYSTAL
-            </CardTitle>
-            <Database className="h-4 w-4 text-accent" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {state.resources?.crystal || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Advanced Resource</p>
+            <div className="text-2xl font-bold">247</div>
+            <p className="text-xs text-muted-foreground">25 in your sector</p>
           </CardContent>
         </Card>
 
         <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium neon-text">
-              DEUTERIUM
+              SYSTEM STATUS
             </CardTitle>
-            <Database className="h-4 w-4 text-primary" />
+            <Activity className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {state.resources?.deuterium || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Fuel Resource</p>
+            <div className="text-2xl font-bold">OPTIMAL</div>
+            <p className="text-xs text-muted-foreground">All systems green</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activity */}
-      <Card className="bg-card/50 backdrop-blur-sm neon-border">
+      {/* Chat Window */}
+      <Card className="bg-card/50 backdrop-blur-sm neon-border h-[400px] flex flex-col">
         <CardHeader>
-          <CardTitle className="neon-text">RECENT OPERATIONS</CardTitle>
+          <CardTitle className="neon-text flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            UNIVERSAL COMMS
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="flex-1 flex flex-col">
+          <div className="flex-1 space-y-4 overflow-y-auto mb-4 font-mono">
             {[
               {
+                user: "SYSTEM",
+                message: "⚠️ ALERT: Hostile fleet detected in sector Alpha-7!",
+                time: "13:47",
+              },
+              {
+                user: "Commander_X",
+                message: "Detected unusual activity in sector 7",
                 time: "13:45",
-                event: "Fleet Alpha engaged in combat",
-                status: "In Progress",
-                statusColor: "text-secondary",
               },
               {
-                time: "12:30",
-                event: "Resource extraction completed",
-                status: "Complete",
-                statusColor: "text-primary",
+                user: "Ghost_Protocol",
+                message:
+                  "Alliance Delta requesting support at coordinates 127.0.0.1",
+                time: "13:42",
               },
               {
-                time: "11:15",
-                event: "New alliance formed",
-                status: "Complete",
-                statusColor: "text-primary",
+                user: "Sys_Admin",
+                message:
+                  "Network stability at 99.9%. Optimal conditions for fleet operations.",
+                time: "13:40",
               },
               {
-                time: "10:00",
-                event: "System maintenance",
-                status: "Complete",
-                statusColor: "text-primary",
+                user: "Neural_Link",
+                message: "Trading resources at Station Alpha. Any takers?",
+                time: "13:38",
               },
-            ].map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between border-b border-primary/20 pb-4 last:border-0 last:pb-0"
-              >
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-muted-foreground">
-                    {activity.time}
-                  </span>
-                  <span>{activity.event}</span>
-                </div>
-                <span className={activity.statusColor}>{activity.status}</span>
+            ].map((msg, index) => (
+              <div key={index} className="text-sm">
+                <span className="text-primary">[{msg.time}]</span>{" "}
+                <span
+                  className={`text-secondary ${
+                    msg.user === "SYSTEM" ? "text-red-500" : ""
+                  }`}
+                >
+                  {msg.user}:
+                </span>{" "}
+                <span
+                  className={`text-muted-foreground ${
+                    msg.user === "SYSTEM" ? "text-red-400" : ""
+                  }`}
+                >
+                  {msg.message}
+                </span>
               </div>
             ))}
+          </div>
+          <div className="border border-primary/30 rounded p-2">
+            <input
+              type="text"
+              placeholder="> Enter message..."
+              className="w-full bg-transparent border-none focus:outline-none text-primary placeholder:text-primary/50"
+            />
           </div>
         </CardContent>
       </Card>

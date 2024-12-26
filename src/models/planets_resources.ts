@@ -1,16 +1,25 @@
-export type ResourceType = "metal" | "energy" | "deuterium" | "science";
+export type ResourceType =
+  | "metal"
+  | "energy"
+  | "deuterium"
+  | "science"
+  | "microchips";
 
 export interface PlanetResources {
   planet_id: string;
   metal: number;
-  metal_generation_rate: number;
-  crystal: number;
-  crystal_generation_rate: number;
-  energy: number;
-  energy_generation_rate: number;
+  microchips: number;
   deuterium: number;
-  deuterium_generation_rate: number;
   science: number;
-  science_generation_rate: number;
-  last_update: Date;
+  energy_production: number;
+  energy_consumption: number;
+  metal_production_rate: number;
+  microchips_production_rate: number;
+  deuterium_production_rate: number;
+  science_production_rate: number;
+  max_metal: number;
+  max_microchips: number;
+  max_deuterium: number;
+  max_science: number;
+  last_update: number;
 }

@@ -86,7 +86,7 @@ export function Sidebar() {
                 color: "blue",
               },
               {
-                to: "/settings",
+                to: "/configs",
                 icon: Settings,
                 label: "SYS_CONFIG",
                 color: "cyan",
@@ -116,7 +116,7 @@ export function Sidebar() {
                   <span
                     className={`font-mono ${
                       location.pathname === item.to
-                        ? "text-primary animate-glitch"
+                        ? "text-primary "
                         : "group-hover:text-primary group-hover:animate-glitch"
                     }`}
                   >

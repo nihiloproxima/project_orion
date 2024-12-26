@@ -6,6 +6,7 @@ import { Register } from "../pages/Register";
 import { Dashboard } from "../pages/Dashboard";
 import { ChooseHomeworldPage } from "../pages/ChooseHomeworldPage";
 import { Structures } from "../pages/Structures";
+import { Configs } from "../pages/Configs";
 
 export function AppRoutes() {
   return (
@@ -20,6 +21,7 @@ export function AppRoutes() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/choose-homeworld" element={<ChooseHomeworldPage />} />
         <Route path="/structures" element={<Structures />} />
+        <Route path="/configs" element={<Configs />} />
         {/* Add other protected routes here */}
       </Route>
 
