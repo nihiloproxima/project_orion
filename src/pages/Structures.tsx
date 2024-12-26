@@ -116,6 +116,7 @@ function StructureCard({
   state: any; // Replace with proper type
 }) {
   const [structure, setStructure] = useState(existingStructure);
+  const { currentResources } = useGame();
 
   useEffect(() => {
     setStructure(existingStructure);
@@ -132,7 +133,11 @@ function StructureCard({
   const calculateHourlyProduction = (structure: Structure) => {
     if (!state.structuresConfig || structure.level === 0) return 0;
 
-    return structure.production_rate * 3600;
+    const energyRatio =
+      currentResources.energy_production / currentResources.energy_consumption;
+    const productionEfficiency = energyRatio >= 1 ? 1 : energyRatio;
+
+    return structure.production_rate * 3600 * productionEfficiency;
   };
 
   const level = structure?.level ?? 0;
@@ -149,6 +154,19 @@ function StructureCard({
     microchips: config.initial_cost.microchips,
     science: config.initial_cost.science,
   };
+
+  const energyConsumption =
+    (config.energy_consumption_increase_per_level || 0) * level;
+
+  const nextLevelEnergyConsumption =
+    (config.energy_consumption_increase_per_level || 0) * (level + 1);
+
+  const futureEnergyRatio =
+    info.type === "energy_plant"
+      ? (currentResources.energy_production - nextLevelEnergyConsumption) /
+        currentResources.energy_consumption
+      : currentResources.energy_production /
+        (currentResources.energy_consumption + nextLevelEnergyConsumption);
 
   const constructionTime =
     level === 0
@@ -177,8 +195,25 @@ function StructureCard({
 
           {structure && info.productionType !== "none" && (
             <div className="text-sm text-primary/70 font-medium">
-              Produces: {Math.floor(calculateHourlyProduction(structure))}{" "}
-              {info.productionType}/hour
+              <div
+                className={
+                  currentResources.energy_production <
+                  currentResources.energy_consumption
+                    ? "text-red-400"
+                    : ""
+                }
+              >
+                Produces:{" "}
+                {info.type === "energy_plant"
+                  ? structure.production_rate
+                  : Math.floor(calculateHourlyProduction(structure))}{" "}
+                {info.type === "energy_plant"
+                  ? info.productionType
+                  : `${info.productionType}/hour`}
+              </div>
+              <div className="text-sm text-violet-400/70">
+                Energy Consumption: {energyConsumption}
+              </div>
             </div>
           )}
         </div>
@@ -192,6 +227,7 @@ function StructureCard({
             upgradeCosts={upgradeCosts}
             constructionTime={constructionTime}
             onUpgrade={onUpgrade}
+            futureEnergyRatio={futureEnergyRatio}
           />
         ) : (
           <NewStructureContent
@@ -199,6 +235,8 @@ function StructureCard({
             constructionTime={constructionTime}
             info={info}
             onConstruct={onConstruct}
+            energyConsumption={energyConsumption}
+            futureEnergyRatio={futureEnergyRatio}
           />
         )}
       </CardContent>
@@ -217,6 +255,7 @@ interface ExistingStructureContentProps {
   };
   constructionTime: number;
   onUpgrade: (structure: Structure) => void;
+  futureEnergyRatio: number;
 }
 
 function ExistingStructureContent({
@@ -225,6 +264,7 @@ function ExistingStructureContent({
   upgradeCosts,
   constructionTime,
   onUpgrade,
+  futureEnergyRatio,
 }: ExistingStructureContentProps) {
   const { currentResources } = useGame();
 
@@ -308,6 +348,21 @@ function ExistingStructureContent({
       <div className="text-sm">
         Construction Time: {formatConstructionTime(constructionTime)}
       </div>
+      {futureEnergyRatio < 1 ? (
+        <div className="text-sm text-amber-400">
+          Warning: This upgrade will result in an energy ratio of{" "}
+          {futureEnergyRatio.toFixed(2)}, reducing production efficiency
+        </div>
+      ) : (
+        futureEnergyRatio >
+          currentResources.energy_production /
+            currentResources.energy_consumption && (
+          <div className="text-sm text-emerald-400">
+            This upgrade will improve energy ratio to{" "}
+            {futureEnergyRatio.toFixed(2)}, increasing production efficiency
+          </div>
+        )
+      )}
 
       <Button
         className={`w-full ${!canAfford ? "opacity-50" : ""}`}
@@ -332,6 +387,8 @@ interface NewStructureContentProps {
   constructionTime: number;
   info: StructureInfo;
   onConstruct: (type: StructureType) => void;
+  energyConsumption: number;
+  futureEnergyRatio: number;
 }
 
 function NewStructureContent({
@@ -339,6 +396,8 @@ function NewStructureContent({
   constructionTime,
   info,
   onConstruct,
+  energyConsumption,
+  futureEnergyRatio,
 }: NewStructureContentProps) {
   const { currentResources } = useGame();
 
@@ -406,6 +465,18 @@ function NewStructureContent({
       <div className="text-sm">
         Construction Time: {formatConstructionTime(constructionTime)}
       </div>
+
+      <div className="text-sm text-violet-400/70">
+        Energy {info.type === "energy_plant" ? "Production" : "Consumption"}:{" "}
+        {info.type === "energy_plant" ? -energyConsumption : energyConsumption}
+      </div>
+
+      {futureEnergyRatio < 1 && info.type !== "energy_plant" && (
+        <div className="text-sm text-amber-400">
+          Warning: Building this will result in an energy ratio of{" "}
+          {futureEnergyRatio.toFixed(2)}, reducing production efficiency
+        </div>
+      )}
 
       <Button
         className={`w-full ${!canAfford ? "opacity-50" : ""}`}

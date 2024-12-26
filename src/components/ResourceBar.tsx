@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { calculateHourlyRates } from "../lib/resourceCalculations";
 
 export function ResourceBar() {
   const { state, selectPlanet, currentResources } = useGame();
@@ -16,12 +15,15 @@ export function ResourceBar() {
     return null;
   }
 
-  const hourlyGenerationRate = state.structuresConfig
-    ? calculateHourlyRates(
-        state.structures,
-        state.structuresConfig,
-        state.selectedPlanet.biome
-      )
+  const hourlyGenerationRate = state.resources
+    ? {
+        metal: Math.floor(state.resources.metal_production_rate * 3600),
+        microchips: Math.floor(
+          state.resources.microchips_production_rate * 3600
+        ),
+        deuterium: Math.floor(state.resources.deuterium_production_rate * 3600),
+        science: Math.floor(state.resources.science_production_rate * 3600),
+      }
     : {
         metal: 0,
         microchips: 0,
@@ -150,14 +152,12 @@ export function ResourceBar() {
                   }`}
                 />
               </div>
-              <div className="flex gap-1 text-xs font-medium">
-                <span className="text-green-400">
-                  +{Math.floor(currentResources.energy_production)}
-                </span>
-                <span className="text-red-400">
-                  -{Math.floor(currentResources.energy_consumption)}
-                </span>
-              </div>
+              <span className="text-xs font-medium">
+                {Number(
+                  currentResources.energy_production /
+                    currentResources.energy_consumption
+                ).toFixed(2)}
+              </span>
             </div>
           </div>
         </div>

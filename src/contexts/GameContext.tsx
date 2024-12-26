@@ -12,7 +12,6 @@ import { useAuth } from "../context/auth";
 import { GameStructuresConfig } from "../models/structures_config";
 import { Planet } from "../models/planet";
 import { PlanetResources } from "../models/planets_resources";
-import { calculateCurrentResources } from "../lib/resourceCalculations";
 
 interface GameState {
   userPlanets: Planet[];
@@ -333,17 +332,46 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const interval = setInterval(() => {
       if (!state.resources || !state.selectedPlanet || !state.structuresConfig)
         return;
+      const now = Date.now();
+      const lastUpdate = state.resources.last_update;
+      const elapsedSeconds = (now - lastUpdate) / 1000;
 
-      const updatedResources = calculateCurrentResources(
-        initialResources,
-        state.structures,
-        state.structuresConfig,
-        state.selectedPlanet.biome,
-        new Date(state.resources.last_update).getTime()
-      );
+      // Calculate energy ratio and production malus
+      const energyDeficit =
+        state.resources.energy_production - state.resources.energy_consumption;
+      let productionMalus = 1;
+      if (energyDeficit < 0) {
+        // Production scales from 100% at deficit=0 to 0% at deficit=-consumption or below
+        productionMalus = 1 - energyDeficit / 100;
+      }
 
-      // Energy is now a balance, not accumulated
-      updatedResources.energy = state.resources.energy;
+      // Calculate current resources based on generation rates with energy malus
+      const updatedResources: PlanetResources = {
+        ...state.resources,
+        metal:
+          state.resources.metal +
+          state.resources.metal_production_rate *
+            elapsedSeconds *
+            productionMalus,
+        microchips:
+          state.resources.microchips +
+          state.resources.microchips_production_rate *
+            elapsedSeconds *
+            productionMalus,
+        deuterium:
+          state.resources.deuterium +
+          state.resources.deuterium_production_rate *
+            elapsedSeconds *
+            productionMalus,
+        science:
+          state.resources.science +
+          state.resources.science_production_rate *
+            elapsedSeconds *
+            productionMalus,
+        energy_production: state.resources.energy_production,
+        energy_consumption: state.resources.energy_consumption,
+        last_update: now,
+      };
 
       setCurrentResources(updatedResources);
       setState((prev) => ({
