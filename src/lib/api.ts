@@ -34,6 +34,9 @@ async function post(
 
 export const api = {
   users: {
+    register: async (id: string, name: string) => {
+      return post("users", "register", { id, name });
+    },
     update: async (name: string) => {
       return post("users", "update", { name });
     },

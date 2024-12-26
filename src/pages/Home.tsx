@@ -54,7 +54,7 @@ export function Home() {
       <div className="container mx-auto px-4 py-24 text-center relative">
         {/* <div className="absolute inset-0 bg-primary/5 blur-[100px] rounded-full"></div> */}
         <h1 className="text-7xl font-bold mb-6 neon-text tracking-tight">
-          ExoGenesis
+          Project Orion
         </h1>
         <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
           Command your fleet through the vast expanse of space. Build, trade,

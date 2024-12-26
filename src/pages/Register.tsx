@@ -39,28 +39,23 @@ export function Register() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: user, error } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (error) throw error;
+      if (!user || !user.user) throw new Error("User not found");
 
-      try {
-        await api.users.update(name);
-      } catch (error: any) {
-        setError(error.message || "Registration failed");
-        console.error("Registration failed:", error);
-        await logout();
-        navigate("/dashboard");
-      }
+      await api.users.register(user.user!.id, name);
+
+      navigate("/login");
     } catch (error: any) {
       setError(error.message || "Registration failed");
       console.error("Registration failed:", error);
       await logout();
     }
   };
-
   if (isAuthenticated) {
     return <Navigate to="/dashboard" />;
   }
@@ -73,6 +68,7 @@ export function Register() {
           <CardTitle className="font-mono text-2xl text-center neon-text tracking-wider">
             NEW OPERATOR REGISTRATION
           </CardTitle>
+
           <div className="text-xs font-mono text-primary/70">
             {">"} INITIALIZING REGISTRATION SEQUENCE...
           </div>
@@ -151,9 +147,6 @@ export function Register() {
                 className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
                 placeholder="****************"
               />
-              {error && (
-                <p className="text-sm text-destructive font-mono">{error}</p>
-              )}
             </div>
 
             <Button

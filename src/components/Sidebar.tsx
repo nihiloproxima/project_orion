@@ -42,7 +42,7 @@ export function Sidebar() {
         <div className="flex">
           <Terminal className="mt-2  mr-1 h-4 w-4 text-primary animate-pulse" />
           <h2 className="text-xl font-bold text-primary tracking-wider effect">
-            EXOGENESIS
+            Project Orion
           </h2>
         </div>
         <div className="text-xs text-primary/70 mt-2 typing-effect-delay">
