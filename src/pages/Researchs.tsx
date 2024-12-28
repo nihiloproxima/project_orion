@@ -22,15 +22,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../components/ui/tooltip";
+import { api } from "../lib/api";
+import { Timer } from "../components/Timer";
 
 import espionageTechImg from "../assets/researchs/espionage_tech.png";
 import ansibleNetworkImg from "../assets/researchs/ansible_network.png";
 import enhancedMiningImg from "../assets/researchs/enhanced_mining.png";
 import quantumComputingImg from "../assets/researchs/quantum_computing.png";
 import cryogenicEfficiencyImg from "../assets/researchs/cryogenic_efficiency.png";
-
-import { api } from "../lib/api";
-
+import naniteConstructorsImg from "../assets/researchs/nanite_constructors.png";
+import neuralNetworkImg from "../assets/researchs/neural_network.png";
+import energyEfficiencyImg from "../assets/researchs/energy_efficiency.png";
 export const RESEARCH_ASSETS: Record<
   TechnologyId,
   {
@@ -44,11 +46,35 @@ export const RESEARCH_ASSETS: Record<
     };
   }
 > = {
+  espionage_tech: {
+    name: "Espionage Technology",
+    image: espionageTechImg,
+    description:
+      "Increases your ability to gather intelligence on other players and their planets. Each level improves the accuracy and detail of espionage reports.",
+    category: "misc",
+    unlocks: {
+      ships: ["Spy Probe", "Stealth Ship"],
+    },
+  },
+  nanite_constructors: {
+    name: "Nanite Constructors",
+    image: naniteConstructorsImg,
+    description:
+      "Enables the construction of nanite structures. Each level increases the construction speed of all structures by 5%.",
+    category: "infrastructure",
+  },
   cryogenic_efficiency: {
     name: "Cryogenic Efficiency",
     image: cryogenicEfficiencyImg,
     description:
       "Optimizes the cooling systems needed to store and transport deuterium, reducing losses. Each level increases the deuterium production by 5%.",
+    category: "resource",
+  },
+  energy_efficiency: {
+    name: "Energy Efficiency",
+    image: energyEfficiencyImg,
+    description:
+      "Improves the energy production efficiency. Each level increases energy production by 5%.",
     category: "resource",
   },
   quantum_computing: {
@@ -65,8 +91,15 @@ export const RESEARCH_ASSETS: Record<
     name: "Enhanced Mining",
     image: enhancedMiningImg,
     description:
-      "Improves resource extraction efficiency. Each level increases resource production by 5%.",
+      "Improves resource extraction efficiency. Each level increases metal production by 5%.",
     category: "resource",
+  },
+  neural_network: {
+    name: "Neural Network",
+    image: neuralNetworkImg,
+    description:
+      "Enables the construction of neural networks. Each level increases the production of science by 5%.",
+    category: "infrastructure",
   },
   ansible_network: {
     name: "Ansible Network",
@@ -74,16 +107,6 @@ export const RESEARCH_ASSETS: Record<
     description:
       "Enables research sharing between planets through quantum entanglement.",
     category: "infrastructure",
-  },
-  espionage_tech: {
-    name: "Espionage Technology",
-    image: espionageTechImg,
-    description:
-      "Increases your ability to gather intelligence on other players and their planets. Each level improves the accuracy and detail of espionage reports.",
-    category: "misc",
-    unlocks: {
-      ships: ["Spy Probe", "Stealth Ship"],
-    },
   },
 } as const;
 
@@ -156,7 +179,9 @@ function ResearchCard({
 
   const getButtonText = () => {
     if (tech.level >= research.max_level) return "MAX LEVEL";
-    if (tech.is_researching) return "RESEARCHING...";
+    if (tech.is_researching) {
+      return "RESEARCHING";
+    }
     if (!prerequisitesMet) return "PREREQUISITES NOT MET";
     if (!hasEnoughResources) return "NOT ENOUGH RESOURCES";
     return "RESEARCH";
@@ -250,24 +275,20 @@ function ResearchCard({
       </CardHeader>
 
       <CardContent className="space-y-4 pt-4 border-t border-primary/20">
-        {tech.is_researching && (
-          <div className="p-3 bg-primary/10 rounded-lg border border-primary/30">
-            <div className="flex items-center">
-              <div className="animate-pulse mr-2 w-2 h-2 bg-primary rounded-full"></div>
-              <p className="text-primary font-medium">Research in Progress</p>
+        {tech.is_researching ? (
+          <Timer
+            startTime={tech.research_start_time!}
+            finishTime={tech.research_finish_time!}
+            variant="primary"
+          />
+        ) : (
+          <div className="p-3 bg-black/30 rounded-lg border border-primary/20">
+            <h4 className="font-medium text-primary/70 mb-2">Research Time</h4>
+            <div className="text-muted-foreground text-sm">
+              {formatResearchTime(researchTime)}
             </div>
-            <p className="text-muted-foreground text-sm mt-1">
-              Completes: {new Date(tech.research_finish_time!).toLocaleString()}
-            </p>
           </div>
         )}
-
-        <div className="p-3 bg-black/30 rounded-lg border border-primary/20">
-          <h4 className="font-medium text-primary/70 mb-2">Research Time</h4>
-          <div className="text-muted-foreground text-sm">
-            {formatResearchTime(researchTime)}
-          </div>
-        </div>
 
         <TooltipProvider>
           <Tooltip>
@@ -370,11 +391,11 @@ export function Researchs() {
     return <div>Loading...</div>;
   }
 
-  const startResearch = async (researchId: TechnologyId) => {
+  const startResearch = async (technologyId: TechnologyId) => {
     if (!state.selectedPlanet?.id) return;
 
     try {
-      await api.researchs.startResearch(researchId, state.selectedPlanet.id);
+      await api.researchs.startResearch(technologyId, state.selectedPlanet.id);
     } catch (error) {
       console.error("Error starting research:", error);
     }

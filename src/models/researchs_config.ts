@@ -1,9 +1,15 @@
+import { ShipType } from "./ship";
+import { StructureType } from "./structure";
+
 export type TechnologyId =
-  | "enhanced_mining"
-  | "ansible_network"
-  | "quantum_computing"
-  | "cryogenic_efficiency"
-  | "espionage_tech";
+  | "enhanced_mining" // Boost metal production
+  | "cryogenic_efficiency" // Boost deuterium production
+  | "energy_efficiency" // Boost energy production
+  | "quantum_computing" // Boost microchips production
+  | "neural_network" // Boost science production through distributed
+  | "ansible_network" // All researchs are shared across your planets
+  | "espionage_tech" // Unlock spy probe, upgrade to enhance espionage
+  | "nanite_constructors"; // More sci-fi name
 
 export type ResearchCategory =
   | "resource"
@@ -22,7 +28,6 @@ export type UnlockableType =
   | "structure"
   | "defense"
   | "resource_boost"
-  | "energy_efficiency"
   | "research_speed"
   | "construction_speed"
   | "research_sharing"
@@ -30,7 +35,8 @@ export type UnlockableType =
 
 export interface ResearchEffect {
   type: UnlockableType;
-  target_id?: string; // ID of ship/structure/defense being unlocked
+  target_type?: StructureType | ShipType; // Type of ship/structure/defense being unlocked
+  resource_type?: "metal" | "deuterium" | "microchips" | "science" | "energy"; // Resource type for resource_boost
   value: number;
   per_level: boolean;
 }

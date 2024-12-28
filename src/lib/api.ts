@@ -39,9 +39,9 @@ export const api = {
     },
   },
   researchs: {
-    startResearch: async (researchId: string, planetId: string) => {
+    startResearch: async (technologyId: string, planetId: string) => {
       return post("researchs", "startResearch", {
-        research_id: researchId,
+        technology_id: technologyId,
         planet_id: planetId,
       });
     },

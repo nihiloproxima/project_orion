@@ -1,4 +1,3 @@
-import { ConstructionTimer } from "../components/ConstructionTimer";
 import { useGame } from "../contexts/GameContext";
 import {
   Card,
@@ -8,7 +7,7 @@ import {
 } from "../components/ui/card";
 import { Structure, StructureType } from "../models/structure";
 import { Button } from "../components/ui/button";
-import { Building2 } from "lucide-react";
+import { Building2, Beaker, Flame, Hammer, Microchip } from "lucide-react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
@@ -21,6 +20,7 @@ import researchLabImg from "../assets/structures/research_lab.png";
 import shipYardImg from "../assets/structures/shipyard.png";
 import defenseFactoryImg from "../assets/structures/defense_factory.png";
 import microchipFactoryImg from "../assets/structures/microchip_factory.png";
+import { Timer } from "../components/Timer";
 
 interface StructureInfo {
   type: StructureType;
@@ -178,7 +178,7 @@ function StructureCard({
   return (
     <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
       <CardHeader className="flex flex-row items-start gap-6 pb-2">
-        <div className="w-1/3 aspect-square">
+        <div className="w-2/5 aspect-square">
           <img
             src={info.image}
             alt={info.name}
@@ -186,7 +186,7 @@ function StructureCard({
           />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 w-3/5">
           <CardTitle className="text-xl font-bold neon-text tracking-wide uppercase hover:scale-105 transition-transform">
             {info.name}
           </CardTitle>
@@ -282,9 +282,10 @@ function ExistingStructureContent({
     return (
       <div className="space-y-4">
         <div className="text-sm text-primary/70">Under Construction</div>
-        <ConstructionTimer
+        <Timer
           startTime={structure.construction_start_time}
           finishTime={structure.construction_finish_time}
+          variant="primary"
         />
       </div>
     );
@@ -300,46 +301,50 @@ function ExistingStructureContent({
         <div className="grid grid-cols-2 gap-2 text-sm">
           {upgradeCosts.metal > 0 && (
             <div
-              className={
+              className={`flex items-center gap-2 ${
                 currentResources.metal < upgradeCosts.metal
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-secondary"
+              }`}
             >
-              Metal: {Math.floor(upgradeCosts.metal)}
+              <Hammer className="h-4 w-4" />
+              <span>{Math.floor(upgradeCosts.metal)}</span>
             </div>
           )}
           {upgradeCosts.deuterium > 0 && (
             <div
-              className={
+              className={`flex items-center gap-2 ${
                 currentResources.deuterium < upgradeCosts.deuterium
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-primary"
+              }`}
             >
-              Deuterium: {Math.floor(upgradeCosts.deuterium)}
+              <Flame className="h-4 w-4" />
+              <span>{Math.floor(upgradeCosts.deuterium)}</span>
             </div>
           )}
           {upgradeCosts.microchips > 0 && (
             <div
-              className={
+              className={`flex items-center gap-2 ${
                 currentResources.microchips < upgradeCosts.microchips
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-accent"
+              }`}
             >
-              Microchips: {Math.floor(upgradeCosts.microchips)}
+              <Microchip className="h-4 w-4" />
+              <span>{Math.floor(upgradeCosts.microchips)}</span>
             </div>
           )}
           {upgradeCosts.science > 0 && (
             <div
-              className={
+              className={`flex items-center gap-2 ${
                 currentResources.science < upgradeCosts.science
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-blue-400"
+              }`}
             >
-              Science: {Math.floor(upgradeCosts.science)}
+              <Beaker className="h-4 w-4" />
+              <span>{Math.floor(upgradeCosts.science)}</span>
             </div>
           )}
         </div>
@@ -423,46 +428,50 @@ function NewStructureContent({
         <div className="grid grid-cols-2 gap-2 text-sm">
           {constructionCost.metal > 0 && (
             <div
-              className={
+              className={`flex items-center gap-2 ${
                 currentResources.metal < constructionCost.metal
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-secondary"
+              }`}
             >
-              Metal: {Math.floor(constructionCost.metal)}
+              <Hammer className="h-4 w-4" />
+              <span>{Math.floor(constructionCost.metal)}</span>
             </div>
           )}
           {constructionCost.deuterium > 0 && (
             <div
-              className={
+              className={`flex items-center gap-2 ${
                 currentResources.deuterium < constructionCost.deuterium
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-primary"
+              }`}
             >
-              Deuterium: {Math.floor(constructionCost.deuterium)}
+              <Flame className="h-4 w-4" />
+              <span>{Math.floor(constructionCost.deuterium)}</span>
             </div>
           )}
           {constructionCost.microchips > 0 && (
             <div
-              className={
+              className={`flex items-center gap-2 ${
                 currentResources.microchips < constructionCost.microchips
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-accent"
+              }`}
             >
-              Microchips: {Math.floor(constructionCost.microchips)}
+              <Microchip className="h-4 w-4" />
+              <span>{Math.floor(constructionCost.microchips)}</span>
             </div>
           )}
           {constructionCost.science > 0 && (
             <div
-              className={
+              className={`flex items-center gap-2 ${
                 currentResources.science < constructionCost.science
                   ? "text-red-500"
-                  : "text-green-500"
-              }
+                  : "text-blue-400"
+              }`}
             >
-              Science: {Math.floor(constructionCost.science)}
+              <Beaker className="h-4 w-4" />
+              <span>{Math.floor(constructionCost.science)}</span>
             </div>
           )}
         </div>
@@ -514,7 +523,7 @@ export function Structures() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.values(STRUCTURE_INFO).map((info) => (
             <StructureCard
               key={info.type}
