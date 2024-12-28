@@ -1,10 +1,84 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { ScrollArea } from "../components/ui/scroll-area";
 import { Rocket, MessageSquare, Users, Activity } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 import { Navigate } from "react-router-dom";
+import { ChatMessage } from "../models/chat_message";
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "../lib/supabase";
+import { api } from "../lib/api";
 
 export function Dashboard() {
   const { state } = useGame();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Initial fetch of messages
+    const fetchMessages = async () => {
+      const { data } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (data) {
+        setMessages(data.reverse());
+      }
+    };
+
+    fetchMessages();
+
+    // Subscribe to new messages
+    const subscription = supabase
+      .channel("chat_messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+        },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as ChatMessage]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    // Scroll to bottom when new messages arrive
+    if (scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+
+    try {
+      await api.chat.sendMessage("global", newMessage);
+      setNewMessage("");
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
+  };
 
   if (
     !state.loading &&
@@ -69,19 +143,6 @@ export function Dashboard() {
         <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium neon-text">
-              ACTIVE PLAYERS
-            </CardTitle>
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">247</div>
-            <p className="text-xs text-muted-foreground">25 in your sector</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium neon-text">
               SYSTEM STATUS
             </CardTitle>
             <Activity className="h-4 w-4 text-primary" />
@@ -91,73 +152,67 @@ export function Dashboard() {
             <p className="text-xs text-muted-foreground">All systems green</p>
           </CardContent>
         </Card>
+
+        <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium neon-text">
+              ACTIVE COMMANDERS
+            </CardTitle>
+            <Users className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{state.activePlayers}</div>
+            <p className="text-xs text-muted-foreground">Currently online</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Chat Window */}
       <Card className="bg-card/50 backdrop-blur-sm neon-border h-[400px] flex flex-col">
-        <CardHeader>
+        <CardHeader className="pb-2">
           <CardTitle className="neon-text flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             UNIVERSAL COMMS
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col">
-          <div className="flex-1 space-y-4 overflow-y-auto mb-4 font-mono">
-            {[
-              {
-                user: "SYSTEM",
-                message: "⚠️ ALERT: Hostile fleet detected in sector Alpha-7!",
-                time: "13:47",
-              },
-              {
-                user: "Commander_X",
-                message: "Detected unusual activity in sector 7",
-                time: "13:45",
-              },
-              {
-                user: "Ghost_Protocol",
-                message:
-                  "Alliance Delta requesting support at coordinates 127.0.0.1",
-                time: "13:42",
-              },
-              {
-                user: "Sys_Admin",
-                message:
-                  "Network stability at 99.9%. Optimal conditions for fleet operations.",
-                time: "13:40",
-              },
-              {
-                user: "Neural_Link",
-                message: "Trading resources at Station Alpha. Any takers?",
-                time: "13:38",
-              },
-            ].map((msg, index) => (
-              <div key={index} className="text-sm">
-                <span className="text-primary">[{msg.time}]</span>{" "}
-                <span
-                  className={`text-secondary ${
-                    msg.user === "SYSTEM" ? "text-red-500" : ""
-                  }`}
-                >
-                  {msg.user}:
-                </span>{" "}
-                <span
-                  className={`text-muted-foreground ${
-                    msg.user === "SYSTEM" ? "text-red-400" : ""
-                  }`}
-                >
-                  {msg.message}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="border border-primary/30 rounded p-2">
+        <CardContent className="flex-1 flex flex-col overflow-hidden">
+          <ScrollArea className="flex-1" ref={scrollAreaRef}>
+            <div className="space-y-4 font-mono pr-4">
+              {messages.map((msg) => (
+                <div key={msg.id} className="text-sm break-words">
+                  <span className="text-primary whitespace-nowrap">
+                    [{new Date(msg.created_at).toLocaleTimeString()}]
+                  </span>{" "}
+                  <span
+                    className={`text-secondary ${
+                      msg.type === "system_message" ? "text-red-500" : ""
+                    }`}
+                  >
+                    {msg.sender_name}:
+                  </span>{" "}
+                  <span
+                    className={`text-muted-foreground ${
+                      msg.type === "system_message" ? "text-red-400" : ""
+                    }`}
+                  >
+                    {msg.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+          <form
+            onSubmit={handleSendMessage}
+            className="border border-primary/30 rounded p-2 mt-4"
+          >
             <input
               type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
               placeholder="> Enter message..."
               className="w-full bg-transparent border-none focus:outline-none text-primary placeholder:text-primary/50"
             />
-          </div>
+          </form>
         </CardContent>
       </Card>
     </div>

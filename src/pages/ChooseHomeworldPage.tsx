@@ -7,11 +7,10 @@ export function ChooseHomeworldPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (state.loading === false && state.userPlanets.length > 0) {
-      console.log("navigating to dashboard");
+    if (!state.loading && state.userPlanets.length > 0) {
       navigate("/dashboard");
     }
-  }, [state.loading, state.selectedPlanet]);
+  }, [state.loading, state.userPlanets, navigate]);
 
   return (
     <div className="min-h-screen bg-background p-6">

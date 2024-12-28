@@ -38,6 +38,11 @@ export const api = {
       return post("admin", "updateConfig", { id, config_data });
     },
   },
+  chat: {
+    sendMessage: async (channelId: string, text: string) => {
+      return post("chat", "sendMessage", { channel_id: channelId, text });
+    },
+  },
   users: {
     register: async (id: string, name: string) => {
       return post("users", "register", { id, name });

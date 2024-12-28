@@ -6,12 +6,13 @@ import {
   ReactNode,
 } from "react";
 import { supabase } from "../lib/supabase";
-
 import { Structure } from "../models/structure";
-import { useAuth } from "../context/auth";
+import { useAuth } from "./auth";
 import { GameStructuresConfig } from "../models/structures_config";
 import { Planet } from "../models/planet";
 import { PlanetResources } from "../models/planets_resources";
+import { ResearchsConfig } from "../models/researchs_config";
+import { PlanetResearchs } from "../models";
 
 interface GameState {
   userPlanets: Planet[];
@@ -19,11 +20,16 @@ interface GameState {
   resources: PlanetResources | null;
   structures: Structure[];
   structuresConfig: GameStructuresConfig | null;
+  researchsConfig: ResearchsConfig | null;
   loading: boolean;
   loadedResources: boolean;
   loadedPlanets: boolean;
   loadedStructures: boolean;
   loadedStructuresConfig: boolean;
+  loadedResearchsConfig: boolean;
+  activePlayers: number;
+  planetResearchs: PlanetResearchs | null;
+  loadedPlanetResearchs: boolean;
 }
 
 interface GameContextType {
@@ -47,11 +53,16 @@ const initialState: GameState = {
   loadedPlanets: false,
   loadedStructures: false,
   loadedStructuresConfig: false,
+  loadedResearchsConfig: false,
+  loadedPlanetResearchs: false,
   userPlanets: [],
   selectedPlanet: null,
   resources: null,
   structures: [],
   structuresConfig: null,
+  researchsConfig: null,
+  activePlayers: 0,
+  planetResearchs: null,
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
@@ -89,6 +100,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ? state.selectedPlanet
           : planets?.find((p) => p.is_homeworld) || null,
         loadedPlanets: true,
+        // If user has no planets, mark everything as loaded to prevent infinite loading
+        ...((!planets || planets.length === 0) && {
+          loadedResources: true,
+          loadedStructures: true,
+          loadedStructuresConfig: true,
+          loadedResearchsConfig: true,
+          loadedPlanetResearchs: true,
+        }),
       }));
     };
 
@@ -105,7 +124,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           table: "planets",
           filter: `owner_id=eq.${authedUser.id}`,
         },
-        (payload) => {
+        (payload: any) => {
           setState((prev) => {
             const updatedPlanets = prev.userPlanets.map((planet) =>
               planet.id === payload.new.id
@@ -168,9 +187,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           table: "planets_resources",
           filter: `planet_id=eq.${state.selectedPlanet?.id}`,
         },
-        (payload) => {
-          console.log("resources update", payload);
-          console.log(payload.new);
+        (payload: any) => {
+          console.log("resources update");
           setState((prev) => ({
             ...prev,
             resources: payload.new as PlanetResources,
@@ -180,48 +198,133 @@ export function GameProvider({ children }: { children: ReactNode }) {
       )
       .subscribe();
 
-    return () => {
-      resourcesSubscription.unsubscribe();
-    };
-  }, [state.selectedPlanet]);
-
-  useEffect(() => {
-    const fetchStructuresConfig = async () => {
-      const { data, error } = await supabase
-        .from("game_configs")
+    // Fetch planet research
+    const fetchPlanetResearch = async () => {
+      const { data: research, error } = await supabase
+        .from("planet_researchs")
         .select("*")
-        .eq("id", "structures")
+        .eq("planet_id", state.selectedPlanet?.id)
         .single();
 
       if (error) {
-        console.error("Error fetching structures config:", error);
+        console.error("Error fetching planet research:", error);
         return;
       }
 
       setState((prev) => ({
         ...prev,
-        structuresConfig: data.config_data as GameStructuresConfig,
-        loadedStructuresConfig: true,
+        planetResearchs: research || [],
+        loadedPlanetResearchs: true,
       }));
     };
 
-    fetchStructuresConfig();
+    fetchPlanetResearch();
+
+    // Subscribe to changes in planet research
+    const researchSubscription = supabase
+      .channel(`research-${state.selectedPlanet.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "planet_researchs",
+          filter: `planet_id=eq.${state.selectedPlanet.id}`,
+        },
+        (payload: any) => {
+          setState((prev) => {
+            switch (payload.eventType) {
+              case "DELETE":
+                return {
+                  ...prev,
+                  planetResearchs: null,
+                };
+              case "INSERT":
+                return {
+                  ...prev,
+                  planetResearchs: payload.new as PlanetResearchs,
+                };
+              case "UPDATE":
+                return {
+                  ...prev,
+                  planetResearchs: payload.new as PlanetResearchs,
+                };
+              default:
+                return prev;
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      resourcesSubscription.unsubscribe();
+      researchSubscription.unsubscribe();
+    };
+  }, [state.selectedPlanet]);
+
+  useEffect(() => {
+    const fetchConfigs = async () => {
+      // Fetch structures config
+      const { data: structuresData, error: structuresError } = await supabase
+        .from("game_configs")
+        .select("*")
+        .eq("id", "structures")
+        .single();
+
+      if (structuresError) {
+        console.error("Error fetching structures config:", structuresError);
+        return;
+      }
+
+      // Fetch research config
+      const { data: researchData, error: researchError } = await supabase
+        .from("game_configs")
+        .select("*")
+        .eq("id", "researchs")
+        .single();
+
+      if (researchError) {
+        console.error("Error fetching research config:", researchError);
+        return;
+      }
+
+      setState((prev) => ({
+        ...prev,
+        structuresConfig: structuresData.config_data as GameStructuresConfig,
+        researchsConfig: researchData.config_data as ResearchsConfig,
+        loadedStructuresConfig: true,
+        loadedResearchsConfig: true,
+      }));
+    };
+
+    fetchConfigs();
 
     const subscription = supabase
-      .channel("gameconfig-structures")
+      .channel("gameconfig-changes")
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "game_configs",
-          filter: "id=eq.structures",
+          filter: "id=in.(structures,researchs)",
         },
         (payload: any) => {
-          setState((prev) => ({
-            ...prev,
-            structuresConfig: payload.new.config_data,
-          }));
+          setState((prev) => {
+            if (payload.new.id === "structures") {
+              return {
+                ...prev,
+                structuresConfig: payload.new.config_data,
+              };
+            } else if (payload.new.id === "researchs") {
+              return {
+                ...prev,
+                researchsConfig: payload.new.config_data,
+              };
+            }
+            return prev;
+          });
         }
       )
       .subscribe();
@@ -254,6 +357,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     fetchStructures();
 
+    // Subscribe to changes in structures
     const subscription = supabase
       .channel(`structures-${state.selectedPlanet.id}`)
       .on(
@@ -266,27 +370,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
         },
         (payload: any) => {
           setState((prev) => {
-            if (payload.eventType === "DELETE") {
-              return {
-                ...prev,
-                structures: prev.structures.filter(
-                  (s) => s.id !== payload.old.id
-                ),
-              };
-            } else if (payload.eventType === "INSERT") {
-              return {
-                ...prev,
-                structures: [...prev.structures, payload.new],
-              };
-            } else if (payload.eventType === "UPDATE") {
-              return {
-                ...prev,
-                structures: prev.structures.map((s) =>
-                  s.id === payload.new.id ? payload.new : s
-                ),
-              };
+            switch (payload.eventType) {
+              case "DELETE":
+                return {
+                  ...prev,
+                  structures: prev.structures.filter(
+                    (s) => s.id !== payload.old.id
+                  ),
+                };
+              case "INSERT":
+                return {
+                  ...prev,
+                  structures: [...prev.structures, payload.new],
+                };
+              case "UPDATE":
+                return {
+                  ...prev,
+                  structures: prev.structures.map((s) =>
+                    s.id === payload.new.id ? payload.new : s
+                  ),
+                };
+              default:
+                return prev;
             }
-            return prev;
           });
         }
       )
@@ -302,7 +408,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       state.loadedPlanets &&
       state.loadedResources &&
       state.loadedStructures &&
-      state.loadedStructuresConfig
+      state.loadedStructuresConfig &&
+      state.loadedResearchsConfig &&
+      state.loadedPlanetResearchs
     ) {
       setState((prev) => ({ ...prev, loading: false }));
     }
@@ -311,6 +419,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     state.loadedResources,
     state.loadedStructures,
     state.loadedStructuresConfig,
+    state.loadedResearchsConfig,
+    state.loadedPlanetResearchs,
   ]);
 
   useEffect(() => {
@@ -391,6 +501,54 @@ export function GameProvider({ children }: { children: ReactNode }) {
     state.structures,
     state.structuresConfig,
   ]);
+
+  // Add presence tracking
+  useEffect(() => {
+    if (!authedUser) return;
+
+    const channel = supabase.channel("online-users", {
+      config: {
+        presence: {
+          key: authedUser.id,
+        },
+      },
+    });
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const presenceState = channel.presenceState();
+        const totalUsers = Object.keys(presenceState).length;
+
+        setState((prev) => ({
+          ...prev,
+          activePlayers: totalUsers,
+        }));
+      })
+      .on("presence", { event: "join" }, () => {
+        setState((prev) => ({
+          ...prev,
+          activePlayers: prev.activePlayers + 1,
+        }));
+      })
+      .on("presence", { event: "leave" }, () => {
+        setState((prev) => ({
+          ...prev,
+          activePlayers: Math.max(0, prev.activePlayers - 1),
+        }));
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({
+            user_id: authedUser.id,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [authedUser]);
 
   const selectPlanet = (planet: Planet) => {
     setState((prev) => ({

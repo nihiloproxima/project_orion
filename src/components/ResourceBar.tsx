@@ -11,18 +11,31 @@ import {
 export function ResourceBar() {
   const { state, selectPlanet, currentResources } = useGame();
 
-  if (state.selectedPlanet === null) {
+  if (state.selectedPlanet === null || !state.resources) {
     return null;
+  }
+  const energyDeficit =
+    state.resources.energy_production - state.resources.energy_consumption;
+  let productionMalus = 1;
+  if (energyDeficit < 0) {
+    // Production scales from 100% at deficit=0 to 0% at deficit=-consumption or below
+    productionMalus = 1 - energyDeficit / 100;
   }
 
   const hourlyGenerationRate = state.resources
     ? {
-        metal: Math.floor(state.resources.metal_production_rate * 3600),
-        microchips: Math.floor(
-          state.resources.microchips_production_rate * 3600
+        metal: Math.floor(
+          state.resources.metal_production_rate * 3600 * productionMalus
         ),
-        deuterium: Math.floor(state.resources.deuterium_production_rate * 3600),
-        science: Math.floor(state.resources.science_production_rate * 3600),
+        microchips: Math.floor(
+          state.resources.microchips_production_rate * 3600 * productionMalus
+        ),
+        deuterium: Math.floor(
+          state.resources.deuterium_production_rate * 3600 * productionMalus
+        ),
+        science: Math.floor(
+          state.resources.science_production_rate * 3600 * productionMalus
+        ),
       }
     : {
         metal: 0,
@@ -80,7 +93,7 @@ export function ResourceBar() {
 
           <div className="flex items-center gap-2">
             <div className="flex flex-col items-end">
-              <span className="text-xs text-accent/70">microchips</span>
+              <span className="text-xs text-accent/70">MICROCHIPS</span>
               <div className="flex items-center gap-2">
                 <span className="font-mono text-accent font-bold">
                   {Math.floor(currentResources.microchips)}

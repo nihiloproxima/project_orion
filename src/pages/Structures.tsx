@@ -12,7 +12,6 @@ import { Building2 } from "lucide-react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import { GameStructuresConfig } from "../models/structures_config";
 
 // Import structure images
 import metalMineImg from "../assets/structures/metal_mine.png";
@@ -112,15 +111,15 @@ function StructureCard({
 }: {
   info: StructureInfo;
   existingStructure?: Structure;
-  config: GameStructuresConfig[keyof GameStructuresConfig];
-  state: any; // Replace with proper type
+  config: any;
+  state: any;
 }) {
   const [structure, setStructure] = useState(existingStructure);
   const { currentResources } = useGame();
 
   useEffect(() => {
     setStructure(existingStructure);
-  }, [existingStructure]);
+  }, [existingStructure, state]); // Added state dependency
 
   const onUpgrade = async (structure: Structure) => {
     await api.structures.upgrade(state.selectedPlanet.id, structure.id);
@@ -141,39 +140,38 @@ function StructureCard({
   };
 
   const level = structure?.level ?? 0;
-  const upgradeCosts = {
-    metal: config.upgrade_cost.metal * (level + 1),
-    deuterium: config.upgrade_cost.deuterium * (level + 1),
-    microchips: config.upgrade_cost.microchips * (level + 1),
-    science: config.upgrade_cost.science * (level + 1),
+  const costIncreaseCoef =
+    1 + (config.cost.percent_increase_per_level * level) / 100;
+  const constructionCost = {
+    metal: config.cost.resources.metal * costIncreaseCoef,
+    deuterium: config.cost.resources.deuterium * costIncreaseCoef,
+    microchips: config.cost.resources.microchips * costIncreaseCoef,
+    science: config.cost.resources.science * costIncreaseCoef,
   };
 
-  const initialCosts = {
-    metal: config.initial_cost.metal,
-    deuterium: config.initial_cost.deuterium,
-    microchips: config.initial_cost.microchips,
-    science: config.initial_cost.science,
-  };
+  const constructionTimeCoef =
+    1 + (config.time.percent_increase_per_level * level) / 100;
+  const constructionTime = Math.min(
+    config.time.base_seconds * constructionTimeCoef,
+    config.time.max_seconds
+  );
+
+  const energyConsumptionCoef =
+    1 + (config.energy_consumption.percent_increase_per_level * level) / 100;
+  const futureEnergyConsumptionCoef =
+    1 +
+    (config.energy_consumption.percent_increase_per_level * (level + 1)) / 100;
 
   const energyConsumption =
-    (config.energy_consumption_increase_per_level || 0) * level;
-
-  const nextLevelEnergyConsumption =
-    (config.energy_consumption_increase_per_level || 0) * (level + 1);
+    config.energy_consumption.base * energyConsumptionCoef;
+  const futureEnergyConsumption =
+    config.energy_consumption.base * futureEnergyConsumptionCoef;
 
   const futureEnergyRatio =
-    info.type === "energy_plant"
-      ? (currentResources.energy_production - nextLevelEnergyConsumption) /
-        currentResources.energy_consumption
-      : currentResources.energy_production /
-        (currentResources.energy_consumption + nextLevelEnergyConsumption);
-
-  const constructionTime =
-    level === 0
-      ? config.construction_time_seconds
-      : config.construction_time_seconds *
-        config.construction_time_multiplier *
-        level;
+    currentResources.energy_production /
+    (currentResources.energy_consumption +
+      futureEnergyConsumption -
+      energyConsumption);
 
   return (
     <Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
@@ -224,14 +222,14 @@ function StructureCard({
           <ExistingStructureContent
             structure={structure}
             info={info}
-            upgradeCosts={upgradeCosts}
+            upgradeCosts={constructionCost}
             constructionTime={constructionTime}
             onUpgrade={onUpgrade}
             futureEnergyRatio={futureEnergyRatio}
           />
         ) : (
           <NewStructureContent
-            initialCosts={initialCosts}
+            constructionCost={constructionCost}
             constructionTime={constructionTime}
             info={info}
             onConstruct={onConstruct}
@@ -378,7 +376,7 @@ function ExistingStructureContent({
 }
 
 interface NewStructureContentProps {
-  initialCosts: {
+  constructionCost: {
     metal: number;
     deuterium: number;
     microchips: number;
@@ -392,7 +390,7 @@ interface NewStructureContentProps {
 }
 
 function NewStructureContent({
-  initialCosts,
+  constructionCost,
   constructionTime,
   info,
   onConstruct,
@@ -402,10 +400,10 @@ function NewStructureContent({
   const { currentResources } = useGame();
 
   const canAfford =
-    currentResources.metal >= initialCosts.metal &&
-    currentResources.deuterium >= initialCosts.deuterium &&
-    currentResources.microchips >= initialCosts.microchips &&
-    currentResources.science >= initialCosts.science;
+    currentResources.metal >= constructionCost.metal &&
+    currentResources.deuterium >= constructionCost.deuterium &&
+    currentResources.microchips >= constructionCost.microchips &&
+    currentResources.science >= constructionCost.science;
 
   return (
     <div className="space-y-4">
@@ -415,48 +413,48 @@ function NewStructureContent({
       <div className="space-y-2">
         <div className="text-sm font-medium">Construction Costs:</div>
         <div className="grid grid-cols-2 gap-2 text-sm">
-          {initialCosts.metal > 0 && (
+          {constructionCost.metal > 0 && (
             <div
               className={
-                currentResources.metal < initialCosts.metal
+                currentResources.metal < constructionCost.metal
                   ? "text-red-500"
                   : "text-green-500"
               }
             >
-              Metal: {Math.floor(initialCosts.metal)}
+              Metal: {Math.floor(constructionCost.metal)}
             </div>
           )}
-          {initialCosts.deuterium > 0 && (
+          {constructionCost.deuterium > 0 && (
             <div
               className={
-                currentResources.deuterium < initialCosts.deuterium
+                currentResources.deuterium < constructionCost.deuterium
                   ? "text-red-500"
                   : "text-green-500"
               }
             >
-              Deuterium: {Math.floor(initialCosts.deuterium)}
+              Deuterium: {Math.floor(constructionCost.deuterium)}
             </div>
           )}
-          {initialCosts.microchips > 0 && (
+          {constructionCost.microchips > 0 && (
             <div
               className={
-                currentResources.microchips < initialCosts.microchips
+                currentResources.microchips < constructionCost.microchips
                   ? "text-red-500"
                   : "text-green-500"
               }
             >
-              Microchips: {Math.floor(initialCosts.microchips)}
+              Microchips: {Math.floor(constructionCost.microchips)}
             </div>
           )}
-          {initialCosts.science > 0 && (
+          {constructionCost.science > 0 && (
             <div
               className={
-                currentResources.science < initialCosts.science
+                currentResources.science < constructionCost.science
                   ? "text-red-500"
                   : "text-green-500"
               }
             >
-              Science: {Math.floor(initialCosts.science)}
+              Science: {Math.floor(constructionCost.science)}
             </div>
           )}
         </div>

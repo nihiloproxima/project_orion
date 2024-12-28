@@ -5,8 +5,6 @@ import { Button } from "./ui/button";
 import { Plus, Minus } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { api } from "../lib/api";
-import { useNavigate } from "react-router-dom";
-import { useGame } from "../contexts/GameContext";
 
 // Update constants
 const GRID_SIZE = 10000; // Total grid size (-500 to +500 = 1000 total)
@@ -30,8 +28,6 @@ const getPlanetRadius = (size: number) => {
 };
 
 export function ChooseHomeworld() {
-  const { state } = useGame();
-  const navigate = useNavigate();
   const [availablePlanets, setAvailablePlanets] = useState<Planet[]>([]);
   const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,9 +42,6 @@ export function ChooseHomeworld() {
   const chooseHomeworld = async (planetId: string) => {
     try {
       await api.planets.claim(planetId, true);
-      state.selectedPlanet =
-        availablePlanets.find((planet) => planet.id === planetId) || null;
-      navigate("/dashboard");
     } catch (error) {
       console.error("Error choosing homeworld:", error);
     }

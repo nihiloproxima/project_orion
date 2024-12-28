@@ -1,8 +1,8 @@
 import { GameProvider } from "./contexts/GameContext";
 import { BrowserRouter as Router } from "react-router-dom";
 import { AppRoutes } from "./routes";
-import { AuthProvider } from "./context/auth";
-import { ThemeProvider } from "./context/theme";
+import { AuthProvider } from "./contexts/auth";
+import { ThemeProvider } from "./contexts/theme";
 
 function App() {
   return (

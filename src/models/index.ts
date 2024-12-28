@@ -5,3 +5,5 @@ export * from "./planet";
 export * from "./ship";
 export * from "./user";
 export * from "./game_config";
+export * from "./researchs_config";
+export * from "./planet_researchs";

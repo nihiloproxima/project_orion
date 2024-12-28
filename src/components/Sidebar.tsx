@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/auth";
-import { useTheme } from "../context/theme";
+import { useAuth } from "../contexts/auth";
+import { useTheme } from "../contexts/theme";
 import { Button } from "./ui/button";
 import {
   Select,
@@ -18,6 +18,7 @@ import {
   Terminal,
   Computer,
   Building,
+  FlaskConical,
 } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 
@@ -68,16 +69,10 @@ export function Sidebar() {
                 color: "primary",
               },
               {
-                to: "/fleet",
-                icon: Rocket,
-                label: "FLEET_CONTROL",
-                color: "violet",
-              },
-              {
-                to: "/resources",
-                icon: Database,
-                label: "RESOURCE_MATRIX",
-                color: "amber",
+                to: "/research",
+                icon: FlaskConical,
+                label: "RESEARCH_LAB",
+                color: "green",
               },
               {
                 to: "/alliances",

@@ -7,6 +7,7 @@ import { Dashboard } from "../pages/Dashboard";
 import { ChooseHomeworldPage } from "../pages/ChooseHomeworldPage";
 import { Structures } from "../pages/Structures";
 import { Configs } from "../pages/Configs";
+import { Researchs } from "../pages/Researchs";
 
 export function AppRoutes() {
   return (
@@ -22,6 +23,7 @@ export function AppRoutes() {
         <Route path="/choose-homeworld" element={<ChooseHomeworldPage />} />
         <Route path="/structures" element={<Structures />} />
         <Route path="/configs" element={<Configs />} />
+        <Route path="/research" element={<Researchs />} />
         {/* Add other protected routes here */}
       </Route>
 

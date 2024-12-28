@@ -7,7 +7,7 @@ import {
   CardTitle,
   CardContent,
 } from "../components/ui/card";
-import { useAuth } from "../context/auth";
+import { useAuth } from "../contexts/auth";
 
 export function Home() {
   const { isAuthenticated } = useAuth();

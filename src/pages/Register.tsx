@@ -10,7 +10,7 @@ import {
   CardFooter,
 } from "../components/ui/card";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/auth";
+import { useAuth } from "../contexts/auth";
 import { supabase } from "../lib/supabase";
 import { api } from "../lib/api";
 
