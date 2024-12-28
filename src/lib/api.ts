@@ -38,6 +38,14 @@ export const api = {
       return post("admin", "updateConfig", { id, config_data });
     },
   },
+  researchs: {
+    startResearch: async (researchId: string, planetId: string) => {
+      return post("researchs", "startResearch", {
+        research_id: researchId,
+        planet_id: planetId,
+      });
+    },
+  },
   chat: {
     sendMessage: async (channelId: string, text: string) => {
       return post("chat", "sendMessage", { channel_id: channelId, text });

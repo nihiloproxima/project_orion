@@ -1,5 +1,4 @@
 import { useGame } from "../contexts/GameContext";
-import { supabase } from "../lib/supabase";
 import { ResearchCategory, TechnologyId } from "../models";
 import {
   Beaker,
@@ -10,7 +9,6 @@ import {
   Flame,
   Hammer,
   Microchip,
-  Zap,
 } from "lucide-react";
 import {
   Card,
@@ -28,6 +26,10 @@ import {
 import espionageTechImg from "../assets/researchs/espionage_tech.png";
 import ansibleNetworkImg from "../assets/researchs/ansible_network.png";
 import enhancedMiningImg from "../assets/researchs/enhanced_mining.png";
+import quantumComputingImg from "../assets/researchs/quantum_computing.png";
+import cryogenicEfficiencyImg from "../assets/researchs/cryogenic_efficiency.png";
+
+import { api } from "../lib/api";
 
 export const RESEARCH_ASSETS: Record<
   TechnologyId,
@@ -42,11 +44,18 @@ export const RESEARCH_ASSETS: Record<
     };
   }
 > = {
+  cryogenic_efficiency: {
+    name: "Cryogenic Efficiency",
+    image: cryogenicEfficiencyImg,
+    description:
+      "Optimizes the cooling systems needed to store and transport deuterium, reducing losses. Each level increases the deuterium production by 5%.",
+    category: "resource",
+  },
   quantum_computing: {
     name: "Quantum Computing",
-    image: "/src/assets/technologies/default.png",
+    image: quantumComputingImg,
     description:
-      "Enables advanced quantum computing capabilities. Each level increases the processing power of quantum computers by 10%.",
+      "Enables advanced quantum computing capabilities. Each level increases the production of microchips by 5%.",
     category: "infrastructure",
     unlocks: {
       ships: ["Quantum Scout", "Data Miner"],
@@ -228,9 +237,10 @@ function ResearchCard({
                 {research.prerequisites
                   .map(
                     (prereq: any) =>
-                      `${RESEARCH_ASSETS[prereq.technology_id].name} ${
-                        prereq.required_level
-                      }`
+                      `${
+                        RESEARCH_ASSETS[prereq.technology_id as TechnologyId]
+                          .name
+                      } ${prereq.required_level}`
                   )
                   .join(", ")}
               </div>
@@ -354,7 +364,7 @@ function ResearchCard({
 }
 
 export function Researchs() {
-  const { state, currentResources } = useGame();
+  const { state } = useGame();
 
   if (!state.researchsConfig || !state.planetResearchs) {
     return <div>Loading...</div>;
@@ -363,66 +373,10 @@ export function Researchs() {
   const startResearch = async (researchId: TechnologyId) => {
     if (!state.selectedPlanet?.id) return;
 
-    const research = state.researchsConfig!.available_researchs[researchId];
-    if (!research) return;
-
-    const currentTech = state.planetResearchs?.technologies[researchId] || {
-      level: 0,
-      is_researching: false,
-      research_start_time: null,
-      research_finish_time: null,
-    };
-
-    if (currentTech.is_researching) {
-      alert("Already researching something!");
-      return;
-    }
-
-    if (currentTech.level >= research.max_level) {
-      alert("Research already at max level!");
-      return;
-    }
-
-    const costMultiplier = Math.pow(
-      1 + research.cost.percent_increase_per_level / 100,
-      currentTech.level
-    );
-    const costs = {
-      metal: research.cost.base_metal * costMultiplier,
-      deuterium: research.cost.base_deuterium * costMultiplier,
-      science: research.cost.base_science * costMultiplier,
-      microchips: research.cost.base_microchips * costMultiplier,
-    };
-
-    if (
-      currentResources.metal < costs.metal ||
-      currentResources.deuterium < costs.deuterium ||
-      currentResources.science < costs.science ||
-      currentResources.microchips < costs.microchips
-    ) {
-      alert("Not enough resources!");
-      return;
-    }
-
-    const timeMultiplier = Math.pow(
-      1 + research.time.percent_increase_per_level / 100,
-      currentTech.level
-    );
-    const researchTime = research.time.base_seconds * timeMultiplier;
-
-    const { error } = await supabase.rpc("start_research", {
-      p_research_id: researchId,
-      p_planet_id: state.selectedPlanet.id,
-      p_research_time: researchTime,
-      p_metal_cost: costs.metal,
-      p_deuterium_cost: costs.deuterium,
-      p_science_cost: costs.science,
-      p_microchips_cost: costs.microchips,
-    });
-
-    if (error) {
+    try {
+      await api.researchs.startResearch(researchId, state.selectedPlanet.id);
+    } catch (error) {
       console.error("Error starting research:", error);
-      alert("Failed to start research");
     }
   };
 

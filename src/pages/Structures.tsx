@@ -95,7 +95,9 @@ const formatConstructionTime = (seconds: number) => {
     return `${Math.ceil(seconds)} seconds`;
   }
   if (seconds < 3600) {
-    return `${Math.ceil(seconds / 60)} minutes`;
+    const minutes = Math.ceil(seconds / 60);
+    const actualMinutes = seconds / 60;
+    return `${actualMinutes < minutes ? "< " : ""}${minutes} minutes`;
   }
   if (seconds < 86400) {
     return `${Math.ceil(seconds / 3600)} hours`;
@@ -363,11 +365,17 @@ function ExistingStructureContent({
       )}
 
       <Button
-        className={`w-full ${!canAfford ? "opacity-50" : ""}`}
         onClick={() => onUpgrade(structure)}
         disabled={structure.is_under_construction || !canAfford}
+        className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
+          structure.is_under_construction || !canAfford
+            ? "bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed"
+            : "bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border"
+        }`}
       >
-        {canAfford
+        {structure.is_under_construction
+          ? "Under Construction"
+          : canAfford
           ? `Upgrade to Level ${structure.level + 1}`
           : "Not Enough Resources"}
       </Button>
@@ -477,9 +485,13 @@ function NewStructureContent({
       )}
 
       <Button
-        className={`w-full ${!canAfford ? "opacity-50" : ""}`}
         onClick={() => onConstruct(info.type)}
         disabled={!canAfford}
+        className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
+          !canAfford
+            ? "bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed"
+            : "bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border"
+        }`}
       >
         {canAfford ? "Construct" : "Not Enough Resources"}
       </Button>
