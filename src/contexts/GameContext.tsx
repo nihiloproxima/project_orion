@@ -8,7 +8,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { Structure } from "../models/structure";
 import { useAuth } from "./auth";
-import { GameStructuresConfig } from "../models/structures_config";
+import { StructuresConfig } from "../models/structures_config";
 import { Planet } from "../models/planet";
 import { PlanetResources } from "../models/planets_resources";
 import { ResearchsConfig } from "../models/researchs_config";
@@ -19,7 +19,7 @@ interface GameState {
   selectedPlanet: Planet | null;
   resources: PlanetResources | null;
   structures: Structure[];
-  structuresConfig: GameStructuresConfig | null;
+  structuresConfig: StructuresConfig | null;
   researchsConfig: ResearchsConfig | null;
   loading: boolean;
   loadedResources: boolean;
@@ -126,6 +126,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         },
         (payload: any) => {
           setState((prev) => {
+            console.log("planet update");
             const updatedPlanets = prev.userPlanets.map((planet) =>
               planet.id === payload.new.id
                 ? { ...planet, ...payload.new }
@@ -291,7 +292,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
       setState((prev) => ({
         ...prev,
-        structuresConfig: structuresData.config_data as GameStructuresConfig,
+        structuresConfig: structuresData.config_data as StructuresConfig,
         researchsConfig: researchData.config_data as ResearchsConfig,
         loadedStructuresConfig: true,
         loadedResearchsConfig: true,
@@ -459,25 +460,45 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const updatedResources: PlanetResources = {
         ...state.resources,
         metal:
-          state.resources.metal +
-          state.resources.metal_production_rate *
-            elapsedSeconds *
-            productionMalus,
+          state.resources.metal >= state.resources.max_metal
+            ? state.resources.metal
+            : Math.min(
+                state.resources.max_metal,
+                state.resources.metal +
+                  state.resources.metal_production_rate *
+                    elapsedSeconds *
+                    productionMalus
+              ),
         microchips:
-          state.resources.microchips +
-          state.resources.microchips_production_rate *
-            elapsedSeconds *
-            productionMalus,
+          state.resources.microchips >= state.resources.max_microchips
+            ? state.resources.microchips
+            : Math.min(
+                state.resources.max_microchips,
+                state.resources.microchips +
+                  state.resources.microchips_production_rate *
+                    elapsedSeconds *
+                    productionMalus
+              ),
         deuterium:
-          state.resources.deuterium +
-          state.resources.deuterium_production_rate *
-            elapsedSeconds *
-            productionMalus,
+          state.resources.deuterium >= state.resources.max_deuterium
+            ? state.resources.deuterium
+            : Math.min(
+                state.resources.max_deuterium,
+                state.resources.deuterium +
+                  state.resources.deuterium_production_rate *
+                    elapsedSeconds *
+                    productionMalus
+              ),
         science:
-          state.resources.science +
-          state.resources.science_production_rate *
-            elapsedSeconds *
-            productionMalus,
+          state.resources.science >= state.resources.max_science
+            ? state.resources.science
+            : Math.min(
+                state.resources.max_science,
+                state.resources.science +
+                  state.resources.science_production_rate *
+                    elapsedSeconds *
+                    productionMalus
+              ),
         energy_production: state.resources.energy_production,
         energy_consumption: state.resources.energy_consumption,
         last_update: now,

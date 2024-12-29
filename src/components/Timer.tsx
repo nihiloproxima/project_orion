@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Progress } from "./ui/progress";
 
 interface TimerProps {
   startTime: number;
@@ -20,8 +21,8 @@ export function Timer({
     // Initialize progress based on current time on mount
     const now = Date.now();
     const total = finishTime - startTime;
-    const elapsed = now - startTime;
-    return Math.max(0, Math.min(100, (elapsed / total) * 100));
+    const remaining = finishTime - now;
+    return Math.max(0, Math.min(100, ((total - remaining) / total) * 100));
   });
 
   useEffect(() => {
@@ -29,11 +30,15 @@ export function Timer({
 
     const updateTimer = () => {
       const now = Date.now();
-      const elapsed = now - startTime;
       const remaining = Math.max(0, finishTime - now);
 
       setTimeRemaining(remaining);
-      setProgress(Math.max(0, Math.min(100, (elapsed / total) * 100)));
+      // Calculate progress as percentage of remaining time
+      const progressPercent = Math.max(
+        0,
+        Math.min(100, ((total - remaining) / total) * 100)
+      );
+      setProgress(progressPercent);
 
       if (remaining > 0) {
         requestAnimationFrame(updateTimer);
@@ -79,16 +84,16 @@ export function Timer({
       </div>
       {showProgressBar && (
         <>
-          <div className="mt-2 w-full bg-gray-700 rounded-full h-2 relative">
-            <div
-              className={`bg-${variant} rounded-full h-2 transition-all duration-500`}
-              style={{ width: `${progress}%` }}
-            ></div>
-            <div className="absolute inset-0 flex items-center justify-center text-[10px] text-white/70 font-mono">
+          <div className="mt-3 relative">
+            <Progress
+              value={progress}
+              className="h-3 bg-background/30 [&>div]:bg-primary/80"
+            />
+            <div className="absolute inset-0 flex items-center justify-center text-xs font-mono text-white/90">
               {Math.round(progress)}%
             </div>
           </div>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-2">
             {timeRemaining <= 0 && "Complete!"}
           </p>
         </>

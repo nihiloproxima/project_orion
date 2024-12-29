@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGame } from "../contexts/GameContext";
 import { api } from "../lib/api";
-import { GameStructuresConfig } from "../models/structures_config";
+import { StructuresConfig } from "../models/structures_config";
 import { ResearchsConfig } from "../models/researchs_config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, FlaskConical } from "lucide-react";
@@ -41,7 +41,7 @@ function StructureForm({ type, config, onConfigChange }: StructureFormProps) {
       });
       setJsonError("");
       setJsonMode(false);
-    } catch (e) {
+    } catch (e: any) {
       setJsonError("Invalid JSON format");
     }
   };
@@ -303,7 +303,7 @@ function ResearchForm({ id, config, onConfigChange }: ResearchFormProps) {
 export function Configs() {
   const { state } = useGame();
   const [structuresConfig, setStructuresConfig] =
-    useState<GameStructuresConfig | null>(state.structuresConfig);
+    useState<StructuresConfig | null>(state.structuresConfig);
   const [researchsConfig, setResearchsConfig] =
     useState<ResearchsConfig | null>(state.researchsConfig);
   const [activeTab, setActiveTab] = useState("structures");
@@ -319,10 +319,10 @@ export function Configs() {
       if (!prev) return prev;
 
       const updatedStructure = {
-        ...prev[structureType as keyof GameStructuresConfig],
+        ...prev[structureType as keyof StructuresConfig],
         [field]: subField
           ? {
-              ...(prev[structureType as keyof GameStructuresConfig][
+              ...(prev[structureType as keyof StructuresConfig][
                 field
               ] as Record<string, number>),
               [subField]: value,

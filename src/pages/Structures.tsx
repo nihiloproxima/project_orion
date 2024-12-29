@@ -10,6 +10,7 @@ import { Button } from "../components/ui/button";
 import { Building2, Beaker, Flame, Hammer, Microchip } from "lucide-react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useEffect, useState } from "react";
+import { Timer } from "../components/Timer";
 import { api } from "../lib/api";
 
 // Import structure images
@@ -20,7 +21,10 @@ import researchLabImg from "../assets/structures/research_lab.png";
 import shipYardImg from "../assets/structures/shipyard.png";
 import defenseFactoryImg from "../assets/structures/defense_factory.png";
 import microchipFactoryImg from "../assets/structures/microchip_factory.png";
-import { Timer } from "../components/Timer";
+import metalHangarImg from "../assets/structures/metal_hangar.png";
+import deuteriumTankImg from "../assets/structures/deuterium_tank.png";
+import microchipVaultImg from "../assets/structures/microchip_vault.png";
+import dataCenterImg from "../assets/structures/data_center.png";
 
 interface StructureInfo {
   type: StructureType;
@@ -88,6 +92,38 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
     icon: <Building2 className="h-5 w-5" />,
     image: defenseFactoryImg,
   },
+  metal_hangar: {
+    type: "metal_hangar",
+    name: "Metal Hangar",
+    description: "Stores metal",
+    productionType: "metal",
+    icon: <Building2 className="h-5 w-5" />,
+    image: metalHangarImg,
+  },
+  deuterium_tank: {
+    type: "deuterium_tank",
+    name: "Deuterium Tank",
+    description: "Stores deuterium",
+    productionType: "deuterium",
+    icon: <Building2 className="h-5 w-5" />,
+    image: deuteriumTankImg,
+  },
+  microchip_vault: {
+    type: "microchip_vault",
+    name: "Microchip Vault",
+    description: "Stores microchips",
+    productionType: "microchips",
+    icon: <Building2 className="h-5 w-5" />,
+    image: microchipVaultImg,
+  },
+  data_center: {
+    type: "data_center",
+    name: "Data Center",
+    description: "Stores data",
+    productionType: "none",
+    icon: <Building2 className="h-5 w-5" />,
+    image: dataCenterImg,
+  },
 };
 
 const formatConstructionTime = (seconds: number) => {
@@ -109,13 +145,12 @@ function StructureCard({
   info,
   existingStructure,
   config,
-  state,
 }: {
   info: StructureInfo;
   existingStructure?: Structure;
   config: any;
-  state: any;
 }) {
+  const { state } = useGame();
   const [structure, setStructure] = useState(existingStructure);
   const { currentResources } = useGame();
 
@@ -124,11 +159,11 @@ function StructureCard({
   }, [existingStructure, state]); // Added state dependency
 
   const onUpgrade = async (structure: Structure) => {
-    await api.structures.upgrade(state.selectedPlanet.id, structure.id);
+    await api.structures.upgrade(state.selectedPlanet!.id, structure.id);
   };
 
   const onConstruct = async (type: StructureType) => {
-    await api.structures.construct(state.selectedPlanet.id, type);
+    await api.structures.construct(state.selectedPlanet!.id, type);
   };
 
   const calculateHourlyProduction = (structure: Structure) => {
@@ -153,6 +188,7 @@ function StructureCard({
 
   const constructionTimeCoef =
     1 + (config.time.percent_increase_per_level * level) / 100;
+
   const constructionTime = Math.min(
     config.time.base_seconds * constructionTimeCoef,
     config.time.max_seconds
@@ -531,8 +567,7 @@ export function Structures() {
               existingStructure={state.structures?.find(
                 (s) => s.type === info.type
               )}
-              config={state.structuresConfig![info.type]}
-              state={state}
+              config={state.structuresConfig!.available_structures[info.type]}
             />
           ))}
         </div>

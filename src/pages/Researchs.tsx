@@ -9,6 +9,8 @@ import {
   Flame,
   Hammer,
   Microchip,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Card,
@@ -33,6 +35,7 @@ import cryogenicEfficiencyImg from "../assets/researchs/cryogenic_efficiency.png
 import naniteConstructorsImg from "../assets/researchs/nanite_constructors.png";
 import neuralNetworkImg from "../assets/researchs/neural_network.png";
 import energyEfficiencyImg from "../assets/researchs/energy_efficiency.png";
+
 export const RESEARCH_ASSETS: Record<
   TechnologyId,
   {
@@ -60,28 +63,26 @@ export const RESEARCH_ASSETS: Record<
     name: "Nanite Constructors",
     image: naniteConstructorsImg,
     description:
-      "Enables the construction of nanite structures. Each level increases the construction speed of all structures by 5%.",
+      "Microscopic robots assist in construction, increasing building speed with each level of research.",
     category: "infrastructure",
   },
   cryogenic_efficiency: {
     name: "Cryogenic Efficiency",
     image: cryogenicEfficiencyImg,
     description:
-      "Optimizes the cooling systems needed to store and transport deuterium, reducing losses. Each level increases the deuterium production by 5%.",
+      "Optimizes the cooling systems needed to store and transport deuterium, reducing losses.",
     category: "resource",
   },
   energy_efficiency: {
     name: "Energy Efficiency",
     image: energyEfficiencyImg,
-    description:
-      "Improves the energy production efficiency. Each level increases energy production by 5%.",
+    description: "Improves the energy production efficiency.",
     category: "resource",
   },
   quantum_computing: {
     name: "Quantum Computing",
     image: quantumComputingImg,
-    description:
-      "Enables advanced quantum computing capabilities. Each level increases the production of microchips by 5%.",
+    description: "Enables advanced quantum computing capabilities.",
     category: "infrastructure",
     unlocks: {
       ships: ["Quantum Scout", "Data Miner"],
@@ -90,15 +91,13 @@ export const RESEARCH_ASSETS: Record<
   enhanced_mining: {
     name: "Enhanced Mining",
     image: enhancedMiningImg,
-    description:
-      "Improves resource extraction efficiency. Each level increases metal production by 5%.",
+    description: "Improves resource extraction efficiency.",
     category: "resource",
   },
   neural_network: {
     name: "Neural Network",
     image: neuralNetworkImg,
-    description:
-      "Enables the construction of neural networks. Each level increases the production of science by 5%.",
+    description: "Enables the construction of neural networks.",
     category: "infrastructure",
   },
   ansible_network: {
@@ -120,6 +119,7 @@ interface ResearchCardProps {
     research_finish_time: number | null;
   };
   onStartResearch: (id: TechnologyId) => void;
+  isAnyResearchInProgress: boolean;
 }
 
 function ResearchCard({
@@ -127,6 +127,7 @@ function ResearchCard({
   research,
   tech,
   onStartResearch,
+  isAnyResearchInProgress,
 }: ResearchCardProps) {
   const costMultiplier = Math.pow(
     1 + research.cost.percent_increase_per_level / 100,
@@ -182,16 +183,39 @@ function ResearchCard({
     if (tech.is_researching) {
       return "RESEARCHING";
     }
+    if (isAnyResearchInProgress && !tech.is_researching) {
+      return "RESEARCH IN PROGRESS";
+    }
     if (!prerequisitesMet) return "PREREQUISITES NOT MET";
     if (!hasEnoughResources) return "NOT ENOUGH RESOURCES";
     return "RESEARCH";
   };
 
+  const getEffectDescription = () => {
+    let description = assetConfig?.description;
+    if (research.effects) {
+      research.effects.forEach((effect: any) => {
+        if (effect.per_level) {
+          if (effect.type === "resource_boost") {
+            description += ` Each level increases ${effect.resource_type} production by ${effect.value}%.`;
+          } else if (effect.type === "construction_speed") {
+            description += ` Each level increases construction speed by ${effect.value}%.`;
+          } else if (effect.type === "research_speed") {
+            description += ` Each level increases research speed by ${effect.value}%.`;
+          }
+        }
+      });
+    }
+    return description;
+  };
+
   return (
     <Card
       className={`bg-card/50 backdrop-blur-sm transition-all duration-300 ${
-        prerequisitesMet && hasEnoughResources
+        prerequisitesMet && hasEnoughResources && !isAnyResearchInProgress
           ? "neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)]"
+          : isAnyResearchInProgress && !tech.is_researching
+          ? "border-amber-500/50 opacity-50"
           : "border-red-500/50"
       }`}
     >
@@ -201,7 +225,10 @@ function ResearchCard({
             src={assetConfig?.image}
             alt={assetConfig?.name}
             className={`w-full h-full object-cover rounded-lg ${
-              (!prerequisitesMet || !hasEnoughResources) && "opacity-50"
+              (!prerequisitesMet ||
+                !hasEnoughResources ||
+                (isAnyResearchInProgress && !tech.is_researching)) &&
+              "opacity-50"
             }`}
             onError={(e) => {
               e.currentTarget.src = "/src/assets/technologies/default.png";
@@ -251,7 +278,7 @@ function ResearchCard({
           </div>
 
           <p className="text-sm text-muted-foreground text-left">
-            {assetConfig?.description}
+            {getEffectDescription()}
           </p>
 
           {!prerequisitesMet && (
@@ -269,6 +296,13 @@ function ResearchCard({
                   )
                   .join(", ")}
               </div>
+            </div>
+          )}
+
+          {isAnyResearchInProgress && !tech.is_researching && (
+            <div className="flex items-center gap-2 text-amber-400 text-sm">
+              <Clock className="h-4 w-4" />
+              <div>Another technology is currently being researched</div>
             </div>
           )}
         </div>
@@ -366,13 +400,15 @@ function ResearchCard({
             tech.is_researching ||
             tech.level >= research.max_level ||
             !prerequisitesMet ||
-            !hasEnoughResources
+            !hasEnoughResources ||
+            (isAnyResearchInProgress && !tech.is_researching)
           }
           className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
             tech.is_researching ||
             tech.level >= research.max_level ||
             !prerequisitesMet ||
-            !hasEnoughResources
+            !hasEnoughResources ||
+            (isAnyResearchInProgress && !tech.is_researching)
               ? "bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed"
               : "bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border"
           }`}
@@ -391,6 +427,29 @@ export function Researchs() {
     return <div>Loading...</div>;
   }
 
+  // Check if laboratory exists
+  const hasLaboratory = state.structures?.some(
+    (structure) => structure.type === "research_lab"
+  );
+
+  if (!hasLaboratory) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] space-y-6 text-center">
+        <AlertTriangle className="w-16 h-16 text-red-500 animate-pulse" />
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-red-500">ACCESS DENIED</h2>
+          <div className="font-mono text-sm text-muted-foreground max-w-md">
+            <p className="mb-2">[ERROR CODE: NO_LABORATORY_DETECTED]</p>
+            <p>Laboratory structure required for research operations.</p>
+            <p>
+              Please construct a laboratory to access research capabilities.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const startResearch = async (technologyId: TechnologyId) => {
     if (!state.selectedPlanet?.id) return;
 
@@ -400,6 +459,10 @@ export function Researchs() {
       console.error("Error starting research:", error);
     }
   };
+
+  const isAnyResearchInProgress = Object.values(
+    state.planetResearchs.technologies
+  ).some((tech) => tech.is_researching);
 
   return (
     <div className="space-y-6">
@@ -431,6 +494,7 @@ export function Researchs() {
                 research={research}
                 tech={tech}
                 onStartResearch={startResearch}
+                isAnyResearchInProgress={isAnyResearchInProgress}
               />
             );
           }

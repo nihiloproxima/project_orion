@@ -24,18 +24,34 @@ export function ResourceBar() {
 
   const hourlyGenerationRate = state.resources
     ? {
-        metal: Math.floor(
-          state.resources.metal_production_rate * 3600 * productionMalus
-        ),
-        microchips: Math.floor(
-          state.resources.microchips_production_rate * 3600 * productionMalus
-        ),
-        deuterium: Math.floor(
-          state.resources.deuterium_production_rate * 3600 * productionMalus
-        ),
-        science: Math.floor(
-          state.resources.science_production_rate * 3600 * productionMalus
-        ),
+        metal:
+          currentResources.metal >= state.resources.max_metal
+            ? 0
+            : Math.floor(
+                state.resources.metal_production_rate * 3600 * productionMalus
+              ),
+        microchips:
+          currentResources.microchips >= state.resources.max_microchips
+            ? 0
+            : Math.floor(
+                state.resources.microchips_production_rate *
+                  3600 *
+                  productionMalus
+              ),
+        deuterium:
+          currentResources.deuterium >= state.resources.max_deuterium
+            ? 0
+            : Math.floor(
+                state.resources.deuterium_production_rate *
+                  3600 *
+                  productionMalus
+              ),
+        science:
+          currentResources.science >= state.resources.max_science
+            ? 0
+            : Math.floor(
+                state.resources.science_production_rate * 3600 * productionMalus
+              ),
       }
     : {
         metal: 0,
@@ -79,8 +95,17 @@ export function ResourceBar() {
             <div className="flex flex-col items-end">
               <span className="text-xs text-secondary/70">METAL</span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-secondary font-bold">
+                <span
+                  className={`font-mono font-bold ${
+                    currentResources.metal >= state.resources.max_metal
+                      ? "text-red-400"
+                      : "text-secondary"
+                  }`}
+                >
                   {Math.floor(currentResources.metal)}
+                  <span className="text-xs text-secondary/50 ml-1">
+                    /{Math.floor(state.resources.max_metal)}
+                  </span>
                 </span>
                 <Hammer className="h-4 w-4 text-secondary" />
               </div>
@@ -95,8 +120,18 @@ export function ResourceBar() {
             <div className="flex flex-col items-end">
               <span className="text-xs text-accent/70">MICROCHIPS</span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-accent font-bold">
+                <span
+                  className={`font-mono font-bold ${
+                    currentResources.microchips >=
+                    state.resources.max_microchips
+                      ? "text-red-400"
+                      : "text-accent"
+                  }`}
+                >
                   {Math.floor(currentResources.microchips)}
+                  <span className="text-xs text-accent/50 ml-1">
+                    /{Math.floor(state.resources.max_microchips)}
+                  </span>
                 </span>
                 <Microchip className="h-4 w-4 text-accent" />
               </div>
@@ -111,8 +146,17 @@ export function ResourceBar() {
             <div className="flex flex-col items-end">
               <span className="text-xs text-primary/70">DEUTERIUM</span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-primary font-bold">
+                <span
+                  className={`font-mono font-bold ${
+                    currentResources.deuterium >= state.resources.max_deuterium
+                      ? "text-red-400"
+                      : "text-primary"
+                  }`}
+                >
                   {Math.floor(currentResources.deuterium)}
+                  <span className="text-xs text-primary/50 ml-1">
+                    /{Math.floor(state.resources.max_deuterium)}
+                  </span>
                 </span>
                 <Flame className="h-4 w-4 text-primary" />
               </div>
@@ -127,8 +171,17 @@ export function ResourceBar() {
             <div className="flex flex-col items-end">
               <span className="text-xs text-blue-400/70">SCIENCE</span>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-blue-400 font-bold">
+                <span
+                  className={`font-mono font-bold ${
+                    currentResources.science >= state.resources.max_science
+                      ? "text-red-400"
+                      : "text-blue-400"
+                  }`}
+                >
                   {Math.floor(currentResources.science)}
+                  <span className="text-xs text-blue-400/50 ml-1">
+                    /{Math.floor(state.resources.max_science)}
+                  </span>
                 </span>
                 <Beaker className="h-4 w-4 text-blue-400" />
               </div>
@@ -146,7 +199,7 @@ export function ResourceBar() {
                 <span
                   className={`font-mono font-bold ${
                     currentResources.energy_production >=
-                    currentResources.energy_consumption
+                    state.resources.energy_consumption
                       ? "text-violet-400"
                       : "text-red-400"
                   }`}
