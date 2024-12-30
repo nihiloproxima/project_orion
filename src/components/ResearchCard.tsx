@@ -3,7 +3,7 @@ import { ResearchConfig } from "../models";
 import { TechnologyId } from "../models";
 import { Technology } from "../models";
 import { ResearchPrerequisites } from "../models/research_config";
-import { RESEARCH_ASSETS } from "../pages/Researchs";
+import { RESEARCH_ASSETS } from "../lib/constants";
 import { Timer } from "./Timer";
 import { Progress } from "./ui/progress";
 import { Beaker, Lock, AlertCircle } from "lucide-react";

@@ -190,7 +190,7 @@ function ResearchCard({
           <div className="flex items-center space-x-2 text-sm">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger className="text-primary/70 font-medium">
+                <TooltipTrigger className="text-primary font-medium">
                   Level {tech.level}/{research.max_level}
                 </TooltipTrigger>
                 <TooltipContent>
@@ -198,13 +198,13 @@ function ResearchCard({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <span className="text-primary/30">•</span>
-            <div className="text-secondary/70 uppercase">
+            <span className="text-primary/50">•</span>
+            <div className="text-secondary uppercase">
               {assetConfig?.category}
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground text-left">
+          <p className="text-sm text-gray-200 text-left">
             {getEffectDescription()}
           </p>
 
@@ -244,8 +244,8 @@ function ResearchCard({
           />
         ) : (
           <div className="p-3 bg-black/30 rounded-lg border border-primary/20">
-            <h4 className="font-medium text-primary/70 mb-2">Research Time</h4>
-            <div className="text-muted-foreground text-sm">
+            <h4 className="font-medium text-primary mb-2">Research Time</h4>
+            <div className="text-gray-200 text-sm">
               {formatResearchTime(researchTime)}
             </div>
           </div>
@@ -255,9 +255,7 @@ function ResearchCard({
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="w-full p-3 bg-black/30 rounded-lg border border-primary/20">
-                <h4 className="font-medium text-primary/70 mb-2">
-                  Resource Cost
-                </h4>
+                <h4 className="font-medium text-primary mb-2">Resource Cost</h4>
                 <div className="grid grid-cols-2 gap-4">
                   {research.cost.base_metal > 0 && (
                     <div className="flex items-center gap-2">
@@ -266,7 +264,7 @@ function ResearchCard({
                         className={`text-sm truncate ${
                           currentResources.metal < costs.metal
                             ? "text-red-400"
-                            : "text-muted-foreground"
+                            : "text-gray-200"
                         }`}
                       >
                         {Math.floor(costs.metal).toLocaleString()}
@@ -280,7 +278,7 @@ function ResearchCard({
                         className={`text-sm truncate ${
                           currentResources.deuterium < costs.deuterium
                             ? "text-red-400"
-                            : "text-muted-foreground"
+                            : "text-gray-200"
                         }`}
                       >
                         {Math.floor(costs.deuterium).toLocaleString()}
@@ -294,7 +292,7 @@ function ResearchCard({
                         className={`text-sm truncate ${
                           currentResources.science < costs.science
                             ? "text-red-400"
-                            : "text-muted-foreground"
+                            : "text-gray-200"
                         }`}
                       >
                         {Math.floor(costs.science).toLocaleString()}
@@ -308,7 +306,7 @@ function ResearchCard({
                         className={`text-sm truncate ${
                           currentResources.microchips < costs.microchips
                             ? "text-red-400"
-                            : "text-muted-foreground"
+                            : "text-gray-200"
                         }`}
                       >
                         {Math.floor(costs.microchips).toLocaleString()}
@@ -336,7 +334,7 @@ function ResearchCard({
             !prerequisitesMet ||
             !hasEnoughResources ||
             (isAnyResearchInProgress && !tech.is_researching)
-              ? "bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed"
+              ? "bg-gray-800/50 text-gray-400 border-gray-600 cursor-not-allowed"
               : "bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border"
           }`}
         >
@@ -365,7 +363,7 @@ export function Researchs() {
         <AlertTriangle className="w-16 h-16 text-red-500 animate-pulse" />
         <div className="space-y-2">
           <h2 className="text-2xl font-bold text-red-500">ACCESS DENIED</h2>
-          <div className="font-mono text-sm text-muted-foreground max-w-md">
+          <div className="font-mono text-sm text-gray-200 max-w-md">
             <p className="mb-2">[ERROR CODE: NO_LABORATORY_DETECTED]</p>
             <p>Laboratory structure required for research operations.</p>
             <p>
@@ -398,7 +396,7 @@ export function Researchs() {
           <Beaker className="h-8 w-8" />
           RESEARCH LABORATORY
         </h1>
-        <div className="flex items-center gap-2 text-muted-foreground">
+        <div className="flex items-center gap-2 text-gray-200">
           <FolderTree className="h-5 w-5" />
           <p>Browse and unlock advanced technologies</p>
         </div>

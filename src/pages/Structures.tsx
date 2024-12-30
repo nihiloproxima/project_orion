@@ -40,7 +40,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   metal_mine: {
     type: "metal_mine",
     name: "Metal Mine",
-    description: "Extracts metal from planetary deposits",
+    description:
+      "Mines and processes metal ore from planetary deposits. Each level increases metal production.",
     productionType: "metal",
     icon: <Building2 className="h-5 w-5" />,
     image: metalMineImg,
@@ -48,7 +49,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   energy_plant: {
     type: "energy_plant",
     name: "Energy Plant",
-    description: "Generates energy from various sources",
+    description:
+      "Generates power to fuel your planetary operations. Each level increases energy output.",
     productionType: "energy",
     icon: <Building2 className="h-5 w-5" />,
     image: energyPlantImg,
@@ -56,7 +58,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   deuterium_synthesizer: {
     type: "deuterium_synthesizer",
     name: "Deuterium Synthesizer",
-    description: "Extracts and processes deuterium",
+    description:
+      "Extracts hydrogen and synthesizes deuterium fuel. Each level increases deuterium production.",
     productionType: "deuterium",
     icon: <Building2 className="h-5 w-5" />,
     image: deuteriumSynthesizerImg,
@@ -64,7 +67,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   research_lab: {
     type: "research_lab",
     name: "Research Laboratory",
-    description: "Generates science points for research",
+    description:
+      "Conducts scientific research to unlock new technologies. Each level increases research speed and efficiency.",
     productionType: "science",
     icon: <Building2 className="h-5 w-5" />,
     image: researchLabImg,
@@ -72,7 +76,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   microchip_factory: {
     type: "microchip_factory",
     name: "Microchip Factory",
-    description: "Produces microchips",
+    description:
+      "Manufactures advanced microprocessors and circuitry. Each level increases microchip production.",
     productionType: "microchips",
     icon: <Building2 className="h-5 w-5" />,
     image: microchipFactoryImg,
@@ -80,7 +85,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   shipyard: {
     type: "shipyard",
     name: "Shipyard",
-    description: "Constructs and maintains spacecraft",
+    description:
+      "Builds and maintains your fleet of spacecraft. Each level reduces ship construction time and unlocks new ship types.",
     productionType: "none",
     icon: <Building2 className="h-5 w-5" />,
     image: shipYardImg,
@@ -88,7 +94,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   defense_factory: {
     type: "defense_factory",
     name: "Defense Factory",
-    description: "Constructs and maintains defense systems",
+    description:
+      "Manufactures planetary defense systems and weaponry. Each level reduces defense construction time and unlocks new defense types.",
     productionType: "none",
     icon: <Building2 className="h-5 w-5" />,
     image: defenseFactoryImg,
@@ -96,7 +103,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   metal_hangar: {
     type: "metal_hangar",
     name: "Metal Hangar",
-    description: "Stores metal",
+    description:
+      "Large-scale storage facility for processed metal. Each level increases metal storage capacity.",
     productionType: "metal",
     icon: <Building2 className="h-5 w-5" />,
     image: metalHangarImg,
@@ -104,7 +112,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   deuterium_tank: {
     type: "deuterium_tank",
     name: "Deuterium Tank",
-    description: "Stores deuterium",
+    description:
+      "Pressurized storage facility for deuterium fuel. Each level increases deuterium storage capacity.",
     productionType: "deuterium",
     icon: <Building2 className="h-5 w-5" />,
     image: deuteriumTankImg,
@@ -112,7 +121,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   microchip_vault: {
     type: "microchip_vault",
     name: "Microchip Vault",
-    description: "Stores microchips",
+    description:
+      "Secure storage facility for sensitive microelectronics. Each level increases microchip storage capacity.",
     productionType: "microchips",
     icon: <Building2 className="h-5 w-5" />,
     image: microchipVaultImg,
@@ -120,7 +130,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
   data_center: {
     type: "data_center",
     name: "Data Center",
-    description: "Stores data",
+    description:
+      "Advanced facility for processing and storing scientific data. Each level increases research data storage and processing speed.",
     productionType: "none",
     icon: <Building2 className="h-5 w-5" />,
     image: dataCenterImg,
@@ -282,7 +293,6 @@ interface ExistingStructureContentProps {
 
 function ExistingStructureContent({
   structure,
-  info,
   upgradeCosts,
   constructionTime,
   onUpgrade,
@@ -316,7 +326,6 @@ function ExistingStructureContent({
   return (
     <div className="space-y-4">
       <div className="text-sm text-primary/70">Level {structure.level}</div>
-      <p className="text-sm text-muted-foreground">{info.description}</p>
 
       <div className="space-y-2">
         <div className="text-sm font-medium">Upgrade Costs:</div>
@@ -443,7 +452,6 @@ function NewStructureContent({
   return (
     <div className="space-y-4">
       <div className="text-sm text-primary/70">Not Built</div>
-      <p className="text-sm text-muted-foreground">{info.description}</p>
 
       <div className="space-y-2">
         <div className="text-sm font-medium">Construction Costs:</div>

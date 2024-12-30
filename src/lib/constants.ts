@@ -8,9 +8,9 @@ import cryogenicEfficiencyImg from "../assets/researchs/cryogenic_efficiency.png
 import naniteConstructorsImg from "../assets/researchs/nanite_constructors.png";
 import neuralNetworkImg from "../assets/researchs/neural_network.png";
 import energyEfficiencyImg from "../assets/researchs/energy_efficiency.png";
-import combatTechImg from "../assets/researchs/espionage_tech.png";
+import combatTechImg from "../assets/researchs/combat_tech.png";
 import transportTechImg from "../assets/researchs/espionage_tech.png";
-import colonizationTechImg from "../assets/researchs/espionage_tech.png";
+import colonizationTechImg from "../assets/researchs/colonization_tech.png";
 import { TechnologyId } from "../models";
 
 export const RESEARCH_ASSETS: Record<
@@ -36,21 +36,23 @@ export const RESEARCH_ASSETS: Record<
     },
   },
   colonization_tech: {
-    name: "Colonization Technology",
+    name: "Life Detection Systems",
     image: colonizationTechImg,
-    description: "Unlocks colonization ships and technologies.",
+    description:
+      "Advanced scanners and analysis tools for detecting habitable worlds and assessing their colonization potential. Unlocks colony ships and planetary settlement capabilities.",
     category: "ship",
     unlocks: {
       ships: ["Colony Ship"],
     },
   },
   combat_tech: {
-    name: "Combat Technology",
+    name: "Plasma Propulsion Systems",
     image: combatTechImg,
-    description: "Unlocks combat ships and technologies.",
+    description:
+      "Advanced propulsion technology utilizing superheated plasma to generate powerful thrust. This breakthrough in rocket science enables the construction of larger military vessels capable of interstellar combat.",
     category: "ship",
     unlocks: {
-      ships: ["Combat Ship"],
+      ships: ["Cruiser"],
     },
   },
   espionage_tech: {
@@ -60,7 +62,7 @@ export const RESEARCH_ASSETS: Record<
       "Increases your ability to gather intelligence on other players and their planets. Each level improves the accuracy and detail of espionage reports.",
     category: "ship",
     unlocks: {
-      ships: ["Spy Probe", "Stealth Ship"],
+      ships: ["Spy Probe"],
     },
   },
   structures_construction_speed: {

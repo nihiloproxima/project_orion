@@ -85,8 +85,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const { authedUser } = useAuth();
 
+  // Reset state when user logs out
   useEffect(() => {
-    if (!authedUser) return;
+    if (!authedUser) {
+      setState(initialState);
+      setCurrentResources({
+        metal: 0,
+        microchips: 0,
+        deuterium: 0,
+        science: 0,
+        energy_production: 0,
+        energy_consumption: 0,
+      });
+      return;
+    }
 
     const fetchCurrentUser = async () => {
       const { data: user, error } = await supabase
