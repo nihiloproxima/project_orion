@@ -273,46 +273,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchConfigs = async () => {
       // Fetch structures config
-      const { data: structuresData, error: structuresError } = await supabase
-        .from("game_configs")
-        .select("*")
-        .eq("id", "structures")
-        .single();
-
-      if (structuresError) {
-        console.error("Error fetching structures config:", structuresError);
+      const { data, error } = await supabase.from("game_configs").select("*");
+      if (error) {
+        console.error("Error fetching configs:", error);
         return;
       }
 
-      // Fetch research config
-      const { data: researchData, error: researchError } = await supabase
-        .from("game_configs")
-        .select("*")
-        .eq("id", "researchs")
-        .single();
+      let structuresData: StructuresConfig | null = null;
+      let researchData: ResearchsConfig | null = null;
+      let shipsData: ShipsConfig | null = null;
 
-      if (researchError) {
-        console.error("Error fetching research config:", researchError);
-        return;
-      }
-
-      // Fetch ships config
-      const { data: shipsData, error: shipsError } = await supabase
-        .from("game_configs")
-        .select("*")
-        .eq("id", "ships")
-        .single();
-
-      if (shipsError) {
-        console.error("Error fetching ships config:", shipsError);
-        return;
+      for (const config of data) {
+        if (config.id === "structures") {
+          structuresData = config.config_data;
+        } else if (config.id === "researchs") {
+          researchData = config.config_data;
+        } else if (config.id === "ships") {
+          shipsData = config.config_data;
+        }
       }
 
       setState((prev) => ({
         ...prev,
-        structuresConfig: structuresData.config_data as StructuresConfig,
-        researchsConfig: researchData.config_data as ResearchsConfig,
-        shipsConfig: shipsData.config_data as ShipsConfig,
+        structuresConfig: structuresData,
+        researchsConfig: researchData,
+        shipsConfig: shipsData,
         loadedStructuresConfig: true,
         loadedResearchsConfig: true,
         loadedShipsConfig: true,
