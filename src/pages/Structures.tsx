@@ -25,6 +25,7 @@ import metalHangarImg from "../assets/structures/metal_hangar.png";
 import deuteriumTankImg from "../assets/structures/deuterium_tank.png";
 import microchipVaultImg from "../assets/structures/microchip_vault.png";
 import dataCenterImg from "../assets/structures/data_center.png";
+import { formatTimerTime } from "../lib/utils";
 
 interface StructureInfo {
   type: StructureType;
@@ -124,21 +125,6 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
     icon: <Building2 className="h-5 w-5" />,
     image: dataCenterImg,
   },
-};
-
-const formatConstructionTime = (seconds: number) => {
-  if (seconds < 60) {
-    return `${Math.ceil(seconds)} seconds`;
-  }
-  if (seconds < 3600) {
-    const minutes = Math.ceil(seconds / 60);
-    const actualMinutes = seconds / 60;
-    return `${actualMinutes < minutes ? "< " : ""}${minutes} minutes`;
-  }
-  if (seconds < 86400) {
-    return `${Math.ceil(seconds / 3600)} hours`;
-  }
-  return `${Math.ceil(seconds / 86400)} days`;
 };
 
 function StructureCard({
@@ -387,7 +373,7 @@ function ExistingStructureContent({
       </div>
 
       <div className="text-sm">
-        Construction Time: {formatConstructionTime(constructionTime)}
+        Construction Time: {formatTimerTime(constructionTime)}
       </div>
       {futureEnergyRatio < 1 ? (
         <div className="text-sm text-amber-400">
@@ -514,7 +500,7 @@ function NewStructureContent({
       </div>
 
       <div className="text-sm">
-        Construction Time: {formatConstructionTime(constructionTime)}
+        Construction Time: {formatTimerTime(constructionTime)}
       </div>
 
       <div className="text-sm text-violet-400/70">

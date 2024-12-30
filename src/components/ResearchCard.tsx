@@ -1,9 +1,10 @@
+import { formatTimerTime } from "../lib/utils";
 import { ResearchConfig } from "../models";
 import { TechnologyId } from "../models";
 import { Technology } from "../models";
 import { ResearchPrerequisites } from "../models/research_config";
 import { RESEARCH_ASSETS } from "../pages/Researchs";
-import { ConstructionTimer } from "./ConstructionTimer";
+import { Timer } from "./Timer";
 import { Progress } from "./ui/progress";
 import { Beaker, Lock, AlertCircle } from "lucide-react";
 
@@ -89,7 +90,7 @@ export function ResearchCard({
 
         {/* Research Status */}
         {tech.is_researching ? (
-          <ConstructionTimer
+          <Timer
             startTime={tech.research_start_time!}
             finishTime={tech.research_finish_time!}
           />
@@ -112,7 +113,7 @@ export function ResearchCard({
             {/* Estimated Research Time */}
             <div className="mb-4 p-2 bg-blue-900/20 rounded-md">
               <div className="text-sm text-blue-300">
-                Estimated Research Time: {formatTime(researchTime)}
+                Estimated Research Time: {formatTimerTime(researchTime)}
               </div>
             </div>
 

@@ -74,7 +74,7 @@ export function Timer({
 
   return (
     <div
-      className={`p-3 bg-${variant}/10 rounded-lg border border-${variant}/30`}
+      className={`p-3 bg-${variant}/10 rounded-lg border border-${variant}/30 ${className}`}
     >
       <div className="flex items-center">
         <div className="animate-pulse mr-2 w-2 h-2 bg-primary rounded-full"></div>

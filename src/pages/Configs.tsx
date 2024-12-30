@@ -1,14 +1,24 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import { useGame } from "../contexts/GameContext";
 import { api } from "../lib/api";
 import { StructuresConfig } from "../models/structures_config";
 import { ResearchsConfig } from "../models/researchs_config";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
 import { Building2, FlaskConical } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "../components/ui/textarea";
 
 interface StructureFormProps {
   type: string;
@@ -42,6 +52,7 @@ function StructureForm({ type, config, onConfigChange }: StructureFormProps) {
       setJsonError("");
       setJsonMode(false);
     } catch (e: any) {
+      console.error(e);
       setJsonError("Invalid JSON format");
     }
   };
@@ -115,7 +126,7 @@ function StructureForm({ type, config, onConfigChange }: StructureFormProps) {
                             subKey,
                             typeof subValue === "number"
                               ? parseFloat(e.target.value)
-                              : e.target.value
+                              : Number(e.target.value)
                           )
                         }
                         className="bg-black/50 border-primary/30 focus:border-primary/60 text-primary pt-2"
@@ -134,7 +145,7 @@ function StructureForm({ type, config, onConfigChange }: StructureFormProps) {
               </label>
               <Input
                 type={typeof value === "number" ? "number" : "text"}
-                value={value ?? ""}
+                value={value?.toString() ?? ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   onConfigChange(
                     type,
@@ -142,7 +153,7 @@ function StructureForm({ type, config, onConfigChange }: StructureFormProps) {
                     null,
                     typeof value === "number"
                       ? parseFloat(e.target.value)
-                      : e.target.value
+                      : Number(e.target.value)
                   )
                 }
                 className="bg-black/50 border-primary/30 focus:border-primary/60 text-primary placeholder:text-primary/50"
@@ -186,7 +197,7 @@ function ResearchForm({ id, config, onConfigChange }: ResearchFormProps) {
       });
       setJsonError("");
       setJsonMode(false);
-    } catch (e) {
+    } catch {
       setJsonError("Invalid JSON format");
     }
   };
@@ -260,7 +271,7 @@ function ResearchForm({ id, config, onConfigChange }: ResearchFormProps) {
                             subKey,
                             typeof subValue === "number"
                               ? parseFloat(e.target.value)
-                              : e.target.value
+                              : Number(e.target.value)
                           )
                         }
                         className="bg-black/50 border-primary/30 focus:border-primary/60 text-primary pt-2"
@@ -279,7 +290,7 @@ function ResearchForm({ id, config, onConfigChange }: ResearchFormProps) {
               </label>
               <Input
                 type={typeof value === "number" ? "number" : "text"}
-                value={value ?? ""}
+                value={value?.toString() ?? ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   onConfigChange(
                     id,
@@ -287,7 +298,7 @@ function ResearchForm({ id, config, onConfigChange }: ResearchFormProps) {
                     null,
                     typeof value === "number"
                       ? parseFloat(e.target.value)
-                      : e.target.value
+                      : Number(e.target.value)
                   )
                 }
                 className="bg-black/50 border-primary/30 focus:border-primary/60 text-primary placeholder:text-primary/50"
@@ -315,7 +326,7 @@ export function Configs() {
     value: number
   ) => {
     if (!structuresConfig) return;
-    setStructuresConfig((prev) => {
+    setStructuresConfig((prev: any) => {
       if (!prev) return prev;
 
       const updatedStructure = {
@@ -344,7 +355,7 @@ export function Configs() {
     value: number
   ) => {
     if (!researchsConfig) return;
-    setResearchsConfig((prev) => {
+    setResearchsConfig((prev: any) => {
       if (!prev) return prev;
 
       const updatedResearch = {

@@ -26,15 +26,19 @@ import {
 } from "../components/ui/tooltip";
 import { api } from "../lib/api";
 import { Timer } from "../components/Timer";
+import { getTechnologyBonus } from "../lib/utils";
 
 import espionageTechImg from "../assets/researchs/espionage_tech.png";
 import ansibleNetworkImg from "../assets/researchs/ansible_network.png";
 import enhancedMiningImg from "../assets/researchs/enhanced_mining.png";
-import quantumComputingImg from "../assets/researchs/quantum_computing.png";
+import advancedAIImg from "../assets/researchs/advanced_ai.png";
 import cryogenicEfficiencyImg from "../assets/researchs/cryogenic_efficiency.png";
 import naniteConstructorsImg from "../assets/researchs/nanite_constructors.png";
 import neuralNetworkImg from "../assets/researchs/neural_network.png";
 import energyEfficiencyImg from "../assets/researchs/energy_efficiency.png";
+import combatTechImg from "../assets/researchs/espionage_tech.png";
+import transportTechImg from "../assets/researchs/espionage_tech.png";
+import colonizationTechImg from "../assets/researchs/espionage_tech.png";
 
 export const RESEARCH_ASSETS: Record<
   TechnologyId,
@@ -49,24 +53,51 @@ export const RESEARCH_ASSETS: Record<
     };
   }
 > = {
+  transport_tech: {
+    name: "Transport Technology",
+    image: transportTechImg,
+    description: "Unlocks transport ships and technologies.",
+    category: "ship",
+    unlocks: {
+      ships: ["Transport Ship"],
+    },
+  },
+  colonization_tech: {
+    name: "Colonization Technology",
+    image: colonizationTechImg,
+    description: "Unlocks colonization ships and technologies.",
+    category: "ship",
+    unlocks: {
+      ships: ["Colony Ship"],
+    },
+  },
+  combat_tech: {
+    name: "Combat Technology",
+    image: combatTechImg,
+    description: "Unlocks combat ships and technologies.",
+    category: "ship",
+    unlocks: {
+      ships: ["Combat Ship"],
+    },
+  },
   espionage_tech: {
     name: "Espionage Technology",
     image: espionageTechImg,
     description:
       "Increases your ability to gather intelligence on other players and their planets. Each level improves the accuracy and detail of espionage reports.",
-    category: "misc",
+    category: "ship",
     unlocks: {
       ships: ["Spy Probe", "Stealth Ship"],
     },
   },
-  nanite_constructors: {
+  structures_construction_speed: {
     name: "Nanite Constructors",
     image: naniteConstructorsImg,
     description:
       "Microscopic robots assist in construction, increasing building speed with each level of research.",
     category: "infrastructure",
   },
-  cryogenic_efficiency: {
+  deuterium_production_boost: {
     name: "Cryogenic Efficiency",
     image: cryogenicEfficiencyImg,
     description:
@@ -79,28 +110,27 @@ export const RESEARCH_ASSETS: Record<
     description: "Improves the energy production efficiency.",
     category: "resource",
   },
-  quantum_computing: {
-    name: "Quantum Computing",
-    image: quantumComputingImg,
-    description: "Enables advanced quantum computing capabilities.",
+  microchips_production_boost: {
+    name: "Advanced AI",
+    image: advancedAIImg,
+    description:
+      "Develops sophisticated artificial intelligence systems that accelerate research by automating experiments, analyzing data patterns, and optimizing research methodologies. Each level enhances the AI's capabilities to assist in scientific discoveries.",
     category: "infrastructure",
-    unlocks: {
-      ships: ["Quantum Scout", "Data Miner"],
-    },
   },
-  enhanced_mining: {
+  metal_production_boost: {
     name: "Enhanced Mining",
     image: enhancedMiningImg,
     description: "Improves resource extraction efficiency.",
     category: "resource",
   },
-  neural_network: {
+  science_production_boost: {
     name: "Neural Network",
     image: neuralNetworkImg,
-    description: "Enables the construction of neural networks.",
+    description:
+      "Develops synthetic neural matrices that mimic organic brain structures, enabling advanced computational processing and machine consciousness.",
     category: "infrastructure",
   },
-  ansible_network: {
+  global_researchs: {
     name: "Ansible Network",
     image: ansibleNetworkImg,
     description:
@@ -129,19 +159,23 @@ function ResearchCard({
   onStartResearch,
   isAnyResearchInProgress,
 }: ResearchCardProps) {
+  const { state, currentResources } = useGame();
   const costMultiplier = Math.pow(
     1 + research.cost.percent_increase_per_level / 100,
     tech.level
   );
 
-  const timeMultiplier = Math.pow(
-    1 + research.time.percent_increase_per_level / 100,
-    tech.level
+  const timeMultiplier =
+    1 + (research.time.percent_increase_per_level * tech.level) / 100;
+  const researchSpeedBonus = getTechnologyBonus(
+    state.researchsConfig!,
+    state.planetResearchs!,
+    "research_speed"
   );
-  const researchTime = research.time.base_seconds * timeMultiplier;
+  const researchTime =
+    research.time.base_seconds * timeMultiplier * researchSpeedBonus;
 
   const assetConfig = RESEARCH_ASSETS[id as keyof typeof RESEARCH_ASSETS];
-  const { state, currentResources } = useGame();
 
   const costs = {
     metal: research.cost.base_metal * costMultiplier,
@@ -166,16 +200,19 @@ function ResearchCard({
 
   // Helper function to format time (similar to the one in Structures.tsx)
   const formatResearchTime = (seconds: number) => {
-    if (seconds < 60) {
-      return `${Math.ceil(seconds)} seconds`;
-    }
-    if (seconds < 3600) {
-      return `${Math.ceil(seconds / 60)} minutes`;
-    }
-    if (seconds < 86400) {
-      return `${Math.ceil(seconds / 3600)} hours`;
-    }
-    return `${Math.ceil(seconds / 86400)} days`;
+    const days = Math.floor(seconds / (60 * 60 * 24));
+    const hours = Math.floor((seconds % (60 * 60 * 24)) / (60 * 60));
+    const minutes = Math.floor((seconds % (60 * 60)) / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    return [
+      days > 0 && `${days}d`,
+      hours > 0 && `${hours}h`,
+      minutes > 0 && `${minutes}m`,
+      remainingSeconds > 0 && `${remainingSeconds}s`,
+    ]
+      .filter(Boolean)
+      .join(" ");
   };
 
   const getButtonText = () => {

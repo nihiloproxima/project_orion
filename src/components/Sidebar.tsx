@@ -12,13 +12,12 @@ import {
 import {
   Settings,
   LogOut,
-  Rocket,
-  Database,
   Users,
   Terminal,
   Computer,
   Building,
   FlaskConical,
+  Ship,
 } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 
@@ -47,8 +46,8 @@ export function Sidebar() {
           </h2>
         </div>
         <div className="text-xs text-primary/70 mt-2 typing-effect-delay">
-          <span className="inline-block w-2 h-2 bg-primary/80 animate-pulse mr-2" />
-          STATUS: CONNECTED
+          <span className="inline-block w-2 h-2 bg-primary/80  mr-2" />
+          Alpha V.0.1
         </div>
       </div>
 
@@ -73,6 +72,12 @@ export function Sidebar() {
                 icon: FlaskConical,
                 label: "RESEARCH_LAB",
                 color: "green",
+              },
+              {
+                to: "/shipyard",
+                icon: Ship,
+                label: "SHIPYARD",
+                color: "blue",
               },
               {
                 to: "/alliances",

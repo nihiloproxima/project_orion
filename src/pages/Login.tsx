@@ -27,7 +27,7 @@ export function Login() {
     try {
       await login(email, password);
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof ClientResponseError) {
         setError(error.message);
       } else {

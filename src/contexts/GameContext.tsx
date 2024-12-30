@@ -13,6 +13,7 @@ import { Planet } from "../models/planet";
 import { PlanetResources } from "../models/planets_resources";
 import { ResearchsConfig } from "../models/researchs_config";
 import { PlanetResearchs } from "../models";
+import { ShipsConfig } from "../models/ships_config";
 
 interface GameState {
   userPlanets: Planet[];
@@ -21,12 +22,14 @@ interface GameState {
   structures: Structure[];
   structuresConfig: StructuresConfig | null;
   researchsConfig: ResearchsConfig | null;
+  shipsConfig: ShipsConfig | null;
   loading: boolean;
   loadedResources: boolean;
   loadedPlanets: boolean;
   loadedStructures: boolean;
   loadedStructuresConfig: boolean;
   loadedResearchsConfig: boolean;
+  loadedShipsConfig: boolean;
   activePlayers: number;
   planetResearchs: PlanetResearchs | null;
   loadedPlanetResearchs: boolean;
@@ -54,6 +57,7 @@ const initialState: GameState = {
   loadedStructures: false,
   loadedStructuresConfig: false,
   loadedResearchsConfig: false,
+  loadedShipsConfig: false,
   loadedPlanetResearchs: false,
   userPlanets: [],
   selectedPlanet: null,
@@ -61,6 +65,7 @@ const initialState: GameState = {
   structures: [],
   structuresConfig: null,
   researchsConfig: null,
+  shipsConfig: null,
   activePlayers: 0,
   planetResearchs: null,
 };
@@ -106,6 +111,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           loadedStructures: true,
           loadedStructuresConfig: true,
           loadedResearchsConfig: true,
+          loadedShipsConfig: true,
           loadedPlanetResearchs: true,
         }),
       }));
@@ -290,12 +296,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Fetch ships config
+      const { data: shipsData, error: shipsError } = await supabase
+        .from("game_configs")
+        .select("*")
+        .eq("id", "ships")
+        .single();
+
+      if (shipsError) {
+        console.error("Error fetching ships config:", shipsError);
+        return;
+      }
+
       setState((prev) => ({
         ...prev,
         structuresConfig: structuresData.config_data as StructuresConfig,
         researchsConfig: researchData.config_data as ResearchsConfig,
+        shipsConfig: shipsData.config_data as ShipsConfig,
         loadedStructuresConfig: true,
         loadedResearchsConfig: true,
+        loadedShipsConfig: true,
       }));
     };
 
@@ -309,7 +329,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           event: "*",
           schema: "public",
           table: "game_configs",
-          filter: "id=in.(structures,researchs)",
+          filter: "id=in.(structures,researchs,ships)",
         },
         (payload: any) => {
           setState((prev) => {
@@ -322,6 +342,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
               return {
                 ...prev,
                 researchsConfig: payload.new.config_data,
+              };
+            } else if (payload.new.id === "ships") {
+              return {
+                ...prev,
+                shipsConfig: payload.new.config_data,
               };
             }
             return prev;
@@ -411,6 +436,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       state.loadedStructures &&
       state.loadedStructuresConfig &&
       state.loadedResearchsConfig &&
+      state.loadedShipsConfig &&
       state.loadedPlanetResearchs
     ) {
       setState((prev) => ({ ...prev, loading: false }));
@@ -421,6 +447,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     state.loadedStructures,
     state.loadedStructuresConfig,
     state.loadedResearchsConfig,
+    state.loadedShipsConfig,
     state.loadedPlanetResearchs,
   ]);
 

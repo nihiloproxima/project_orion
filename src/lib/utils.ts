@@ -1,13 +1,52 @@
-import { Coordinates } from "../types/game";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { UnlockableType } from "../models/researchs_config";
+import { PlanetResearchs } from "../models/planet_researchs";
+import { ResearchsConfig } from "../models/researchs_config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function calculateDistance(from: Coordinates, to: Coordinates): number {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  return Math.sqrt(dx * dx + dy * dy);
+export function getTechnologyBonus(
+  researchsConfig: ResearchsConfig,
+  planetResearchs: PlanetResearchs,
+  researchEffectType: UnlockableType
+): number {
+  let totalBonus = 0;
+
+  for (const [researchId, research] of Object.entries(
+    researchsConfig.available_researchs
+  )) {
+    const techLevel = planetResearchs.technologies[researchId]?.level || 0;
+    if (techLevel === 0) continue;
+
+    for (const effect of research.effects) {
+      if (effect.type === researchEffectType) {
+        if (effect.per_level) {
+          totalBonus += (effect.value * techLevel) / 100;
+        } else {
+          totalBonus += effect.value / 100;
+        }
+      }
+    }
+  }
+
+  return 1 + totalBonus;
 }
+
+export const formatTimerTime = (seconds: number) => {
+  const days = Math.floor(seconds / (60 * 60 * 24));
+  const hours = Math.floor((seconds % (60 * 60 * 24)) / (60 * 60));
+  const minutes = Math.floor((seconds % (60 * 60)) / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+
+  return [
+    days > 0 && `${days}d`,
+    hours > 0 && `${hours}h`,
+    minutes > 0 && `${minutes}m`,
+    remainingSeconds > 0 && `${remainingSeconds}s`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+};
