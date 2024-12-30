@@ -22,6 +22,7 @@
     "@supabase/supabase-js": "^2.47.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "express": "^4.21.2",
     "gsap": "^3.12.5",
     "lucide-react": "^0.468.0",
     "pocketbase": "^0.24.0",
