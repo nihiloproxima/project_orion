@@ -12,7 +12,7 @@ import { StructuresConfig } from "../models/structures_config";
 import { Planet } from "../models/planet";
 import { PlanetResources } from "../models/planets_resources";
 import { ResearchsConfig } from "../models/researchs_config";
-import { PlanetResearchs } from "../models";
+import { PlanetResearchs, User } from "../models";
 import { ShipsConfig } from "../models/ships_config";
 
 interface GameState {
@@ -33,6 +33,7 @@ interface GameState {
   activePlayers: number;
   planetResearchs: PlanetResearchs | null;
   loadedPlanetResearchs: boolean;
+  currentUser: User | null;
 }
 
 interface GameContextType {
@@ -68,6 +69,7 @@ const initialState: GameState = {
   shipsConfig: null,
   activePlayers: 0,
   planetResearchs: null,
+  currentUser: null,
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
@@ -82,6 +84,60 @@ export function GameProvider({ children }: { children: ReactNode }) {
   });
 
   const { authedUser } = useAuth();
+
+  useEffect(() => {
+    if (!authedUser) return;
+
+    const fetchCurrentUser = async () => {
+      const { data: user, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", authedUser.id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching current user:", error);
+        return;
+      }
+
+      setState((prev) => ({
+        ...prev,
+        currentUser: user,
+      }));
+    };
+
+    fetchCurrentUser();
+
+    const userSubscription = supabase
+      .channel("users-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "users",
+          filter: `id=eq.${authedUser.id}`,
+        },
+        (payload: any) => {
+          if (payload.eventType === "DELETE") {
+            setState((prev) => ({
+              ...prev,
+              currentUser: null,
+            }));
+          } else {
+            setState((prev) => ({
+              ...prev,
+              currentUser: payload.new,
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      userSubscription.unsubscribe();
+    };
+  }, [authedUser]);
 
   useEffect(() => {
     if (!authedUser) return;
@@ -132,23 +188,35 @@ export function GameProvider({ children }: { children: ReactNode }) {
         },
         (payload: any) => {
           setState((prev) => {
-            console.log("planet update");
-            const updatedPlanets = prev.userPlanets.map((planet) =>
-              planet.id === payload.new.id
-                ? { ...planet, ...payload.new }
-                : planet
-            );
+            // Get updated planets list
+            let updatedPlanets = [...prev.userPlanets];
 
-            // Update selected planet if it was modified
-            const updatedSelectedPlanet =
-              prev.selectedPlanet?.id === payload.new.id
-                ? { ...prev.selectedPlanet, ...payload.new }
-                : prev.selectedPlanet;
+            if (payload.eventType === "DELETE") {
+              updatedPlanets = updatedPlanets.filter(
+                (p) => p.id !== payload.old.id
+              );
+            } else {
+              const planetIndex = updatedPlanets.findIndex(
+                (p) => p.id === payload.new.id
+              );
+              if (planetIndex >= 0) {
+                updatedPlanets[planetIndex] = payload.new;
+              } else {
+                updatedPlanets.push(payload.new);
+              }
+            }
+
+            // Determine selected planet
+            let selectedPlanet = prev.selectedPlanet;
+            if (!selectedPlanet && updatedPlanets.length > 0) {
+              selectedPlanet =
+                updatedPlanets.find((p) => p.is_homeworld) || updatedPlanets[0];
+            }
 
             return {
               ...prev,
               userPlanets: updatedPlanets,
-              selectedPlanet: updatedSelectedPlanet,
+              selectedPlanet: selectedPlanet,
             };
           });
         }
