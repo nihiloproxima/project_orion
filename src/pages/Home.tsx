@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
@@ -8,23 +7,11 @@ import {
   CardContent,
 } from "../components/ui/card";
 import { useAuth } from "../contexts/auth";
+import { useGame } from "../contexts/GameContext";
 
 export function Home() {
   const { isAuthenticated } = useAuth();
-  const [count, setCount] = useState(
-    () => Math.floor(Math.random() * 1000) + 500
-  );
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCount((current) => {
-        const change = Math.random() > 0.5 ? 1 : -1;
-        return Math.max(100, current + change);
-      });
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const { state } = useGame();
 
   return (
     <div className="min-h-screen bg-background cyber-grid">
@@ -61,7 +48,8 @@ export function Home() {
           and conquer in this immersive multiplayer strategy game.
         </p>
         <div className="text-lg text-muted-foreground mb-8">
-          <span className="neon-text font-mono">{count}</span> commanders online
+          <span className="neon-text font-mono">{state.activePlayers}</span>{" "}
+          commanders online
         </div>
         <Link to="/login">
           <Button
