@@ -2,16 +2,16 @@ import { ShipType } from "./ship";
 import { StructureType } from "./structure";
 
 export type TechnologyId =
-  | "metal_production_boost" // Boost metal production
-  | "deuterium_production_boost" // Boost deuterium production
-  | "energy_efficiency" // Boost energy production
-  | "microchips_production_boost" // Boost microchips production
-  | "science_production_boost" // Boost science production through distributed
-  | "global_researchs" // All researchs are shared across your planets
-  | "espionage_tech" // Unlock spy probe, upgrade to enhance espionage
-  | "structures_construction_speed" // Boost construction speed
   | "colonization_tech" // Unlock colony ship
   | "combat_tech" // Unlock combat ship
+  | "deuterium_production_boost" // Boost deuterium production
+  | "energy_efficiency" // Boost energy production
+  | "espionage_tech" // Unlock spy probe, upgrade to enhance espionage
+  | "global_researchs" // All researchs are shared across your planets
+  | "metal_production_boost" // Boost metal production
+  | "microchips_production_boost" // Boost microchips production
+  | "science_production_boost" // Boost science production through distributed
+  | "structures_construction_speed" // Boost construction speed
   | "transport_tech"; // Unlock transport ship
 
 export type ResearchCategory =
