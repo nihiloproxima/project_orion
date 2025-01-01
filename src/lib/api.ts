@@ -1,3 +1,4 @@
+import { ShipType } from "../models/ship";
 import { StructureType } from "../models/structure";
 import { supabase } from "./supabase";
 
@@ -72,6 +73,21 @@ export const api = {
       return post("structures", "upgrade", {
         planet_id: planetId,
         structure_id: structureId,
+      });
+    },
+  },
+  fleet: {
+    buildShip: async (shipType: ShipType, planetId: string, amount: number) => {
+      return post("fleet", "buildShip", {
+        ship_type: shipType,
+        planet_id: planetId,
+        amount,
+      });
+    },
+    renameShip: async (shipId: string, newName: string) => {
+      return post("fleet", "renameShip", {
+        ship_id: shipId,
+        new_name: newName,
       });
     },
   },

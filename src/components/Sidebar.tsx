@@ -12,12 +12,13 @@ import {
 import {
   Settings,
   LogOut,
-  Users,
   Terminal,
   Computer,
   Building,
   FlaskConical,
   Ship,
+  Rocket,
+  Anchor,
 } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 
@@ -75,16 +76,22 @@ export function Sidebar() {
               },
               {
                 to: "/shipyard",
-                icon: Ship,
+                icon: Rocket,
                 label: "SHIPYARD",
                 color: "blue",
               },
               {
-                to: "/alliances",
-                icon: Users,
-                label: "ALLIANCE_NET",
+                to: "/fleet",
+                icon: Anchor,
+                label: "FLEET",
                 color: "blue",
               },
+              // {
+              //   to: "/alliances",
+              //   icon: Users,
+              //   label: "ALLIANCE_NET",
+              //   color: "blue",
+              // },
               {
                 to: "/configs",
                 icon: Settings,

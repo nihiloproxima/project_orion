@@ -9,6 +9,7 @@ import { Structures } from "../pages/Structures";
 import { Configs } from "../pages/Configs";
 import { Researchs } from "../pages/Researchs";
 import { Shipyard } from "../pages/Shipyard";
+import { Fleet } from "../pages/Fleet";
 
 export function AppRoutes() {
   return (
@@ -26,6 +27,7 @@ export function AppRoutes() {
         <Route path="/configs" element={<Configs />} />
         <Route path="/research" element={<Researchs />} />
         <Route path="/shipyard" element={<Shipyard />} />
+        <Route path="/fleet" element={<Fleet />} />
         {/* Add other protected routes here */}
       </Route>
 

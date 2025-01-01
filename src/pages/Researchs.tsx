@@ -11,7 +11,11 @@ import {
   Microchip,
   Clock,
   AlertTriangle,
+  Grid,
+  Grid2x2,
+  Grid3x3,
 } from "lucide-react";
+import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
@@ -24,10 +28,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 import { api } from "../lib/api";
 import { Timer } from "../components/Timer";
 import { getTechnologyBonus } from "../lib/utils";
 import { RESEARCH_ASSETS } from "../lib/constants";
+import { useState } from "react";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 interface ResearchCardProps {
   id: TechnologyId;
@@ -347,6 +359,22 @@ function ResearchCard({
 
 export function Researchs() {
   const { state } = useGame();
+  const [gridCols, setGridCols] = useState(() => {
+    const saved = localStorage.getItem("structuresGridCols");
+    return saved ? parseInt(saved) : 2;
+  });
+
+  const gridColsClass = {
+    1: "grid-cols-1",
+    2: "grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2",
+    3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3",
+    4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+  }[gridCols];
+
+  const updateGridCols = (cols: number) => {
+    setGridCols(cols);
+    localStorage.setItem("structuresGridCols", cols.toString());
+  };
 
   if (!state.researchsConfig || !state.planetResearchs) {
     return <div>Loading...</div>;
@@ -390,41 +418,67 @@ export function Researchs() {
   ).some((tech) => tech.is_researching);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
-          <Beaker className="h-8 w-8" />
-          RESEARCH LABORATORY
-        </h1>
-        <div className="flex items-center gap-2 text-gray-200">
-          <FolderTree className="h-5 w-5" />
-          <p>Browse and unlock advanced technologies</p>
+    <ErrorBoundary>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
+              <Beaker className="h-8 w-8" />
+              RESEARCH LABORATORY
+            </h1>
+            <div className="flex items-center gap-2 text-gray-200">
+              <FolderTree className="h-5 w-5" />
+              <p>Browse and unlock advanced technologies</p>
+            </div>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Grid className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => updateGridCols(1)}>
+                <Grid className="mr-2 h-4 w-4" /> Single Column
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(2)}>
+                <Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(3)}>
+                <Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(4)}>
+                <Grid className="mr-2 h-4 w-4" /> Four Columns
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className={`grid ${gridColsClass} gap-6`}>
+          {Object.entries(state.researchsConfig.available_researchs).map(
+            ([id, research]) => {
+              const tech = state.planetResearchs?.technologies[id] || {
+                level: 0,
+                is_researching: false,
+                research_start_time: null,
+                research_finish_time: null,
+              };
+
+              return (
+                <ResearchCard
+                  key={id}
+                  id={id as TechnologyId}
+                  research={research}
+                  tech={tech}
+                  onStartResearch={startResearch}
+                  isAnyResearchInProgress={isAnyResearchInProgress}
+                />
+              );
+            }
+          )}
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(state.researchsConfig.available_researchs).map(
-          ([id, research]) => {
-            const tech = state.planetResearchs?.technologies[id] || {
-              level: 0,
-              is_researching: false,
-              research_start_time: null,
-              research_finish_time: null,
-            };
-
-            return (
-              <ResearchCard
-                key={id}
-                id={id as TechnologyId}
-                research={research}
-                tech={tech}
-                onStartResearch={startResearch}
-                isAnyResearchInProgress={isAnyResearchInProgress}
-              />
-            );
-          }
-        )}
-      </div>
-    </div>
+    </ErrorBoundary>
   );
 }

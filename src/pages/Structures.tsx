@@ -5,13 +5,29 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import millify from "millify";
 import { Structure, StructureType } from "../models/structure";
 import { Button } from "../components/ui/button";
-import { Building2, Beaker, Flame, Hammer, Microchip } from "lucide-react";
+import {
+  Building2,
+  Beaker,
+  Flame,
+  Hammer,
+  Microchip,
+  Grid2x2,
+  Grid3x3,
+  Grid,
+} from "lucide-react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useEffect, useState } from "react";
 import { Timer } from "../components/Timer";
 import { api } from "../lib/api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 
 // Import structure images
 import metalMineImg from "../assets/structures/metal_mine.png";
@@ -86,7 +102,7 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
     type: "shipyard",
     name: "Shipyard",
     description:
-      "Builds and maintains your fleet of spacecraft. Each level reduces ship construction time and unlocks new ship types.",
+      "Builds and maintains your fleet of spacecraft. Each level unlocks new ship types.",
     productionType: "none",
     icon: <Building2 className="h-5 w-5" />,
     image: shipYardImg,
@@ -163,14 +179,27 @@ function StructureCard({
     await api.structures.construct(state.selectedPlanet!.id, type);
   };
 
-  const calculateHourlyProduction = (structure: Structure) => {
-    if (!state.structuresConfig || structure.level === 0) return 0;
+  const calculateHourlyProduction = (structure: Structure, level?: number) => {
+    if (
+      !state.structuresConfig ||
+      (level === undefined && structure.level === 0)
+    )
+      return 0;
 
     const energyRatio =
       currentResources.energy_production / currentResources.energy_consumption;
     const productionEfficiency = energyRatio >= 1 ? 1 : energyRatio;
 
-    return structure.production_rate * 3600 * productionEfficiency;
+    const productionRate =
+      level !== undefined
+        ? structure.production_rate *
+          (1 +
+            ((level - structure.level) *
+              config.production.percent_increase_per_level) /
+              100)
+        : structure.production_rate;
+
+    return productionRate * 3600 * productionEfficiency;
   };
 
   const level = structure?.level ?? 0;
@@ -228,24 +257,87 @@ function StructureCard({
 
           {structure && info.productionType !== "none" && (
             <div className="text-sm text-primary/70 font-medium">
-              <div
-                className={
-                  currentResources.energy_production <
-                  currentResources.energy_consumption
-                    ? "text-red-400"
-                    : ""
-                }
-              >
-                Produces:{" "}
-                {info.type === "energy_plant"
-                  ? structure.production_rate
-                  : Math.floor(calculateHourlyProduction(structure))}{" "}
-                {info.type === "energy_plant"
-                  ? info.productionType
-                  : `${info.productionType}/hour`}
+              <div className="flex items-center gap-2">
+                <span
+                  className={
+                    currentResources.energy_production <
+                    currentResources.energy_consumption
+                      ? "text-red-400"
+                      : ""
+                  }
+                >
+                  Production:{" "}
+                  {info.type === "energy_plant"
+                    ? structure.production_rate
+                    : Math.floor(calculateHourlyProduction(structure)) > 10000
+                    ? millify(Math.floor(calculateHourlyProduction(structure)))
+                    : Math.floor(calculateHourlyProduction(structure))}
+                  {info.type === "energy_plant" ? (
+                    info.productionType
+                  ) : (
+                    <span className="text-muted-foreground">/h</span>
+                  )}
+                </span>
+                {structure && !structure.is_under_construction && (
+                  <>
+                    <span className="text-muted-foreground">→</span>
+                    <span
+                      className={
+                        futureEnergyRatio < 1
+                          ? "text-red-400"
+                          : "text-emerald-400"
+                      }
+                    >
+                      {info.type === "energy_plant"
+                        ? structure.production_rate *
+                          (1 +
+                            config.production.percent_increase_per_level / 100)
+                        : Math.floor(
+                            calculateHourlyProduction(
+                              structure,
+                              structure.level + 1
+                            )
+                          ) > 10000
+                        ? millify(
+                            Math.floor(
+                              calculateHourlyProduction(
+                                structure,
+                                structure.level + 1
+                              )
+                            )
+                          )
+                        : Math.floor(
+                            calculateHourlyProduction(
+                              structure,
+                              structure.level + 1
+                            )
+                          )}
+                      {info.type === "energy_plant" ? (
+                        info.productionType
+                      ) : (
+                        <span className="text-muted-foreground">/h</span>
+                      )}
+                    </span>
+                  </>
+                )}
               </div>
-              <div className="text-sm text-violet-400/70">
-                Energy Consumption: {energyConsumption}
+              <div className="flex items-center gap-2">
+                <span className="text-violet-400/70">
+                  Energy:{" "}
+                  {energyConsumption > 10000
+                    ? millify(energyConsumption)
+                    : energyConsumption}
+                </span>
+                {structure && !structure.is_under_construction && (
+                  <>
+                    <span className="text-muted-foreground">→</span>
+                    <span className="text-violet-400/70">
+                      {futureEnergyConsumption > 10000
+                        ? millify(futureEnergyConsumption)
+                        : futureEnergyConsumption}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -540,20 +632,60 @@ function NewStructureContent({
 
 export function Structures() {
   const { state } = useGame();
+  const [gridCols, setGridCols] = useState(() => {
+    const saved = localStorage.getItem("structuresGridCols");
+    return saved ? parseInt(saved) : 2;
+  });
+
+  const gridColsClass = {
+    1: "grid-cols-1",
+    2: "grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2",
+    3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3",
+    4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+  }[gridCols];
+
+  const updateGridCols = (cols: number) => {
+    setGridCols(cols);
+    localStorage.setItem("structuresGridCols", cols.toString());
+  };
 
   return (
     <ErrorBoundary>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold neon-text mb-2">
-            PLANETARY STRUCTURES
-          </h1>
-          <p className="text-muted-foreground">
-            Manage and upgrade your planetary infrastructure
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold neon-text mb-2">
+              PLANETARY STRUCTURES
+            </h1>
+            <p className="text-muted-foreground">
+              Manage and upgrade your planetary infrastructure
+            </p>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Grid className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => updateGridCols(1)}>
+                <Grid className="mr-2 h-4 w-4" /> Single Column
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(2)}>
+                <Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(3)}>
+                <Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(4)}>
+                <Grid className="mr-2 h-4 w-4" /> Four Columns
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`grid ${gridColsClass} gap-6`}>
           {Object.values(STRUCTURE_INFO).map((info) => (
             <StructureCard
               key={info.type}
