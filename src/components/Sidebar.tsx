@@ -16,7 +16,6 @@ import {
   Computer,
   Building,
   FlaskConical,
-  Ship,
   Rocket,
   Anchor,
 } from "lucide-react";

@@ -17,7 +17,6 @@ import {
   Plus,
   Minus,
   Clock,
-  Loader2,
 } from "lucide-react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { ShipType } from "../models/ship";
@@ -173,26 +172,8 @@ function ShipCard({
 }) {
   const { state, currentResources } = useGame();
   const [buildAmount, setBuildAmount] = useState(1);
-  const [remainingTime, setRemainingTime] = useState<number>(0);
   const asset = SHIP_ASSETS[type];
   const shipyard = state.structures?.find((s) => s.type === "shipyard");
-
-  useEffect(() => {
-    if (queue?.commands?.length && queue.commands.length > 0) {
-      const firstCommand = queue!.commands[0];
-      setRemainingTime(
-        firstCommand.construction_finish_time - Date.now() / 1000
-      );
-    }
-
-    const timer = setInterval(() => {
-      setRemainingTime((prev) => Math.max(0, prev - 1));
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [queue]);
 
   // Check if requirements are met
   const meetsShipyardLevel =
@@ -221,7 +202,6 @@ function ShipCard({
   const buildTime = baseTime * buildAmount;
 
   const isQueueFull = (queue?.commands?.length || 0) >= (queue?.capacity || 0);
-  const isTypeInQueue = queue?.commands?.some((cmd) => cmd.ship_type === type);
 
   const handleBuild = async () => {
     if (!state.selectedPlanet?.id || isQueueFull) return;
