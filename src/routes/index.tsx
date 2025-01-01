@@ -10,6 +10,7 @@ import { Configs } from "../pages/Configs";
 import { Researchs } from "../pages/Researchs";
 import { Shipyard } from "../pages/Shipyard";
 import { Fleet } from "../pages/Fleet";
+import { GalaxyObservation } from "../pages/GalaxyObservation";
 
 export function AppRoutes() {
   return (
@@ -28,6 +29,7 @@ export function AppRoutes() {
         <Route path="/research" element={<Researchs />} />
         <Route path="/shipyard" element={<Shipyard />} />
         <Route path="/fleet" element={<Fleet />} />
+        <Route path="/galaxy" element={<GalaxyObservation />} />
         {/* Add other protected routes here */}
       </Route>
 

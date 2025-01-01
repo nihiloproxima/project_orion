@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { ChooseHomeworld } from "../components/ChooseHomeworld";
 import { useGame } from "../contexts/GameContext";
 import { useNavigate } from "react-router-dom";
@@ -7,22 +7,49 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import { GalaxyMap } from "../components/GalaxyMap";
+import { Rocket } from "lucide-react";
+import { api } from "../lib/api";
+import { Planet } from "../models/planet";
+import { usePlanets } from "../hooks/usePlanets";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 export function ChooseHomeworldPage() {
   const { state } = useGame();
+  const { unclaimedPlanets, loading } = usePlanets();
   const navigate = useNavigate();
   const [step, setStep] = useState<"message" | "messageOpen" | "choose">(
     "message"
   );
   const [selectedEmail, setSelectedEmail] = useState<number | null>(null);
 
+  // Get unclaimed planets for homeworld selection
+  const availablePlanets = useMemo(() => {
+    return state.planets?.filter((p) => !p.owner_id) || [];
+  }, [state.planets]);
+
+  const handlePlanetSelect = async (planet: Planet) => {
+    try {
+      await api.planets.claim(planet.id, true);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error claiming planet:", error);
+    }
+  };
+
   useEffect(() => {
     if (state.selectedPlanet?.id) {
       navigate("/dashboard");
     }
-  }, [state.loading, state.selectedPlanet, navigate]);
+  }, [state.selectedPlanet, navigate]);
+
+  // Show loading screen while fetching planet data
+  if (loading) {
+    return <LoadingScreen message="SCANNING STAR SYSTEMS..." />;
+  }
 
   if (step === "message") {
     return (
@@ -327,6 +354,40 @@ export function ChooseHomeworldPage() {
               <Button className="w-full" onClick={() => setStep("choose")}>
                 Continue
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "choose") {
+    return (
+      <div className="min-h-screen bg-background p-6 bg-[url('/assets/space-bg.jpg')] bg-cover">
+        <div className="container mx-auto space-y-6 backdrop-blur-sm">
+          <Card className="border-2 shadow-2xl shadow-primary/20">
+            <CardHeader className="border-b bg-gray-900">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Rocket className="h-6 w-6 text-primary" />
+                Choose Your Homeworld
+              </CardTitle>
+              <CardDescription>
+                {unclaimedPlanets.length} unclaimed planets available
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <p className="text-muted-foreground mb-6">
+                Select your starting planet from the available unclaimed worlds.
+                Choose wisely - this will be your base of operations.
+              </p>
+
+              <GalaxyMap
+                mode="homeworld"
+                onPlanetSelect={handlePlanetSelect}
+                allowedPlanets={unclaimedPlanets.map((p) => p.id)}
+                initialZoom={0.5}
+                initialCenter={{ x: 0, y: 0 }}
+              />
             </CardContent>
           </Card>
         </div>

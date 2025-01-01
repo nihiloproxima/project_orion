@@ -34,6 +34,7 @@ interface GameState {
   planetResearchs: PlanetResearchs | null;
   loadedPlanetResearchs: boolean;
   currentUser: User | null;
+  planets: Planet[] | null;
 }
 
 interface GameContextType {
@@ -70,6 +71,8 @@ const initialState: GameState = {
   activePlayers: 0,
   planetResearchs: null,
   currentUser: null,
+  planets: null,
+  loadedPlanets: false,
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
@@ -150,6 +153,120 @@ export function GameProvider({ children }: { children: ReactNode }) {
       userSubscription.unsubscribe();
     };
   }, [authedUser]);
+
+  // Fetch planets once on initialization
+  useEffect(() => {
+    const fetchPlanets = async () => {
+      if (state.loadedPlanets) return;
+
+      console.log("Fetching planets...");
+
+      try {
+        // Add count query first to verify total number
+        const { count } = await supabase
+          .from("planets")
+          .select("*", { count: "exact", head: true });
+
+        console.log(`Total planets in database: ${count}`);
+
+        // Then fetch all planets with explicit pagination
+        const { data: planets, error } = await supabase
+          .from("planets")
+          .select("*")
+          .order("created_at")
+          .range(0, 999); // Fetch up to 1000 planets to ensure we get all 500
+
+        if (error) {
+          console.error("Error fetching planets:", error);
+          return;
+        }
+
+        console.log(`Loaded ${planets?.length || 0} planets`);
+
+        setState((prev) => ({
+          ...prev,
+          planets,
+          loadedPlanets: true,
+        }));
+
+        localStorage.setItem(
+          "planets_cache",
+          JSON.stringify({
+            planets,
+            timestamp: Date.now(),
+          })
+        );
+      } catch (error) {
+        console.error("Error in fetchPlanets:", error);
+      }
+    };
+
+    const loadFromCache = () => {
+      const cached = localStorage.getItem("planets_cache");
+      if (!cached) {
+        console.log("No planets cache found");
+        return false;
+      }
+
+      try {
+        const { planets, timestamp } = JSON.parse(cached);
+        const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          console.log(`Loaded ${planets?.length || 0} planets from cache`);
+          setState((prev) => ({
+            ...prev,
+            planets,
+            loadedPlanets: true,
+          }));
+          return true;
+        } else {
+          console.log("Planet cache expired");
+        }
+      } catch (error) {
+        console.error("Error parsing planets cache:", error);
+      }
+      return false;
+    };
+
+    if (!loadFromCache()) {
+      fetchPlanets();
+    }
+  }, [state.loadedPlanets]);
+
+  // Subscribe to planet ownership changes
+  useEffect(() => {
+    if (!state.loadedPlanets) return;
+
+    const subscription = supabase
+      .channel("planet_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "planets",
+          filter: "owner_id IS NOT NULL",
+        },
+        (payload) => {
+          // Update only the owner_id of the changed planet
+          setState((prev) => ({
+            ...prev,
+            planets:
+              prev.planets?.map((planet) =>
+                planet.id === payload.new.id
+                  ? { ...planet, owner_id: payload.new.owner_id }
+                  : planet
+              ) || null,
+          }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [state.loadedPlanets]);
 
   useEffect(() => {
     if (!authedUser) return;

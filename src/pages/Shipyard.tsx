@@ -407,12 +407,14 @@ export function Shipyard() {
   const { state } = useGame();
   const [selectedCategory, setSelectedCategory] = useState<string>("civilian");
   const [queue, setQueue] = useState<ShipyardQueue | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!state.selectedPlanet?.id) return;
 
     // Initial fetch
     const fetchQueue = async () => {
+      setLoading(true);
       const { data } = await supabase
         .from("shipyard_queues")
         .select("*")
@@ -422,6 +424,7 @@ export function Shipyard() {
       if (data) {
         setQueue(data as ShipyardQueue);
       }
+      setLoading(false);
     };
 
     fetchQueue();
@@ -511,7 +514,11 @@ export function Shipyard() {
             <ScrollArea className="h-full pr-4">
               <QueueDisplay queue={queue} />
 
-              {selectedCategory ? (
+              {loading ? (
+                <div className="text-center text-muted-foreground font-mono">
+                  <p>{">"} LOADING SHIPYARD DATA...</p>
+                </div>
+              ) : selectedCategory ? (
                 <div className="grid grid-cols-1 gap-6">
                   {SHIP_CATEGORIES[selectedCategory]!.types.map(
                     (type: ShipType) => (

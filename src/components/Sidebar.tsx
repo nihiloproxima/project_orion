@@ -18,6 +18,7 @@ import {
   FlaskConical,
   Rocket,
   Anchor,
+  Eye,
 } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 
@@ -84,6 +85,12 @@ export function Sidebar() {
                 icon: Anchor,
                 label: "FLEET",
                 color: "blue",
+              },
+              {
+                to: "/galaxy",
+                icon: Eye,
+                label: "GALAXY_MAP",
+                color: "purple",
               },
               // {
               //   to: "/alliances",
