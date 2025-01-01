@@ -1,4 +1,4 @@
-import { GalaxyMap } from "../components/GalaxyMap";
+import { GalaxyMap } from "../components/GalaxyMap/GalaxyMap";
 import {
   Card,
   CardContent,

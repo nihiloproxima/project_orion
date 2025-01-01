@@ -10,7 +10,7 @@ import {
   CardDescription,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { GalaxyMap } from "../components/GalaxyMap";
+import { GalaxyMap } from "../components/GalaxyMap/GalaxyMap";
 import { Rocket } from "lucide-react";
 import { api } from "../lib/api";
 import { Planet } from "../models/planet";

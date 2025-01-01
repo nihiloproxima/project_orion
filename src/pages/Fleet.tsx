@@ -42,7 +42,7 @@ import {
   DialogDescription,
 } from "../components/ui/dialog";
 import { Input } from "../components/ui/input";
-import { GalaxyMap } from "../components/GalaxyMap";
+import { GalaxyMap } from "../components/GalaxyMap/GalaxyMap";
 import { usePlanets } from "../hooks/usePlanets";
 import { LoadingScreen } from "../components/LoadingScreen";
 
@@ -103,7 +103,7 @@ export function Fleet() {
   const [sortField, setSortField] = useState<SortField>("speed");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [showMissionSetup, setShowMissionSetup] = useState(false);
-  const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
+  const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null);
   const [selectedMissionType, setSelectedMissionType] =
     useState<MissionType | null>(null);
   const [missionType, setMissionType] = useState<MissionType | null>(null);
@@ -374,7 +374,7 @@ export function Fleet() {
             <div className="border rounded-lg p-4">
               <GalaxyMap
                 mode="mission-target"
-                onPlanetSelect={setSelectedPlanet}
+                onPlanetSelect={(planet: Planet) => setSelectedPlanet(planet)}
                 allowedPlanets={getAllowedTargetPlanets()}
                 highlightedPlanets={getHighlightedPlanets()}
                 initialZoom={0.3}
