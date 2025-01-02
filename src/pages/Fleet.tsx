@@ -39,7 +39,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
 } from "../components/ui/dialog";
 import { Input } from "../components/ui/input";
 import { GalaxyMap2D } from "../components/GalaxyMap2D/GalaxyMap2D";
@@ -98,9 +97,6 @@ export function Fleet() {
   const [sortField, setSortField] = useState<SortField>("speed");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [showMissionSetup, setShowMissionSetup] = useState(false);
-  const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null);
-  const [selectedMissionType, setSelectedMissionType] =
-    useState<MissionType | null>(null);
   const [missionType, setMissionType] = useState<MissionType | null>(null);
   const [targetPlanet, setTargetPlanet] = useState<Planet | null>(null);
 
@@ -301,14 +297,16 @@ export function Fleet() {
   };
 
   const handleConfirmMission = async () => {
-    if (!selectedPlanet || !selectedMissionType) return;
+    if (!targetPlanet || !missionType) return;
 
     // TODO: Implement mission confirmation logic
     console.log("Mission confirmed:", {
       ships: Array.from(selectedShips),
-      targetPlanet: selectedPlanet,
-      missionType: selectedMissionType,
+      targetPlanet: targetPlanet,
+      missionType: missionType,
     });
+
+    setShowMissionSetup(false);
   };
 
   // Get highlighted planets based on mission type
@@ -355,66 +353,76 @@ export function Fleet() {
             variant="ghost"
             onClick={() => {
               setShowMissionSetup(false);
-              setSelectedPlanet(null);
-              setSelectedMissionType(null);
+              setTargetPlanet(null);
+              setMissionType(null);
             }}
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Select Mission Type</h3>
+            <Select
+              value={missionType || ""}
+              onValueChange={(value) => {
+                setMissionType(value as MissionType);
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose mission type" />
+              </SelectTrigger>
+              <SelectContent>
+                {getAvailableMissionTypes().map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <h3 className="text-lg font-semibold mb-4">Select Target Planet</h3>
-            <div className="border rounded-lg p-4">
+            <div className="border rounded-lg p-4 w-full h-[60vh] flex">
               <GalaxyMap2D
-                mode="mission-target"
-                onPlanetSelect={(planet: Planet) => setSelectedPlanet(planet)}
+                mode={"mission-target"}
+                onPlanetSelect={setTargetPlanet}
                 allowedPlanets={getAllowedTargetPlanets()}
                 highlightedPlanets={getHighlightedPlanets()}
                 initialZoom={0.3}
-                initialCenter={{
-                  x: state.selectedPlanet?.coordinate_x || 0,
-                  y: state.selectedPlanet?.coordinate_y || 0,
-                }}
+                width="100%"
+                height="100%"
               />
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Select Mission Type
-              </h3>
-              <Select
-                value={missionType || ""}
-                onValueChange={(value) => {
-                  setMissionType(value as MissionType);
-                  setSelectedMissionType(value as MissionType);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose mission type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailableMissionTypes().map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {targetPlanet && (
+            <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+              <h4 className="font-bold mb-2">
+                Selected Target: {targetPlanet.name}
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Coordinates: ({targetPlanet.coordinate_x},{" "}
+                {targetPlanet.coordinate_y})
+              </p>
+              {state.selectedPlanet && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Travel Time: {calculateTravelTime(targetPlanet)} hours
+                </p>
+              )}
             </div>
+          )}
 
-            <Button
-              className="w-full"
-              disabled={!selectedPlanet || !selectedMissionType}
-              onClick={handleConfirmMission}
-            >
-              <Target className="h-4 w-4 mr-2" />
-              Confirm Mission
-            </Button>
-          </div>
+          <Button
+            className="w-full"
+            disabled={!targetPlanet || !missionType}
+            onClick={handleConfirmMission}
+          >
+            <Target className="h-4 w-4 mr-2" />
+            Confirm Mission
+          </Button>
         </div>
       </div>
     );
@@ -618,118 +626,6 @@ export function Fleet() {
               Cancel
             </Button>
             <Button onClick={handleRenameShip}>Rename</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showMissionSetup} onOpenChange={setShowMissionSetup}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Mission Setup</DialogTitle>
-            {state.selectedPlanet && (
-              <DialogDescription>
-                Launching from: {state.selectedPlanet.name} (
-                {state.selectedPlanet.coordinate_x},{" "}
-                {state.selectedPlanet.coordinate_y})
-              </DialogDescription>
-            )}
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <Select
-              value={missionType || ""}
-              onValueChange={(value: MissionType) => {
-                console.log("Selected mission type:", value);
-                setMissionType(value);
-                setSelectedMissionType(value);
-                setTargetPlanet(null); // Reset target when changing mission type
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Mission Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="transport">Transport</SelectItem>
-                <SelectItem value="colonize">Colonize</SelectItem>
-                <SelectItem value="attack">Attack</SelectItem>
-                <SelectItem value="spy">Spy</SelectItem>
-                <SelectItem value="recycle">Recycle</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {missionType && planets && (
-              <div className="space-y-4">
-                <GalaxyMap2D
-                  mode="mission-target"
-                  onPlanetSelect={setTargetPlanet}
-                  allowedPlanets={getAllowedTargetPlanets()}
-                  highlightedPlanets={getHighlightedPlanets()}
-                  initialZoom={0.3}
-                  initialCenter={{
-                    x: state.selectedPlanet?.coordinate_x || 0,
-                    y: state.selectedPlanet?.coordinate_y || 0,
-                  }}
-                />
-
-                <div className="text-sm text-muted-foreground">
-                  <p>Mission Type: {missionType}</p>
-                  <p>Available Targets: {getAllowedTargetPlanets().length}</p>
-                  {selectedShips.size > 0 && targetPlanet && (
-                    <p>
-                      Estimated Travel Time: {calculateTravelTime(targetPlanet)}{" "}
-                      hours
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {targetPlanet && (
-              <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                <h4 className="font-bold mb-2">
-                  Selected Target: {targetPlanet.name}
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  Coordinates: ({targetPlanet.coordinate_x},{" "}
-                  {targetPlanet.coordinate_y})
-                </p>
-                {state.selectedPlanet && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Distance:{" "}
-                    {Math.ceil(
-                      Math.sqrt(
-                        Math.pow(
-                          targetPlanet.coordinate_x -
-                            state.selectedPlanet.coordinate_x,
-                          2
-                        ) +
-                          Math.pow(
-                            targetPlanet.coordinate_y -
-                              state.selectedPlanet.coordinate_y,
-                            2
-                          )
-                      )
-                    ).toLocaleString()}{" "}
-                    units
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowMissionSetup(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              disabled={!targetPlanet || selectedShips.size === 0}
-              onClick={() => handleConfirmMission()}
-            >
-              Start Mission
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
