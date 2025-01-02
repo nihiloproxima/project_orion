@@ -135,7 +135,7 @@ export function Login() {
             </div>
             <Button
               type="submit"
-              className="w-full font-mono bg-primary/30 hover:bg-primary/40 border border-primary/60 neon-border"
+              className="w-full font-mono bg-primary/80 hover:bg-primary/90 border border-primary/60 neon-border"
             >
               AUTHENTICATE
             </Button>
@@ -152,7 +152,7 @@ export function Login() {
             <Button
               type="button"
               onClick={handleDiscordSignIn}
-              className="w-full font-mono bg-[#5865F2]/30 hover:bg-[#5865F2]/40 border border-[#5865F2]/60 neon-border"
+              className="w-full font-mono bg-[#5865F2]/80 hover:bg-[#5865F2]/90 border border-[#5865F2]/60 neon-border text-white "
             >
               DISCORD LOGIN
             </Button>

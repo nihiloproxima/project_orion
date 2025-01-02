@@ -121,7 +121,7 @@ export function Register() {
         <CardContent>
           <Button
             onClick={handleDiscordSignIn}
-            className="w-full mb-6 font-mono bg-[#5865F2] hover:bg-[#4752C4] text-white border-none"
+            className="w-full mb-6 font-mono bg-[#5865F2]/80 hover:bg-[#5865F2]/90 border border-[#5865F2]/60 neon-border text-white "
           >
             CONNECT WITH DISCORD
           </Button>
@@ -209,7 +209,7 @@ export function Register() {
 
             <Button
               type="submit"
-              className="w-full font-mono bg-primary/30 hover:bg-primary/40 border border-primary/60 neon-border"
+              className="w-full font-mono bg-primary/80 hover:bg-primary/90 border border-primary/60 neon-border"
             >
               INITIALIZE ACCESS
             </Button>
