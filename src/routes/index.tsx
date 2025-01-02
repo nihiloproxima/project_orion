@@ -11,6 +11,7 @@ import { Researchs } from "../pages/Researchs";
 import { Shipyard } from "../pages/Shipyard";
 import { Fleet } from "../pages/Fleet";
 import { GalaxyObservation } from "../pages/GalaxyObservation";
+import { AuthCallback } from "../pages/AuthCallback";
 
 export function AppRoutes() {
   return (
@@ -19,6 +20,7 @@ export function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
 
       {/* Protected Routes */}
       <Route element={<AuthLayout />}>
