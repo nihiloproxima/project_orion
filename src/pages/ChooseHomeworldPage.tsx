@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { ChooseHomeworld } from "../components/ChooseHomeworld";
 import { useGame } from "../contexts/GameContext";
 import { useNavigate } from "react-router-dom";
@@ -25,11 +25,6 @@ export function ChooseHomeworldPage() {
     "message"
   );
   const [selectedEmail, setSelectedEmail] = useState<number | null>(null);
-
-  // Get unclaimed planets for homeworld selection
-  const availablePlanets = useMemo(() => {
-    return state.planets?.filter((p) => !p.owner_id) || [];
-  }, [state.planets]);
 
   const handlePlanetSelect = async (planet: Planet) => {
     try {

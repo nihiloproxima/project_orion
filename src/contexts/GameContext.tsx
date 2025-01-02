@@ -72,7 +72,6 @@ const initialState: GameState = {
   planetResearchs: null,
   currentUser: null,
   planets: null,
-  loadedPlanets: false,
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {

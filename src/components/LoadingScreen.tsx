@@ -12,7 +12,11 @@ const LOADING_MESSAGES = [
   "INITIALIZING GAME STATE...",
 ];
 
-export function LoadingScreen() {
+export function LoadingScreen({
+  message = "SYSTEM BOOT SEQUENCE",
+}: {
+  message?: string;
+}) {
   const [progress, setProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState(0);
 
@@ -48,7 +52,7 @@ export function LoadingScreen() {
         <div className="flex items-center justify-center gap-2">
           <Terminal className="h-8 w-8 text-primary animate-pulse" />
           <h1 className="text-4xl font-bold neon-text tracking-wider">
-            SYSTEM BOOT SEQUENCE
+            {message}
           </h1>
         </div>
 

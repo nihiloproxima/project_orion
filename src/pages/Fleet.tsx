@@ -84,12 +84,7 @@ type MissionType = "attack" | "transport" | "colonize" | "spy" | "recycle";
 
 export function Fleet() {
   const { state } = useGame();
-  const {
-    planets,
-    userPlanets,
-    loading: planetsLoading,
-    getNeighboringPlanets,
-  } = usePlanets();
+  const { planets, userPlanets, loading: planetsLoading } = usePlanets();
   const [stationedShips, setStationedShips] = useState<Ship[]>([]);
   const [selectedShips, setSelectedShips] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -664,7 +659,7 @@ export function Fleet() {
 
             {missionType && planets && (
               <div className="space-y-4">
-                <GalaxyMap
+                <GalaxyMap2D
                   mode="mission-target"
                   onPlanetSelect={setTargetPlanet}
                   allowedPlanets={getAllowedTargetPlanets()}

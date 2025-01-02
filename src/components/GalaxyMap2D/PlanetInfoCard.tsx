@@ -23,7 +23,6 @@ export function PlanetInfoCard({
   mode,
   onClose,
   onSelect,
-  viewport,
   position,
 }: PlanetInfoCardProps) {
   const getActionButton = () => {
