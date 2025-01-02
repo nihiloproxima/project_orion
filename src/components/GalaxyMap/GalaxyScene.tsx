@@ -33,7 +33,11 @@ export function GalaxyScene({
 
     return state.planets.map((planet) => ({
       ...planet,
-      position: new THREE.Vector3(planet.coordinate_x, 0, planet.coordinate_y),
+      position: new THREE.Vector3(
+        planet.coordinate_x,
+        planet.coordinate_y,
+        planet.coordinate_z
+      ),
       isHighlighted: highlightedPlanets.includes(planet.id),
       isAllowed: !allowedPlanets || allowedPlanets.includes(planet.id),
     }));
@@ -73,6 +77,9 @@ export function GalaxyScene({
           onClick={() => {
             if (planet.isAllowed) {
               setSelectedPlanet(planet);
+              if (onPlanetSelect) {
+                onPlanetSelect(planet);
+              }
             }
           }}
         />
@@ -83,8 +90,8 @@ export function GalaxyScene({
         <Html
           position={[
             selectedPlanet.coordinate_x,
-            50,
-            selectedPlanet.coordinate_y,
+            selectedPlanet.coordinate_y + 50,
+            selectedPlanet.coordinate_z,
           ]}
         >
           <Card className="w-80 bg-black/90 backdrop-blur-sm border-primary/30">
@@ -97,7 +104,8 @@ export function GalaxyScene({
               <div className="text-sm">
                 <span className="text-muted-foreground">Coordinates: </span>
                 <span className="font-mono">
-                  [{selectedPlanet.coordinate_x}, {selectedPlanet.coordinate_y}]
+                  [{selectedPlanet.coordinate_x}, {selectedPlanet.coordinate_y},{" "}
+                  {selectedPlanet.coordinate_z}]
                 </span>
               </div>
               <div className="text-sm">

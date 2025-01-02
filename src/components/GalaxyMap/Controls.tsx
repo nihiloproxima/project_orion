@@ -21,10 +21,10 @@ export function Controls() {
 
   // Create a group for the controls that follows the camera
   const controlsGroup = new THREE.Group();
-  controlsGroup.position.set(10, 10, -50); // Position further back from camera
+  controlsGroup.position.set(10, 10, -50);
 
   // Create plus button mesh
-  const plusGeometry = new THREE.BoxGeometry(3, 3, 0.5); // Larger size
+  const plusGeometry = new THREE.BoxGeometry(3, 3, 0.5);
   const plusMaterial = new THREE.MeshBasicMaterial({
     color: 0x20e0a0,
     transparent: true,
@@ -35,7 +35,7 @@ export function Controls() {
   plusMesh.userData.onClick = () => handleZoom(true);
 
   // Create minus button mesh
-  const minusGeometry = new THREE.BoxGeometry(3, 3, 0.5); // Larger size
+  const minusGeometry = new THREE.BoxGeometry(3, 3, 0.5);
   const minusMaterial = new THREE.MeshBasicMaterial({
     color: 0x20e0a0,
     transparent: true,
