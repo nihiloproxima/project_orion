@@ -12,6 +12,8 @@ import {
 } from "../components/ui/card";
 import { Link, useNavigate, Navigate } from "react-router-dom";
 import { ClientResponseError } from "pocketbase";
+import { supabase } from "../lib/supabase";
+import { api } from "../lib/api";
 
 export function Login() {
   const navigate = useNavigate();
@@ -34,6 +36,42 @@ export function Login() {
         setError(error.message);
       }
       console.error("Login failed:", error);
+    }
+  };
+
+  const handleDiscordSignIn = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "discord",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      console.log(data);
+
+      if (error) throw error;
+
+      // Get user data after successful sign in
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error("User not found");
+
+      // Get Discord username from user metadata
+      const discordUsername =
+        user.user_metadata?.full_name || user.user_metadata?.name;
+
+      // Register user with Discord username
+      await api.users.register(user.id, discordUsername);
+    } catch (error: any) {
+      setError(error.message || "Discord authentication failed");
+      console.error("Discord auth failed:", error);
     }
   };
 
@@ -100,6 +138,23 @@ export function Login() {
               className="w-full font-mono bg-primary/30 hover:bg-primary/40 border border-primary/60 neon-border"
             >
               AUTHENTICATE
+            </Button>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-primary/30" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-primary/70 font-mono">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+            <Button
+              type="button"
+              onClick={handleDiscordSignIn}
+              className="w-full font-mono bg-[#5865F2]/30 hover:bg-[#5865F2]/40 border border-[#5865F2]/60 neon-border"
+            >
+              DISCORD LOGIN
             </Button>
           </form>
         </CardContent>
