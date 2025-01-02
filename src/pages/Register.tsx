@@ -59,6 +59,43 @@ export function Register() {
       await logout();
     }
   };
+
+  const handleDiscordSignIn = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "discord",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      console.log(data);
+
+      if (error) throw error;
+
+      // Get user data after successful sign in
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error("User not found");
+
+      // Get Discord username from user metadata
+      const discordUsername =
+        user.user_metadata?.full_name || user.user_metadata?.name;
+
+      // Register user with Discord username
+      await api.users.register(user.id, discordUsername);
+    } catch (error: any) {
+      setError(error.message || "Discord authentication failed");
+      console.error("Discord auth failed:", error);
+    }
+  };
+
   if (isAuthenticated) {
     return <Navigate to="/dashboard" />;
   }
@@ -82,6 +119,24 @@ export function Register() {
           )}
         </CardHeader>
         <CardContent>
+          <Button
+            onClick={handleDiscordSignIn}
+            className="w-full mb-6 font-mono bg-[#5865F2] hover:bg-[#4752C4] text-white border-none"
+          >
+            CONNECT WITH DISCORD
+          </Button>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-primary/30"></span>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-primary/70 font-mono">
+                Or continue with email
+              </span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label
