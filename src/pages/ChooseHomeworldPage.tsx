@@ -10,7 +10,7 @@ import {
   CardDescription,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { GalaxyMap } from "../components/GalaxyMap/GalaxyMap";
+import { GalaxyMap2D } from "../components/GalaxyMap2D/GalaxyMap2D";
 import { Rocket } from "lucide-react";
 import { api } from "../lib/api";
 import { Planet } from "../models/planet";
@@ -363,11 +363,11 @@ export function ChooseHomeworldPage() {
 
   if (step === "choose") {
     return (
-      <div className="min-h-screen bg-background p-6 bg-[url('/assets/space-bg.jpg')] bg-cover">
-        <div className="container mx-auto space-y-6 backdrop-blur-sm">
-          <Card className="border-2 shadow-2xl shadow-primary/20">
-            <CardHeader className="border-b bg-gray-900">
-              <CardTitle className="text-xl flex items-center gap-2">
+      <div className="min-h-screen bg-background p-6">
+        <div className="container mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <Rocket className="h-6 w-6 text-primary" />
                 Choose Your Homeworld
               </CardTitle>
@@ -381,13 +381,15 @@ export function ChooseHomeworldPage() {
                 Choose wisely - this will be your base of operations.
               </p>
 
-              <GalaxyMap
-                mode="homeworld"
-                onPlanetSelect={handlePlanetSelect}
-                allowedPlanets={unclaimedPlanets.map((p) => p.id)}
-                initialZoom={0.5}
-                initialCenter={{ x: 0, y: 0 }}
-              />
+              <div className="flex justify-center">
+                <GalaxyMap2D
+                  mode="homeworld"
+                  onPlanetSelect={handlePlanetSelect}
+                  allowedPlanets={unclaimedPlanets.map((p) => p.id)}
+                  initialZoom={0.5}
+                  initialCenter={{ x: 0, y: 0 }}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>

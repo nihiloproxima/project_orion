@@ -42,7 +42,7 @@ import {
   DialogDescription,
 } from "../components/ui/dialog";
 import { Input } from "../components/ui/input";
-import { GalaxyMap } from "../components/GalaxyMap/GalaxyMap";
+import { GalaxyMap2D } from "../components/GalaxyMap2D/GalaxyMap2D";
 import { usePlanets } from "../hooks/usePlanets";
 import { LoadingScreen } from "../components/LoadingScreen";
 
@@ -372,7 +372,7 @@ export function Fleet() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Select Target Planet</h3>
             <div className="border rounded-lg p-4">
-              <GalaxyMap
+              <GalaxyMap2D
                 mode="mission-target"
                 onPlanetSelect={(planet: Planet) => setSelectedPlanet(planet)}
                 allowedPlanets={getAllowedTargetPlanets()}

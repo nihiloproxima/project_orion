@@ -6,6 +6,17 @@ import { Plus, Minus } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { api } from "../lib/api";
 
+export const getBiomeColor = (biome: Planet["biome"], alpha: number) => {
+  const colors: Record<string, string> = {
+    ocean: `rgba(56, 189, 248, ${alpha})`,
+    jungle: `rgba(234, 179, 8, ${alpha})`,
+    desert: `rgba(249, 115, 22, ${alpha})`,
+    ice: `rgba(34, 211, 238, ${alpha})`,
+    volcanic: `rgba(239, 68, 68, ${alpha})`,
+  };
+  return colors[biome] || `rgba(32, 224, 160, ${alpha})`;
+};
+
 // Update constants
 const GRID_SIZE = 10000; // Total grid size (-500 to +500 = 1000 total)
 const GRID_OFFSET = GRID_SIZE / 2; // 500, used to convert between coordinate systems
@@ -257,17 +268,6 @@ export function ChooseHomeworld() {
 
     return () => window.removeEventListener("resize", updateCanvasSize);
   }, [availablePlanets, selectedPlanet, viewport, loading]);
-
-  const getBiomeColor = (biome: Planet["biome"], alpha: number) => {
-    const colors: Record<string, string> = {
-      ocean: `rgba(56, 189, 248, ${alpha})`,
-      jungle: `rgba(234, 179, 8, ${alpha})`,
-      desert: `rgba(249, 115, 22, ${alpha})`,
-      ice: `rgba(34, 211, 238, ${alpha})`,
-      volcanic: `rgba(239, 68, 68, ${alpha})`,
-    };
-    return colors[biome] || `rgba(32, 224, 160, ${alpha})`;
-  };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current?.getBoundingClientRect();
