@@ -32,11 +32,15 @@ export function GalaxyObservation() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <GalaxyMap2D
-            mode="view-only"
-            initialZoom={0.3}
-            initialCenter={{ x: 0, y: 0 }}
-          />
+          <div className="flex justify-center">
+            <GalaxyMap2D
+              mode="view-only"
+              initialZoom={0.3}
+              initialCenter={{ x: 0, y: 0 }}
+              width="100%"
+              height="600px"
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -11,6 +11,8 @@ interface GalaxyMap2DProps {
   allowedPlanets?: string[];
   initialZoom?: number;
   initialCenter?: { x: number; y: number };
+  width?: string | number;
+  height?: string | number;
 }
 
 const MAX_ZOOM = 5;
@@ -43,6 +45,8 @@ export function GalaxyMap2D({
   allowedPlanets,
   initialZoom = 1,
   initialCenter = { x: 0, y: 0 },
+  width = "800px",
+  height = "600px",
 }: GalaxyMap2DProps) {
   const { state } = useGame();
   const [viewport, setViewport] = useState({
@@ -370,8 +374,12 @@ export function GalaxyMap2D({
   return (
     <div
       ref={containerRef}
-      className="relative w-[800px] h-[600px] overflow-hidden border border-primary/20 rounded-lg"
-      style={{ cursor: isDragging ? "grabbing" : "grab" }}
+      className="relative overflow-hidden border border-primary/20 rounded-lg"
+      style={{
+        cursor: isDragging ? "grabbing" : "grab",
+        width,
+        height,
+      }}
     >
       <canvas
         ref={canvasRef}
