@@ -43,7 +43,7 @@ import deuteriumTankImg from "../assets/structures/deuterium_tank.png";
 import microchipVaultImg from "../assets/structures/microchip_vault.png";
 import dataCenterImg from "../assets/structures/data_center.png";
 import { formatTimerTime } from "../lib/utils";
-import { StructureConfig, StructuresConfig } from "../models";
+import { StructureConfig } from "../models";
 import { TECHNOLOGIES } from "../lib/constants";
 
 interface StructureInfo {
