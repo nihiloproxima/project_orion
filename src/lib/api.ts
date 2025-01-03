@@ -15,7 +15,7 @@ async function post(
 ) {
   const token = await getAuthToken();
   const response = await fetch(
-    `${import.meta.env.VITE_API_URL}${group}/${endpoint}`,
+    `${process.env.NEXT_PUBLIC_API_URL}${group}/${endpoint}`,
     {
       method: "POST",
       headers: {
@@ -56,8 +56,8 @@ export const api = {
     register: async (id: string, name: string) => {
       return post("users", "register", { id, name });
     },
-    update: async (name: string, avatar_url: string) => {
-      return post("users", "update", { name, avatar_url });
+    update: async (name: string, avatar: string) => {
+      return post("users", "update", { name, avatar });
     },
   },
   planets: {

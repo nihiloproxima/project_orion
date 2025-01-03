@@ -1,3 +1,4 @@
+"use client";
 import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "default" | "purple" | "blue" | "synthwave";
@@ -12,14 +13,17 @@ type ThemeContextType = {
 };
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "default",
+  theme: "blue",
   setTheme: () => null,
 });
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem("color-theme");
-    return (savedTheme as Theme) || "default";
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("color-theme");
+      return (savedTheme as Theme) || "default";
+    }
+    return "default";
   });
 
   useEffect(() => {
@@ -28,7 +32,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     if (theme !== "default") {
       root.setAttribute("data-theme", theme);
     }
-    localStorage.setItem("color-theme", theme);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("color-theme", theme);
+    }
   }, [theme]);
 
   return (

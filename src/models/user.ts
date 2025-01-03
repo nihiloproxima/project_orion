@@ -1,7 +1,7 @@
 export interface User {
   id: string;
   name: string;
-  avatar_url: string | null;
+  avatar: string;
   home_planet_id: string | null;
   global_score: number;
   defense_score: number;

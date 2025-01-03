@@ -1,3 +1,4 @@
+"use client";
 import { useMemo } from "react";
 import { useGame } from "../contexts/GameContext";
 import { Planet } from "../models/planet";

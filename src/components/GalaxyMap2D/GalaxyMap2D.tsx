@@ -17,7 +17,7 @@ interface GalaxyMap2DProps {
 }
 
 const MAX_ZOOM = 5;
-const ZOOM_STEP = 1.2;
+const ZOOM_STEP = 0.1; // Reduced from 0.001 for smoother zooming
 const GRID_SIZE = 10000; // Total grid size (-5000 to 5000)
 const CELL_SIZE = 50; // Size of each cell in the grid
 
@@ -62,7 +62,7 @@ export function GalaxyMap2D({
   const dragStart = useRef({ x: 0, y: 0, viewportX: 0, viewportY: 0 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number>(0);
 
   const handleWheel = useCallback(
     (e: WheelEvent) => {
@@ -72,14 +72,24 @@ export function GalaxyMap2D({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Calculate new zoom
-        const zoomFactor = e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
+        // Get mouse position relative to canvas
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Calculate world position before zoom
+        const worldX = (mouseX - canvas.width / 2 + viewport.x) / viewport.zoom;
+        const worldY =
+          (mouseY - canvas.height / 2 + viewport.y) / viewport.zoom;
+
+        // Calculate new zoom with reduced sensitivity
+        const zoomFactor = e.deltaY < 0 ? 1 + ZOOM_STEP : 1 / (1 + ZOOM_STEP);
         const newZoom = viewport.zoom * zoomFactor;
 
         // Calculate minimum zoom based on grid size and canvas size
         const minZoomX = canvas.width / GRID_SIZE;
         const minZoomY = canvas.height / GRID_SIZE;
-        const calculatedMinZoom = Math.max(minZoomX, minZoomY) * 0.8; // 80% of the minimum zoom to show grid edges
+        const calculatedMinZoom = Math.max(minZoomX, minZoomY) * 0.8;
 
         // Clamp zoom value
         const clampedZoom = Math.min(
@@ -87,9 +97,15 @@ export function GalaxyMap2D({
           MAX_ZOOM
         );
 
+        // Calculate new viewport position to keep mouse position fixed
+        const newX = mouseX - worldX * clampedZoom;
+        const newY = mouseY - worldY * clampedZoom;
+
         setViewport((prev) => ({
           ...prev,
           zoom: clampedZoom,
+          x: newX,
+          y: newY,
         }));
       } else {
         setViewport((prev) => ({

@@ -1,4 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
+"use client";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "../contexts/auth";
 import { useTheme } from "../contexts/theme";
 import { Button } from "./ui/button";
@@ -26,11 +28,11 @@ export function Sidebar() {
   const { logout } = useAuth();
   const { state } = useGame();
   const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    router.push("/login");
   };
 
   return (
@@ -69,7 +71,7 @@ export function Sidebar() {
                 color: "primary",
               },
               {
-                to: "/research",
+                to: "/researchs",
                 icon: FlaskConical,
                 label: "RESEARCH_LAB",
                 color: "green",
@@ -105,7 +107,7 @@ export function Sidebar() {
               //   color: "blue",
               // },
             ].map((item) => (
-              <Link key={item.to} to={item.to}>
+              <Link key={item.to} href={item.to}>
                 <Button
                   variant="ghost"
                   className={`w-full justify-start text-${
