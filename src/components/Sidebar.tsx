@@ -19,6 +19,7 @@ import {
   Rocket,
   Anchor,
   Eye,
+  User,
 } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 
@@ -91,6 +92,12 @@ export function Sidebar() {
                 icon: Eye,
                 label: "GALAXY_MAP",
                 color: "purple",
+              },
+              {
+                to: `/user/${state.currentUser?.id}`,
+                icon: User,
+                label: "USER_PROFILE",
+                color: "blue",
               },
               // {
               //   to: "/alliances",

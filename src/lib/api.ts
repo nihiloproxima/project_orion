@@ -56,8 +56,8 @@ export const api = {
     register: async (id: string, name: string) => {
       return post("users", "register", { id, name });
     },
-    update: async (name: string) => {
-      return post("users", "update", { name });
+    update: async (name: string, avatar_url: string) => {
+      return post("users", "update", { name, avatar_url });
     },
   },
   planets: {

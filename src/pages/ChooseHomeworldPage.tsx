@@ -17,6 +17,132 @@ import { Planet } from "../models/planet";
 import { usePlanets } from "../hooks/usePlanets";
 import { LoadingScreen } from "../components/LoadingScreen";
 
+interface EmailPreview {
+  sender: string;
+  subject: string;
+  preview: string;
+  time: string;
+  highlight?: boolean;
+}
+
+interface EmailContent {
+  title?: string;
+  subject: string;
+  from: string;
+  body: (
+    | string
+    | { type: "list"; items: string[] }
+    | { type: "signature"; text: string }
+  )[];
+}
+
+interface Email {
+  preview: EmailPreview;
+  content: EmailContent;
+}
+
+const EMAILS: Record<number, Email> = {
+  0: {
+    preview: {
+      sender: "Supreme Council",
+      subject: "Commander Assignment Protocol",
+      preview: "URGENT: Supreme Council",
+      time: "Just now",
+      highlight: true,
+    },
+    content: {
+      title: "Commander Assignment Protocol",
+      subject: "Commander Assignment Protocol",
+      from: "Supreme Leader of the Galactic Council",
+      body: [
+        "Greetings, Commander.",
+        'On behalf of the Galactic Council, I extend my congratulations on your graduation from the Elite Commander Academy. Your exceptional "performance" has not gone unnoticed.',
+        "As per protocol, you are now required to select your first command post. Choose your homeworld wisely, as it will serve as the foundation for your future operations and contributions to our galactic civilization.",
+        "The Council awaits your decision.",
+      ],
+    },
+  },
+  1: {
+    preview: {
+      sender: "Mom",
+      subject: "Important Reminders for My Space Commander!",
+      preview: "Don't forget to eat your space vegetables! 🥬",
+      time: "1 hour ago",
+    },
+    content: {
+      title: "Important Reminders for My Space Commander!",
+      subject: "Important Reminders for My Space Commander!",
+      from: "Mom",
+      body: [
+        "Sweetie! 💖",
+        "I know you're about to command your very own planet, but don't forget:",
+        {
+          type: "list",
+          items: [
+            "Pack your warm space socks - space is cold!",
+            "Remember to brush your teeth after each meal (even freeze-dried ones)",
+            "Call me at least twice per galactic cycle",
+            "Don't talk to strange aliens unless they've been properly introduced",
+            "Keep your ray gun charged and your quarters tidy",
+          ],
+        },
+        "I put some homemade cosmic cookies in your cargo bay. Share them with your crew! 🍪",
+        "PS: Your father says to remember the trick about reversing the polarity - whatever that means! 🤷‍♀️",
+        {
+          type: "signature",
+          text: "Lots of love and virtual hugs! 🤗\nMom",
+        },
+      ],
+    },
+  },
+  2: {
+    preview: {
+      sender: "Cadet ZX-427 (Your Roommate)",
+      subject: "Try Not to Crash Anything Important!",
+      preview: "LOL good luck out there! 🚀",
+      time: "2 hours ago",
+    },
+    content: {
+      title: "Try Not to Crash Anything Important!",
+      subject: "Try Not to Crash Anything Important!",
+      from: "Cadet ZX-427",
+      body: [
+        'Hey "Commander" 😂',
+        "Can't believe they're actually letting you command a planet! Remember when you crashed the simulator so bad they had to reset the entire system? Good times!",
+        "Just don't pick the same sector as me - I've seen your piloting skills and I like my ships intact! 🚀💥",
+        "P.S. You still owe me 50 credits from that bet about passing the tactical exam! 💸",
+        {
+          type: "signature",
+          text: "- Your favorite roommate",
+        },
+      ],
+    },
+  },
+  3: {
+    preview: {
+      sender: "Class Valedictorian",
+      subject: "Congratulations on Your... Unique Approach",
+      preview: "Thanks for making me look good 😏",
+      time: "5 hours ago",
+    },
+    content: {
+      title: "Congratulations on Your... Unique Approach",
+      subject: "Congratulations on Your... Unique Approach",
+      from: "Class Valedictorian",
+      body: [
+        'Dear "Graduate",',
+        "I just wanted to thank you for your... memorable performance during the final exams. Your creative interpretation of battle formations made me look absolutely brilliant in comparison! ✨",
+        'But seriously, who would\'ve thought that "accidentally" activating the self-destruct sequence would become a legitimate tactical maneuver? They literally had to rewrite the rulebook because of you. 🤯',
+        "May your future enemies be as confused by your strategies as we all were. 🌟",
+        {
+          type: "signature",
+          text: "Best regards,\nThe one who actually read the manual 📚",
+        },
+      ],
+    },
+  },
+};
+
 export function ChooseHomeworldPage() {
   const { state } = useGame();
   const { unclaimedPlanets, loading } = usePlanets();
@@ -72,258 +198,100 @@ export function ChooseHomeworldPage() {
             <CardContent className="p-0 h-[calc(100%-4rem)] bg-gray-900/95">
               <div className="grid grid-cols-[250px_1fr] h-full">
                 <div className="border-r border-primary/20 p-4 space-y-3 bg-gray-900">
-                  <div
-                    className={`p-3 border border-primary/30 rounded-md cursor-pointer transition-all duration-300 hover:scale-105 hover:bg-gray-800 hover:border-primary ${
-                      selectedEmail === 0
-                        ? "bg-gray-800 border-primary scale-105"
-                        : ""
-                    }`}
-                    onClick={() => setSelectedEmail(0)}
-                  >
-                    <p className="font-bold text-yellow-500 flex items-center gap-2">
-                      <span className="animate-ping">★</span> URGENT: Supreme
-                      Council
-                    </p>
-                    <p className="text-sm text-gray-400 truncate">
-                      Commander Assignment Protocol
-                    </p>
-                    <p className="text-xs text-primary/60">Just now</p>
-                  </div>
-
-                  <div
-                    className={`p-3 border border-primary/30 rounded-md cursor-pointer transition-all duration-300 hover:scale-105 hover:bg-gray-800 hover:border-primary ${
-                      selectedEmail === 1
-                        ? "bg-gray-800 border-primary scale-105"
-                        : ""
-                    }`}
-                    onClick={() => setSelectedEmail(1)}
-                  >
-                    <p className="font-medium text-blue-400">Mom</p>
-                    <p className="text-sm text-gray-400 truncate">
-                      Don't forget to eat your space vegetables! 🥬
-                    </p>
-                    <p className="text-xs text-primary/60">1 hour ago</p>
-                  </div>
-
-                  <div
-                    className={`p-3 border border-primary/30 rounded-md cursor-pointer transition-all duration-300 hover:scale-105 hover:bg-gray-800 hover:border-primary ${
-                      selectedEmail === 2
-                        ? "bg-gray-800 border-primary scale-105"
-                        : ""
-                    }`}
-                    onClick={() => setSelectedEmail(2)}
-                  >
-                    <p className="font-medium text-blue-400">
-                      Cadet ZX-427 (Your Roommate)
-                    </p>
-                    <p className="text-sm text-gray-400 truncate">
-                      LOL good luck out there! 🚀
-                    </p>
-                    <p className="text-xs text-primary/60">2 hours ago</p>
-                  </div>
-
-                  <div
-                    className={`p-3 border border-primary/30 rounded-md cursor-pointer transition-all duration-300 hover:scale-105 hover:bg-gray-800 hover:border-primary ${
-                      selectedEmail === 3
-                        ? "bg-gray-800 border-primary scale-105"
-                        : ""
-                    }`}
-                    onClick={() => setSelectedEmail(3)}
-                  >
-                    <p className="font-medium text-purple-400">
-                      Class Valedictorian
-                    </p>
-                    <p className="text-sm text-gray-400 truncate">
-                      Thanks for making me look good 😏
-                    </p>
-                    <p className="text-xs text-primary/60">5 hours ago</p>
-                  </div>
+                  {Object.entries(EMAILS).map(([id, email]) => (
+                    <div
+                      key={id}
+                      className={`p-3 border border-primary/30 rounded-md cursor-pointer transition-all duration-300 hover:scale-105 hover:bg-gray-800 hover:border-primary ${
+                        selectedEmail === Number(id)
+                          ? "bg-gray-800 border-primary scale-105"
+                          : ""
+                      }`}
+                      onClick={() => setSelectedEmail(Number(id))}
+                    >
+                      <p
+                        className={`font-medium ${
+                          email.preview.highlight
+                            ? "text-yellow-500 flex items-center gap-2"
+                            : "text-blue-400"
+                        }`}
+                      >
+                        {email.preview.highlight && (
+                          <span className="animate-ping">★</span>
+                        )}
+                        {email.preview.preview}
+                      </p>
+                      <p className="text-sm text-gray-400 truncate">
+                        {email.preview.preview}
+                      </p>
+                      <p className="text-xs text-primary/60">
+                        {email.preview.time}
+                      </p>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="p-6 overflow-y-auto bg-gray-900/90">
-                  {selectedEmail === 0 && (
-                    <div className="space-y-6 animate-fade-in">
+                  {selectedEmail !== null ? (
+                    <div className="space-y-4 animate-fade-in">
                       <div className="space-y-2">
-                        <p className="font-bold text-2xl text-yellow-500 animate-pulse">
-                          ⚠ PRIORITY COMMUNICATION ⚠
+                        {selectedEmail === 0 && (
+                          <p className="font-bold text-2xl text-yellow-500 animate-pulse">
+                            {EMAILS[selectedEmail].content.title}
+                          </p>
+                        )}
+                        <p className="text-sm text-gray-300">
+                          Subject: {EMAILS[selectedEmail].content.subject}
                         </p>
                         <p className="text-sm text-gray-300">
-                          Subject: Commander Assignment Protocol
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          From: Supreme Leader of the Galactic Council
+                          From: {EMAILS[selectedEmail].content.from}
                         </p>
                         <p className="text-sm text-gray-300">
                           To: Commander{" "}
                           {state.currentUser?.name || "[REDACTED]"}
-                        </p>
-                        <div className="border-t border-primary/30 my-4" />
-                      </div>
-                      <div className="space-y-4 prose prose-invert">
-                        <p className="text-gray-200">Greetings, Commander.</p>
-                        <p className="text-gray-300">
-                          On behalf of the Galactic Council, I extend my
-                          congratulations on your graduation from the Elite
-                          Commander Academy. Your exceptional "performance" has
-                          not gone unnoticed.
-                        </p>
-                        <p className="text-gray-300">
-                          As per protocol, you are now required to select your
-                          first command post. Choose your homeworld wisely, as
-                          it will serve as the foundation for your future
-                          operations and contributions to our galactic
-                          civilization.
-                        </p>
-                        <p className="text-gray-200 font-bold">
-                          The Council awaits your decision.
-                        </p>
-                        <Button
-                          className="mt-8 w-full py-6 text-xl font-bold bg-primary/40 border-2 border-primary hover:bg-primary/60 hover:border-primary/80 transition-all duration-300 group shadow-lg shadow-primary/30"
-                          onClick={() => setStep("choose")}
-                        >
-                          <span className="group-hover:scale-105 transition-transform duration-300">
-                            Accept Assignment
-                          </span>
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedEmail === 1 && (
-                    <div className="space-y-4 animate-fade-in">
-                      <div className="space-y-2">
-                        <p className="text-sm text-gray-300">
-                          Subject: Important Reminders for My Space Commander!
-                        </p>
-                        <p className="text-sm text-gray-300">From: Mom</p>
-                        <p className="text-sm text-gray-300">
-                          To: My Dear {state.currentUser?.name || "Sweetie"}
                         </p>
                         <div className="border-t border-primary/30 my-4" />
                       </div>
                       <div className="text-gray-200 space-y-4">
-                        <p>Sweetie! 💖</p>
-                        <p>
-                          I know you're about to command your very own planet,
-                          but don't forget:
-                        </p>
-                        <ul className="list-disc pl-5 space-y-2">
-                          <li>Pack your warm space socks - space is cold!</li>
-                          <li>
-                            Remember to brush your teeth after each meal (even
-                            freeze-dried ones)
-                          </li>
-                          <li>Call me at least twice per galactic cycle</li>
-                          <li>
-                            Don't talk to strange aliens unless they've been
-                            properly introduced
-                          </li>
-                          <li>
-                            Keep your ray gun charged and your quarters tidy
-                          </li>
-                        </ul>
-                        <p>
-                          I put some homemade cosmic cookies in your cargo bay.
-                          Share them with your crew! 🍪
-                        </p>
-                        <p>
-                          PS: Your father says to remember the trick about
-                          reversing the polarity - whatever that means! 🤷‍♀️
-                        </p>
-                        <p className="text-blue-300">
-                          Lots of love and virtual hugs! 🤗
-                          <br />
-                          Mom
-                        </p>
+                        {EMAILS[selectedEmail].content.body.map(
+                          (item, index) => {
+                            if (typeof item === "string") {
+                              return <p key={index}>{item}</p>;
+                            } else if (item.type === "list") {
+                              return (
+                                <ul
+                                  key={index}
+                                  className="list-disc pl-5 space-y-2"
+                                >
+                                  {item.items.map((li, liIndex) => (
+                                    <li key={liIndex}>{li}</li>
+                                  ))}
+                                </ul>
+                              );
+                            } else if (item.type === "signature") {
+                              return (
+                                <p
+                                  key={index}
+                                  className="text-blue-300 whitespace-pre-line"
+                                >
+                                  {item.text}
+                                </p>
+                              );
+                            }
+                          }
+                        )}
+                        {selectedEmail === 0 && (
+                          <Button
+                            className="mt-8 w-full py-6 text-xl font-bold bg-primary/40 border-2 border-primary hover:bg-primary/60 hover:border-primary/80 transition-all duration-300 group shadow-lg shadow-primary/30"
+                            onClick={() => setStep("choose")}
+                          >
+                            <span className="group-hover:scale-105 transition-transform duration-300">
+                              Accept Assignment
+                            </span>
+                          </Button>
+                        )}
                       </div>
                     </div>
-                  )}
-
-                  {selectedEmail === 2 && (
-                    <div className="space-y-4 animate-fade-in">
-                      <div className="space-y-2">
-                        <p className="text-sm text-gray-300">
-                          Subject: Try Not to Crash Anything Important!
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          From: Cadet ZX-427
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          To: Commander{" "}
-                          {state.currentUser?.name || "[REDACTED]"}
-                        </p>
-                        <div className="border-t border-primary/30 my-4" />
-                      </div>
-                      <div className="text-gray-200">
-                        <p className="text-blue-400 text-lg">
-                          Hey "Commander" 😂
-                        </p>
-                        <p>
-                          Can't believe they're actually letting you command a
-                          planet! Remember when you crashed the simulator so bad
-                          they had to reset the entire system? Good times!
-                        </p>
-                        <p>
-                          Just don't pick the same sector as me - I've seen your
-                          piloting skills and I like my ships intact! 🚀💥
-                        </p>
-                        <p>
-                          P.S. You still owe me 50 credits from that bet about
-                          passing the tactical exam! 💸
-                        </p>
-                        <p className="text-blue-400">
-                          - Your favorite roommate
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedEmail === 3 && (
-                    <div className="space-y-4 animate-fade-in">
-                      <div className="space-y-2">
-                        <p className="text-sm text-gray-300">
-                          Subject: Congratulations on Your... Unique Approach
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          From: Class Valedictorian
-                        </p>
-                        <p className="text-sm text-gray-300">
-                          To: Commander{" "}
-                          {state.currentUser?.name || "[REDACTED]"}
-                        </p>
-                        <div className="border-t border-primary/30 my-4" />
-                      </div>
-                      <div className="text-gray-200">
-                        <p className="text-purple-400 text-lg">
-                          Dear "Graduate",
-                        </p>
-                        <p>
-                          I just wanted to thank you for your... memorable
-                          performance during the final exams. Your creative
-                          interpretation of battle formations made me look
-                          absolutely brilliant in comparison! ✨
-                        </p>
-                        <p>
-                          But seriously, who would've thought that
-                          "accidentally" activating the self-destruct sequence
-                          would become a legitimate tactical maneuver? They
-                          literally had to rewrite the rulebook because of you.
-                          🤯
-                        </p>
-                        <p>
-                          May your future enemies be as confused by your
-                          strategies as we all were. 🌟
-                        </p>
-                        <p className="text-purple-400">
-                          Best regards,
-                          <br />
-                          The one who actually read the manual 📚
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedEmail === null && (
+                  ) : (
                     <div className="h-full flex items-center justify-center text-gray-500 animate-pulse">
                       [SELECT MESSAGE TO DECRYPT]
                     </div>

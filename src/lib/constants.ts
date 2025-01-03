@@ -9,11 +9,11 @@ import naniteConstructorsImg from "../assets/researchs/nanite_constructors.png";
 import neuralNetworkImg from "../assets/researchs/neural_network.png";
 import energyEfficiencyImg from "../assets/researchs/energy_efficiency.png";
 import combatTechImg from "../assets/researchs/combat_tech.png";
-import transportTechImg from "../assets/researchs/espionage_tech.png";
+import transportTechImg from "../assets/researchs/transport_tech.png";
 import colonizationTechImg from "../assets/researchs/colonization_tech.png";
 import { TechnologyId } from "../models";
 
-export const RESEARCH_ASSETS: Record<
+export const TECHNOLOGIES: Record<
   TechnologyId,
   {
     name: string;
@@ -29,7 +29,8 @@ export const RESEARCH_ASSETS: Record<
   transport_tech: {
     name: "Transport Technology",
     image: transportTechImg,
-    description: "Unlocks transport ships and technologies.",
+    description:
+      "Advanced logistics and cargo management systems that enable the construction and operation of interstellar transport vessels.",
     category: "ship",
     unlocks: {
       ships: ["Transport Ship"],

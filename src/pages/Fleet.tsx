@@ -360,69 +360,116 @@ export function Fleet() {
             <X className="h-4 w-4" />
           </Button>
         </div>
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left Column - Mission Details */}
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">
+                Select Mission Type
+              </h3>
+              <Select
+                value={missionType || ""}
+                onValueChange={(value) => {
+                  setMissionType(value as MissionType);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose mission type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getAvailableMissionTypes().map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Select Mission Type</h3>
-            <Select
-              value={missionType || ""}
-              onValueChange={(value) => {
-                setMissionType(value as MissionType);
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose mission type" />
-              </SelectTrigger>
-              <SelectContent>
-                {getAvailableMissionTypes().map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {targetPlanet && (
+              <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <h4 className="font-bold mb-2">
+                  Selected Target: {targetPlanet.name}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Coordinates: ({targetPlanet.coordinate_x},{" "}
+                  {targetPlanet.coordinate_y})
+                </p>
+                {state.selectedPlanet && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Travel Time: {calculateTravelTime(targetPlanet)} hours
+                  </p>
+                )}
+                <Button
+                  className="w-full mt-4"
+                  disabled={!targetPlanet || !missionType}
+                  onClick={handleConfirmMission}
+                >
+                  <Target className="h-4 w-4 mr-2" />
+                  Confirm Mission
+                </Button>
+              </div>
+            )}
           </div>
 
+          {/* Right Column - Galaxy Map */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Select Target Planet</h3>
-            <div className="border rounded-lg p-4 w-full h-[60vh] flex">
-              <GalaxyMap2D
-                mode={"mission-target"}
-                onPlanetSelect={setTargetPlanet}
-                allowedPlanets={getAllowedTargetPlanets()}
-                highlightedPlanets={getHighlightedPlanets()}
-                initialZoom={0.3}
-                width="100%"
-                height="100%"
-              />
+            <div className="space-y-4">
+              <Select
+                value={targetPlanet?.id || ""}
+                onValueChange={(value) => {
+                  const planet = planets?.find((p) => p.id === value);
+                  if (planet) {
+                    setTargetPlanet(planet);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose target planet" />
+                </SelectTrigger>
+                <SelectContent>
+                  {planets
+                    ?.filter((p) => {
+                      switch (missionType) {
+                        case "transport":
+                          return p.owner_id === state.currentUser?.id;
+                        case "attack":
+                        case "spy":
+                          return (
+                            p.owner_id && p.owner_id !== state.currentUser?.id
+                          );
+                        case "colonize":
+                          return !p.owner_id;
+                        case "recycle":
+                          return false;
+                        default:
+                          return false;
+                      }
+                    })
+                    .map((planet) => (
+                      <SelectItem key={planet.id} value={planet.id}>
+                        {planet.name} ({planet.coordinate_x},{" "}
+                        {planet.coordinate_y})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+
+              <div className="border rounded-lg p-4 w-full h-[calc(100vh-380px)] flex">
+                <GalaxyMap2D
+                  mode={"mission-target"}
+                  onPlanetSelect={setTargetPlanet}
+                  allowedPlanets={getAllowedTargetPlanets()}
+                  highlightedPlanets={getHighlightedPlanets()}
+                  initialZoom={0.3}
+                  width="100%"
+                  height="100%"
+                  focusedPlanet={targetPlanet}
+                />
+              </div>
             </div>
           </div>
-
-          {targetPlanet && (
-            <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-              <h4 className="font-bold mb-2">
-                Selected Target: {targetPlanet.name}
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                Coordinates: ({targetPlanet.coordinate_x},{" "}
-                {targetPlanet.coordinate_y})
-              </p>
-              {state.selectedPlanet && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Travel Time: {calculateTravelTime(targetPlanet)} hours
-                </p>
-              )}
-            </div>
-          )}
-
-          <Button
-            className="w-full"
-            disabled={!targetPlanet || !missionType}
-            onClick={handleConfirmMission}
-          >
-            <Target className="h-4 w-4 mr-2" />
-            Confirm Mission
-          </Button>
         </div>
       </div>
     );

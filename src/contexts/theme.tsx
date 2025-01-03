@@ -23,7 +23,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   });
 
   useEffect(() => {
-    console.log("theme", theme);
     const root = document.documentElement;
     root.removeAttribute("data-theme");
     if (theme !== "default") {

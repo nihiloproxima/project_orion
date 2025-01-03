@@ -37,7 +37,7 @@ import {
 import { api } from "../lib/api";
 import { Timer } from "../components/Timer";
 import { getTechnologyBonus } from "../lib/utils";
-import { RESEARCH_ASSETS } from "../lib/constants";
+import { TECHNOLOGIES } from "../lib/constants";
 import { useState } from "react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 
@@ -77,7 +77,7 @@ function ResearchCard({
   const researchTime =
     research.time.base_seconds * timeMultiplier * researchSpeedBonus;
 
-  const assetConfig = RESEARCH_ASSETS[id as keyof typeof RESEARCH_ASSETS];
+  const assetConfig = TECHNOLOGIES[id as keyof typeof TECHNOLOGIES];
 
   const costs = {
     metal: research.cost.base_metal * costMultiplier,
@@ -229,8 +229,7 @@ function ResearchCard({
                   .map(
                     (prereq: any) =>
                       `${
-                        RESEARCH_ASSETS[prereq.technology_id as TechnologyId]
-                          .name
+                        TECHNOLOGIES[prereq.technology_id as TechnologyId].name
                       } ${prereq.required_level}`
                   )
                   .join(", ")}

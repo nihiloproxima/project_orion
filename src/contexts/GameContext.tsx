@@ -158,17 +158,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const fetchPlanets = async () => {
       if (state.loadedPlanets) return;
 
-      console.log("Fetching planets...");
-
       try {
-        // Add count query first to verify total number
-        const { count } = await supabase
-          .from("planets")
-          .select("*", { count: "exact", head: true });
-
-        console.log(`Total planets in database: ${count}`);
-
-        // Then fetch all planets with explicit pagination
         const { data: planets, error } = await supabase
           .from("planets")
           .select("*")
@@ -209,7 +199,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
       try {
         const { planets, timestamp } = JSON.parse(cached);
-        const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+        const CACHE_DURATION = 1000 * 60 * 30; // 30 minutes
 
         if (Date.now() - timestamp < CACHE_DURATION) {
           console.log(`Loaded ${planets?.length || 0} planets from cache`);

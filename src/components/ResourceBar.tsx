@@ -1,4 +1,5 @@
 import { useGame } from "../contexts/GameContext";
+import millify from "millify";
 import { Beaker, Flame, Hammer, Microchip, Zap } from "lucide-react";
 import {
   Select,
@@ -102,15 +103,23 @@ export function ResourceBar() {
                       : "text-secondary"
                   }`}
                 >
-                  {Math.floor(currentResources.metal)}
+                  {currentResources.metal >= 10000
+                    ? millify(currentResources.metal)
+                    : Math.floor(currentResources.metal)}
                   <span className="text-xs text-secondary/50 ml-1">
-                    /{Math.floor(state.resources.max_metal)}
+                    /
+                    {state.resources.max_metal >= 10000
+                      ? millify(state.resources.max_metal)
+                      : Math.floor(state.resources.max_metal)}
                   </span>
                 </span>
                 <Hammer className="h-4 w-4 text-secondary" />
               </div>
               <span className="text-xs text-secondary font-medium">
-                +{Math.floor(hourlyGenerationRate.metal)}
+                +
+                {hourlyGenerationRate.metal >= 10000
+                  ? millify(hourlyGenerationRate.metal)
+                  : Math.floor(hourlyGenerationRate.metal)}
                 /h
               </span>
             </div>
@@ -128,15 +137,23 @@ export function ResourceBar() {
                       : "text-accent"
                   }`}
                 >
-                  {Math.floor(currentResources.microchips)}
+                  {currentResources.microchips >= 10000
+                    ? millify(currentResources.microchips)
+                    : Math.floor(currentResources.microchips)}
                   <span className="text-xs text-accent/50 ml-1">
-                    /{Math.floor(state.resources.max_microchips)}
+                    /
+                    {state.resources.max_microchips >= 10000
+                      ? millify(state.resources.max_microchips)
+                      : Math.floor(state.resources.max_microchips)}
                   </span>
                 </span>
                 <Microchip className="h-4 w-4 text-accent" />
               </div>
               <span className="text-xs text-accent font-medium">
-                +{Math.floor(hourlyGenerationRate.microchips)}
+                +
+                {hourlyGenerationRate.microchips >= 10000
+                  ? millify(hourlyGenerationRate.microchips)
+                  : Math.floor(hourlyGenerationRate.microchips)}
                 /h
               </span>
             </div>
@@ -153,15 +170,23 @@ export function ResourceBar() {
                       : "text-primary"
                   }`}
                 >
-                  {Math.floor(currentResources.deuterium)}
+                  {currentResources.deuterium >= 10000
+                    ? millify(currentResources.deuterium)
+                    : Math.floor(currentResources.deuterium)}
                   <span className="text-xs text-primary/50 ml-1">
-                    /{Math.floor(state.resources.max_deuterium)}
+                    /
+                    {state.resources.max_deuterium >= 10000
+                      ? millify(state.resources.max_deuterium)
+                      : Math.floor(state.resources.max_deuterium)}
                   </span>
                 </span>
                 <Flame className="h-4 w-4 text-primary" />
               </div>
               <span className="text-xs text-primary font-medium">
-                +{Math.floor(hourlyGenerationRate.deuterium)}
+                +
+                {hourlyGenerationRate.deuterium >= 10000
+                  ? millify(hourlyGenerationRate.deuterium)
+                  : Math.floor(hourlyGenerationRate.deuterium)}
                 /h
               </span>
             </div>
@@ -178,15 +203,23 @@ export function ResourceBar() {
                       : "text-blue-400"
                   }`}
                 >
-                  {Math.floor(currentResources.science)}
+                  {currentResources.science >= 10000
+                    ? millify(currentResources.science)
+                    : Math.floor(currentResources.science)}
                   <span className="text-xs text-blue-400/50 ml-1">
-                    /{Math.floor(state.resources.max_science)}
+                    /
+                    {state.resources.max_science >= 10000
+                      ? millify(state.resources.max_science)
+                      : Math.floor(state.resources.max_science)}
                   </span>
                 </span>
                 <Beaker className="h-4 w-4 text-blue-400" />
               </div>
               <span className="text-xs text-blue-400 font-medium">
-                +{Math.floor(hourlyGenerationRate.science)}
+                +
+                {hourlyGenerationRate.science >= 10000
+                  ? millify(hourlyGenerationRate.science)
+                  : Math.floor(hourlyGenerationRate.science)}
                 /h
               </span>
             </div>
@@ -204,10 +237,18 @@ export function ResourceBar() {
                       : "text-red-400"
                   }`}
                 >
-                  {Math.floor(
+                  {Math.abs(
                     currentResources.energy_production -
                       currentResources.energy_consumption
-                  )}
+                  ) >= 10000
+                    ? millify(
+                        currentResources.energy_production -
+                          currentResources.energy_consumption
+                      )
+                    : Math.floor(
+                        currentResources.energy_production -
+                          currentResources.energy_consumption
+                      )}
                 </span>
                 <Zap
                   className={`h-4 w-4 ${

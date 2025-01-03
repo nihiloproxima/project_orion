@@ -3,7 +3,7 @@ import { ResearchConfig } from "../models";
 import { TechnologyId } from "../models";
 import { Technology } from "../models";
 import { ResearchPrerequisites } from "../models/research_config";
-import { RESEARCH_ASSETS } from "../lib/constants";
+import { TECHNOLOGIES } from "../lib/constants";
 import { Timer } from "./Timer";
 import { Progress } from "./ui/progress";
 import { Beaker, Lock, AlertCircle } from "lucide-react";
@@ -43,7 +43,7 @@ export function ResearchCard({
   };
 
   const researchTime = research.time.base_seconds * timeMultiplier;
-  const assetConfig = RESEARCH_ASSETS[id];
+  const assetConfig = TECHNOLOGIES[id];
 
   const canAfford =
     currentResources.metal >= costs.metal &&

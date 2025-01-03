@@ -12,6 +12,7 @@ import { Shipyard } from "../pages/Shipyard";
 import { Fleet } from "../pages/Fleet";
 import { GalaxyObservation } from "../pages/GalaxyObservation";
 import { AuthCallback } from "../pages/AuthCallback";
+import { UserProfilePage } from "../pages/UserProfilePage";
 
 export function AppRoutes() {
   return (
@@ -32,6 +33,7 @@ export function AppRoutes() {
         <Route path="/shipyard" element={<Shipyard />} />
         <Route path="/fleet" element={<Fleet />} />
         <Route path="/galaxy" element={<GalaxyObservation />} />
+        <Route path="/user/:userId" element={<UserProfilePage />} />
         {/* Add other protected routes here */}
       </Route>
 

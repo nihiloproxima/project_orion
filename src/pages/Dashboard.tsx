@@ -7,7 +7,7 @@ import {
 import { ScrollArea } from "../components/ui/scroll-area";
 import { Rocket, MessageSquare, Users, Activity } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { ChatMessage } from "../models/chat_message";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
@@ -179,24 +179,52 @@ export function Dashboard() {
           <ScrollArea className="flex-1" ref={scrollAreaRef}>
             <div className="space-y-4 font-mono pr-4">
               {messages.map((msg) => (
-                <div key={msg.id} className="text-sm break-words">
-                  <span className="text-primary whitespace-nowrap">
-                    [{new Date(msg.created_at).toLocaleTimeString()}]
-                  </span>{" "}
-                  <span
-                    className={`text-secondary ${
-                      msg.type === "system_message" ? "text-red-500" : ""
-                    }`}
-                  >
-                    {msg.sender_name}:
-                  </span>{" "}
-                  <span
-                    className={`text-muted-foreground ${
-                      msg.type === "system_message" ? "text-red-400" : ""
-                    }`}
-                  >
-                    {msg.text}
-                  </span>
+                <div
+                  key={msg.id}
+                  className="text-sm break-words flex items-start gap-2"
+                >
+                  {msg.sender_avatar_url ? (
+                    <img
+                      src={new URL(msg.sender_avatar_url, import.meta.url).href}
+                      alt={msg.sender_name || "User"}
+                      className="w-6 h-6 flex-shrink-0 object-cover"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex-shrink-0 flex items-center justify-center text-[10px] uppercase">
+                      {msg.sender_name?.[0] || "?"}
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-primary whitespace-nowrap">
+                      [{new Date(msg.created_at).toLocaleTimeString()}]
+                    </span>{" "}
+                    <Link
+                      to={
+                        msg.type === "user_message"
+                          ? `/user/${msg.sender_id}`
+                          : "#"
+                      }
+                      className={`text-secondary ${
+                        msg.type === "system_message" ? "text-red-500" : ""
+                      } ${
+                        msg.type === "user_message" ? "hover:underline" : ""
+                      }`}
+                      onClick={(e) => {
+                        if (msg.type !== "user_message") {
+                          e.preventDefault();
+                        }
+                      }}
+                    >
+                      {msg.sender_name}:
+                    </Link>{" "}
+                    <span
+                      className={`text-muted-foreground ${
+                        msg.type === "system_message" ? "text-red-400" : ""
+                      }`}
+                    >
+                      {msg.text}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

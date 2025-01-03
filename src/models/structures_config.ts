@@ -1,5 +1,6 @@
 import { ResourceType } from "./planets_resources";
 import { StructureType } from "./structure";
+import { TechnologyId } from "./researchs_config";
 
 export interface StructureConfig {
   // Cost configuration for building and upgrading
@@ -11,6 +12,17 @@ export interface StructureConfig {
       science: number;
     };
     percent_increase_per_level: number;
+  };
+
+  prerequisites: {
+    structures: {
+      type: StructureType;
+      level: number;
+    }[];
+    technologies: {
+      id: TechnologyId;
+      level: number;
+    }[];
   };
 
   production: {
@@ -48,12 +60,16 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
     metal_mine: {
       cost: {
         resources: {
-          metal: 400, // Affordable with starting 500 metal
+          metal: 400,
           deuterium: 0,
           microchips: 0,
           science: 0,
         },
         percent_increase_per_level: 10,
+      },
+      prerequisites: {
+        structures: [],
+        technologies: [],
       },
       production: {
         base: 1,
@@ -66,47 +82,27 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
       },
       time: {
         base_seconds: 10,
-        percent_increase_per_level: 30,
+        percent_increase_per_level: 75,
         max_seconds: 86400,
       },
       energy_consumption: {
         base: 10,
-        percent_increase_per_level: 25,
-      },
-    },
-    energy_plant: {
-      cost: {
-        resources: {
-          metal: 100,
-          deuterium: 0,
-          microchips: 0,
-          science: 0,
-        },
-        percent_increase_per_level: 100,
-      },
-      production: {
-        base: 50,
-        percent_increase_per_level: 100,
-        resource: "energy",
-      },
-      storage: {
-        increase_per_level: null,
-        resource: null,
-      },
-      time: {
-        base_seconds: 30,
-        percent_increase_per_level: 25,
-        max_seconds: 86400,
-      },
-      energy_consumption: {
-        base: 0,
-        percent_increase_per_level: 0,
+        percent_increase_per_level: 40,
       },
     },
     deuterium_synthesizer: {
+      prerequisites: {
+        structures: [
+          {
+            type: "metal_mine",
+            level: 1,
+          },
+        ],
+        technologies: [],
+      },
       cost: {
         resources: {
-          metal: 600,
+          metal: 100,
           deuterium: 0,
           microchips: 0,
           science: 0,
@@ -132,19 +128,66 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
         percent_increase_per_level: 75,
       },
     },
-    research_lab: {
+    energy_plant: {
+      prerequisites: {
+        structures: [
+          {
+            type: "deuterium_synthesizer",
+            level: 1,
+          },
+        ],
+        technologies: [],
+      },
       cost: {
         resources: {
-          metal: 2500,
-          deuterium: 500,
+          metal: 150,
+          deuterium: 0,
+          microchips: 0,
+          science: 0,
+        },
+        percent_increase_per_level: 100,
+      },
+      production: {
+        base: 100,
+        percent_increase_per_level: 100,
+        resource: "energy",
+      },
+      storage: {
+        increase_per_level: null,
+        resource: null,
+      },
+      time: {
+        base_seconds: 30,
+        percent_increase_per_level: 25,
+        max_seconds: 86400,
+      },
+      energy_consumption: {
+        base: 0,
+        percent_increase_per_level: 0,
+      },
+    },
+    research_lab: {
+      prerequisites: {
+        structures: [
+          {
+            type: "energy_plant",
+            level: 1,
+          },
+        ],
+        technologies: [],
+      },
+      cost: {
+        resources: {
+          metal: 200,
+          deuterium: 100,
           microchips: 0,
           science: 0,
         },
         percent_increase_per_level: 80,
       },
       production: {
-        base: 0.5,
-        percent_increase_per_level: 25,
+        base: 2,
+        percent_increase_per_level: 50,
         resource: "science",
       },
       storage: {
@@ -161,73 +204,24 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
         percent_increase_per_level: 200,
       },
     },
-    shipyard: {
-      cost: {
-        resources: {
-          metal: 5000,
-          deuterium: 1000,
-          microchips: 2000,
-          science: 500,
-        },
-        percent_increase_per_level: 60,
-      },
-      production: {
-        base: null,
-        percent_increase_per_level: null,
-        resource: null,
-      },
-      storage: {
-        increase_per_level: null,
-        resource: null,
-      },
-      time: {
-        base_seconds: 300,
-        percent_increase_per_level: 500,
-        max_seconds: 86400,
-      },
-      energy_consumption: {
-        base: 100,
-        percent_increase_per_level: 50,
-      },
-    },
-    defense_factory: {
-      cost: {
-        resources: {
-          metal: 4000,
-          deuterium: 750,
-          microchips: 1500,
-          science: 400,
-        },
-        percent_increase_per_level: 50,
-      },
-      production: {
-        base: null,
-        percent_increase_per_level: null,
-        resource: null,
-      },
-      storage: {
-        increase_per_level: null,
-        resource: null,
-      },
-      time: {
-        base_seconds: 3600,
-        percent_increase_per_level: 500,
-        max_seconds: 86400,
-      },
-      energy_consumption: {
-        base: 80,
-        percent_increase_per_level: 50,
-      },
-    },
     microchip_factory: {
       cost: {
         resources: {
-          metal: 1000,
+          metal: 300,
           deuterium: 0,
           microchips: 0,
-          science: 100,
+          science: 25,
         },
         percent_increase_per_level: 50,
+      },
+      prerequisites: {
+        structures: [
+          {
+            type: "research_lab",
+            level: 1,
+          },
+        ],
+        technologies: [],
       },
       production: {
         base: 0.5,
@@ -248,15 +242,62 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
         percent_increase_per_level: 50,
       },
     },
-    metal_hangar: {
+    shipyard: {
       cost: {
         resources: {
           metal: 1000,
-          deuterium: 0,
-          microchips: 0,
-          science: 0,
+          deuterium: 200,
+          microchips: 50,
+          science: 50,
         },
-        percent_increase_per_level: 75,
+        percent_increase_per_level: 60,
+      },
+      production: {
+        base: null,
+        percent_increase_per_level: null,
+        resource: null,
+      },
+      prerequisites: {
+        structures: [
+          {
+            type: "research_lab",
+            level: 1,
+          },
+        ],
+        technologies: [],
+      },
+      storage: {
+        increase_per_level: null,
+        resource: null,
+      },
+      time: {
+        base_seconds: 300,
+        percent_increase_per_level: 500,
+        max_seconds: 86400,
+      },
+      energy_consumption: {
+        base: 100,
+        percent_increase_per_level: 50,
+      },
+    },
+    defense_factory: {
+      cost: {
+        resources: {
+          metal: 2000,
+          deuterium: 300,
+          microchips: 150,
+          science: 40,
+        },
+        percent_increase_per_level: 50,
+      },
+      prerequisites: {
+        structures: [
+          {
+            type: "research_lab",
+            level: 1,
+          },
+        ],
+        technologies: [],
       },
       production: {
         base: null,
@@ -264,12 +305,50 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
         resource: null,
       },
       storage: {
-        increase_per_level: 10000,
+        increase_per_level: null,
+        resource: null,
+      },
+      time: {
+        base_seconds: 3600,
+        percent_increase_per_level: 500,
+        max_seconds: 86400,
+      },
+      energy_consumption: {
+        base: 80,
+        percent_increase_per_level: 50,
+      },
+    },
+    metal_hangar: {
+      cost: {
+        resources: {
+          metal: 3000,
+          deuterium: 0,
+          microchips: 0,
+          science: 0,
+        },
+        percent_increase_per_level: 75,
+      },
+      prerequisites: {
+        structures: [
+          {
+            type: "metal_mine",
+            level: 5,
+          },
+        ],
+        technologies: [],
+      },
+      production: {
+        base: null,
+        percent_increase_per_level: null,
+        resource: null,
+      },
+      storage: {
+        increase_per_level: 15000,
         resource: "metal",
       },
       time: {
-        base_seconds: 600,
-        percent_increase_per_level: 50,
+        base_seconds: 60,
+        percent_increase_per_level: 100,
         max_seconds: 86400,
       },
       energy_consumption: {
@@ -287,6 +366,15 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
         },
         percent_increase_per_level: 75,
       },
+      prerequisites: {
+        structures: [
+          {
+            type: "deuterium_synthesizer",
+            level: 5,
+          },
+        ],
+        technologies: [],
+      },
       production: {
         base: null,
         percent_increase_per_level: null,
@@ -297,8 +385,8 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
         resource: "deuterium",
       },
       time: {
-        base_seconds: 900,
-        percent_increase_per_level: 50,
+        base_seconds: 60,
+        percent_increase_per_level: 100,
         max_seconds: 86400,
       },
       energy_consumption: {
@@ -315,6 +403,15 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
           science: 100,
         },
         percent_increase_per_level: 75,
+      },
+      prerequisites: {
+        structures: [
+          {
+            type: "microchip_factory",
+            level: 5,
+          },
+        ],
+        technologies: [],
       },
       production: {
         base: null,
@@ -344,6 +441,15 @@ export const DEFAULT_STRUCTURES_CONFIG: StructuresConfig = {
           science: 250,
         },
         percent_increase_per_level: 75,
+      },
+      prerequisites: {
+        structures: [
+          {
+            type: "research_lab",
+            level: 3,
+          },
+        ],
+        technologies: [],
       },
       production: {
         base: 0,

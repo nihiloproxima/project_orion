@@ -5,14 +5,15 @@ import { ZoomControls } from "./ZoomControls";
 import { PlanetInfoCard } from "./PlanetInfoCard";
 
 interface GalaxyMap2DProps {
-  mode: "homeworld" | "mission-target" | "view-only";
+  mode: "view-only" | "mission-target" | "homeworld";
   onPlanetSelect?: (planet: PlanetType) => void;
-  highlightedPlanets?: string[];
   allowedPlanets?: string[];
+  highlightedPlanets?: string[];
   initialZoom?: number;
   initialCenter?: { x: number; y: number };
-  width?: string | number;
-  height?: string | number;
+  width?: string;
+  height?: string;
+  focusedPlanet?: PlanetType | null;
 }
 
 const MAX_ZOOM = 5;
@@ -41,17 +42,18 @@ const getPlanetRadius = (size_km: number) => {
 export function GalaxyMap2D({
   mode,
   onPlanetSelect,
+  allowedPlanets = [],
   highlightedPlanets = [],
-  allowedPlanets,
   initialZoom = 1,
-  initialCenter = { x: 0, y: 0 },
+  initialCenter,
   width = "800px",
   height = "600px",
+  focusedPlanet,
 }: GalaxyMap2DProps) {
   const { state } = useGame();
   const [viewport, setViewport] = useState({
-    x: initialCenter.x,
-    y: initialCenter.y,
+    x: initialCenter?.x || 0,
+    y: initialCenter?.y || 0,
     zoom: initialZoom,
   });
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetType | null>(null);
@@ -296,7 +298,6 @@ export function GalaxyMap2D({
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       if (isDragging) {
-        console.log("Ignoring click - dragging");
         return;
       }
 
@@ -307,8 +308,6 @@ export function GalaxyMap2D({
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
-      console.log("Click at:", { mouseX, mouseY });
-
       const clickedPlanet = state.planets?.find((planet) => {
         const pos = worldToScreen(planet.coordinate_x, planet.coordinate_y);
         const dx = mouseX - pos.x;
@@ -316,28 +315,14 @@ export function GalaxyMap2D({
         const distance = Math.sqrt(dx * dx + dy * dy);
         const clickRadius = 20 * viewport.zoom;
 
-        console.log("Checking planet:", planet.name, {
-          planetPos: pos,
-          distance,
-          clickRadius,
-          isInRange: distance < clickRadius,
-        });
-
         return distance < clickRadius;
       });
 
       if (clickedPlanet) {
-        console.log("Planet clicked:", clickedPlanet.name);
-
         if (!allowedPlanets || allowedPlanets.includes(clickedPlanet.id)) {
-          console.log("Setting selected planet");
           setSelectedPlanet(clickedPlanet);
           setShowInfo(true);
-        } else {
-          console.log("Planet not allowed");
         }
-      } else {
-        console.log("No planet clicked");
       }
     },
     [state.planets, viewport, allowedPlanets, isDragging, worldToScreen]
@@ -370,6 +355,59 @@ export function GalaxyMap2D({
       };
     });
   }, []);
+
+  // Add effect to handle focused planet changes
+  useEffect(() => {
+    if (!focusedPlanet || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+
+    // Calculate minimum zoom based on grid size and canvas size
+    const minZoomX = canvas.width / GRID_SIZE;
+    const minZoomY = canvas.height / GRID_SIZE;
+    const calculatedMinZoom = Math.max(minZoomX, minZoomY) * 0.8; // 80% of the minimum zoom
+
+    // Calculate target zoom with new minimum
+    const targetZoom = Math.min(
+      Math.max(1.5, viewport.zoom, calculatedMinZoom),
+      MAX_ZOOM
+    );
+
+    // Calculate the target viewport position to center the planet
+    const targetX =
+      (focusedPlanet.coordinate_x + GRID_SIZE / 2) * targetZoom -
+      canvas.width / 2;
+    const targetY =
+      (focusedPlanet.coordinate_y + GRID_SIZE / 2) * targetZoom -
+      canvas.height / 2;
+
+    // Animate the viewport to center on the planet
+    const startX = viewport.x;
+    const startY = viewport.y;
+    const startZoom = viewport.zoom;
+    const duration = 800;
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Ease out cubic function
+      const easing = 1 - Math.pow(1 - progress, 3);
+
+      setViewport(() => ({
+        x: startX + (targetX - startX) * easing,
+        y: startY + (targetY - startY) * easing,
+        zoom: startZoom + (targetZoom - startZoom) * easing,
+      }));
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    animate();
+  }, [focusedPlanet]);
 
   return (
     <div

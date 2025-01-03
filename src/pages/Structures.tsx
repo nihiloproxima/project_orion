@@ -17,6 +17,7 @@ import {
   Grid2x2,
   Grid3x3,
   Grid,
+  AlertTriangle,
 } from "lucide-react";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useEffect, useState } from "react";
@@ -42,6 +43,8 @@ import deuteriumTankImg from "../assets/structures/deuterium_tank.png";
 import microchipVaultImg from "../assets/structures/microchip_vault.png";
 import dataCenterImg from "../assets/structures/data_center.png";
 import { formatTimerTime } from "../lib/utils";
+import { StructureConfig, StructuresConfig } from "../models";
+import { TECHNOLOGIES } from "../lib/constants";
 
 interface StructureInfo {
   type: StructureType;
@@ -362,6 +365,7 @@ function StructureCard({
             onConstruct={onConstruct}
             energyConsumption={energyConsumption}
             futureEnergyRatio={futureEnergyRatio}
+            config={state.structuresConfig!.available_structures[info.type]}
           />
         )}
       </CardContent>
@@ -523,6 +527,7 @@ interface NewStructureContentProps {
   onConstruct: (type: StructureType) => void;
   energyConsumption: number;
   futureEnergyRatio: number;
+  config: StructureConfig;
 }
 
 function NewStructureContent({
@@ -532,14 +537,59 @@ function NewStructureContent({
   onConstruct,
   energyConsumption,
   futureEnergyRatio,
+  config,
 }: NewStructureContentProps) {
-  const { currentResources } = useGame();
+  const { currentResources, state } = useGame();
 
   const canAfford =
     currentResources.metal >= constructionCost.metal &&
     currentResources.deuterium >= constructionCost.deuterium &&
     currentResources.microchips >= constructionCost.microchips &&
     currentResources.science >= constructionCost.science;
+
+  // Check prerequisites
+  let prerequisitesMet = true;
+  for (const prereq of config.prerequisites.structures) {
+    const structure = state.structures?.find((s) => s.type === prereq.type);
+    if (!structure || structure.level < prereq.level) {
+      prerequisitesMet = false;
+      break;
+    }
+  }
+
+  for (const prereq of config.prerequisites.technologies) {
+    const tech = state.planetResearchs?.technologies[prereq.id];
+    if (!tech || tech.level < prereq.level) {
+      prerequisitesMet = false;
+      break;
+    }
+  }
+
+  // Add prerequisites warning message
+  const getPrerequisitesMessage = () => {
+    const missingStructures = config.prerequisites.structures
+      .filter((prereq) => {
+        const structure = state.structures?.find((s) => s.type === prereq.type);
+        return !structure || structure.level < prereq.level;
+      })
+      .map(
+        (prereq) =>
+          `${STRUCTURE_INFO[prereq.type as StructureType].name} Level ${
+            prereq.level
+          }`
+      );
+
+    const missingTechnologies = config.prerequisites.technologies
+      .filter((prereq) => {
+        const tech = state.planetResearchs?.technologies[prereq.id];
+        return !tech || tech.level < prereq.level;
+      })
+      .map((prereq) => `${TECHNOLOGIES[prereq.id].name} Level ${prereq.level}`);
+
+    const missing = [...missingStructures, ...missingTechnologies];
+
+    return missing.length > 0 ? `Required: ${missing.join(", ")}` : "";
+  };
 
   return (
     <div className="space-y-4">
@@ -608,6 +658,14 @@ function NewStructureContent({
         {info.type === "energy_plant" ? -energyConsumption : energyConsumption}
       </div>
 
+      {/* Add prerequisites warning */}
+      {!prerequisitesMet && (
+        <div className="text-sm text-red-400 flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4" />
+          <span>Requires: {getPrerequisitesMessage()}</span>
+        </div>
+      )}
+
       {futureEnergyRatio < 1 && info.type !== "energy_plant" && (
         <div className="text-sm text-amber-400">
           Warning: Building this will result in an energy ratio of{" "}
@@ -617,14 +675,18 @@ function NewStructureContent({
 
       <Button
         onClick={() => onConstruct(info.type)}
-        disabled={!canAfford}
+        disabled={!canAfford || !prerequisitesMet}
         className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
-          !canAfford
+          !canAfford || !prerequisitesMet
             ? "bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed"
             : "bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border"
         }`}
       >
-        {canAfford ? "Construct" : "Not Enough Resources"}
+        {!prerequisitesMet
+          ? "Prerequisites Not Met"
+          : !canAfford
+          ? "Not Enough Resources"
+          : "Construct"}
       </Button>
     </div>
   );

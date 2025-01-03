@@ -453,7 +453,7 @@ export function Shipyard() {
 
   // Check if shipyard exists
   const hasShipyard = state.structures?.some(
-    (structure) => structure.type === "shipyard"
+    (structure) => structure.type === "shipyard" && structure.level >= 1
   );
 
   if (!hasShipyard) {
