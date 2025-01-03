@@ -29,18 +29,16 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 
-import avatar0 from "../assets/avatars/0.png";
-import avatar1 from "../assets/avatars/1.png";
-import avatar2 from "../assets/avatars/2.png";
-import avatar3 from "../assets/avatars/3.png";
-import avatar4 from "../assets/avatars/4.png";
-import avatar5 from "../assets/avatars/5.png";
-import avatar6 from "../assets/avatars/6.png";
-import avatar7 from "../assets/avatars/7.png";
-import avatar8 from "../assets/avatars/8.png";
-import avatar9 from "../assets/avatars/9.png";
-import avatar10 from "../assets/avatars/10.png";
-import avatar11 from "../assets/avatars/11.png";
+import avatar0 from "../assets/avatars/0.webp";
+import avatar1 from "../assets/avatars/1.webp";
+import avatar2 from "../assets/avatars/2.webp";
+import avatar3 from "../assets/avatars/3.webp";
+import avatar4 from "../assets/avatars/4.webp";
+import avatar5 from "../assets/avatars/5.webp";
+import avatar6 from "../assets/avatars/6.webp";
+import avatar7 from "../assets/avatars/7.webp";
+import avatar8 from "../assets/avatars/8.webp";
+import avatar9 from "../assets/avatars/9.webp";
 
 export function UserProfilePage() {
   const { userId } = useParams();
@@ -62,8 +60,6 @@ export function UserProfilePage() {
     avatar7,
     avatar8,
     avatar9,
-    avatar10,
-    avatar11,
   ];
 
   const isCurrentUser = state.currentUser?.id === userId;
@@ -147,7 +143,7 @@ export function UserProfilePage() {
               <img
                 src={user.avatar_url || avatar0}
                 alt={user.name}
-                className="w-[180px] h-[240px] border-4 border-background shadow-xl object-cover"
+                className="w-48 h-48 border-4 border-background shadow-xl object-cover"
               />
               {isCurrentUser && (
                 <Button
@@ -239,7 +235,7 @@ export function UserProfilePage() {
             {avatars.map((avatar, index) => (
               <button
                 key={index}
-                className="relative aspect-[256/341] overflow-hidden rounded-lg border-2 border-muted hover:border-primary transition-colors"
+                className="relative overflow-hidden rounded-lg border-2 border-muted hover:border-primary transition-colors"
                 onClick={() => handleAvatarSelect(avatar)}
               >
                 <img
