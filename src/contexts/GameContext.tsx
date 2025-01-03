@@ -9,7 +9,7 @@ import {
 } from "react";
 import { supabase } from "../lib/supabase";
 import { Structure } from "../models/structure";
-import { useAuth } from "./auth";
+import { useAuth } from "./AuthContext";
 import { StructuresConfig } from "../models/structures_config";
 import { Planet } from "../models/planet";
 import { PlanetResources } from "../models/planets_resources";

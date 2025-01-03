@@ -48,6 +48,7 @@ import { usePlanets } from "../../../hooks/usePlanets";
 import { LoadingScreen } from "../../../components/LoadingScreen";
 import { api } from "../../../lib/api";
 import { Planet } from "../../../models/planet";
+import Image from "next/image";
 
 const getShipImageUrl = (type: ShipType) => {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
@@ -600,8 +601,11 @@ export default function Fleet() {
                   checked={selectedShips.has(ship.id)}
                   onCheckedChange={() => handleShipSelect(ship.id)}
                 />
-                <img
+                <Image
                   src={SHIP_ASSETS[ship.type].image}
+                  width={100}
+                  height={100}
+                  aria-description={`Ship ${ship.name}`}
                   alt={ship.name}
                   className="w-8 h-8"
                 />

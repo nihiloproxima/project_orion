@@ -1,36 +1,44 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useAuth } from "../../contexts/auth";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
+
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
   CardFooter,
-} from "../../components/ui/card";
-import Link from "next/link";
+} from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase";
-import { login } from "./actions";
+import Link from "next/link";
 
 export default function Login() {
   const router = useRouter();
-  const { isAuthenticated, loading } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Only redirect if authenticated
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      router.push("/dashboard");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      await login(email, password);
+    } catch (error: any) {
+      setError(error.message || "Login failed");
+      console.error("Login failed:", error);
     }
-  }, [isAuthenticated, loading, router]);
+  };
 
   const handleDiscordSignIn = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "discord",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -41,14 +49,32 @@ export default function Login() {
         },
       });
 
+      console.log(data);
+
       if (error) throw error;
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Discord authentication failed"
-      );
+
+      // Get user data after successful sign in
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error("User not found");
+
+      // Get Discord username from user metadata
+      const discordUsername =
+        user.user_metadata?.full_name || user.user_metadata?.name;
+
+      // Register user with Discord username
+      await api.users.register(user.id, discordUsername);
+    } catch (error: any) {
+      setError(error.message || "Discord authentication failed");
       console.error("Discord auth failed:", error);
     }
   };
+
+  if (isAuthenticated) {
+    router.push("/dashboard");
+  }
 
   return (
     <div className="w-full min-h-screen bg-background cyber-grid flex items-center justify-center">
@@ -69,7 +95,7 @@ export default function Login() {
           )}
         </CardHeader>
         <CardContent>
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label
                 htmlFor="email"
@@ -79,8 +105,9 @@ export default function Login() {
               </Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
                 placeholder="enter.operator@id"
@@ -95,15 +122,16 @@ export default function Login() {
               </Label>
               <Input
                 id="password"
-                name="password"
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
                 placeholder="****************"
               />
             </div>
             <Button
-              formAction={login}
+              type="submit"
               className="w-full font-mono bg-primary/80 hover:bg-primary/90 border border-primary/60 neon-border"
             >
               AUTHENTICATE
@@ -121,7 +149,7 @@ export default function Login() {
             <Button
               type="button"
               onClick={handleDiscordSignIn}
-              className="w-full font-mono bg-[#5865F2]/80 hover:bg-[#5865F2]/90 border border-[#5865F2]/60 neon-border text-white"
+              className="w-full font-mono bg-[#5865F2]/80 hover:bg-[#5865F2]/90 border border-[#5865F2]/60 neon-border text-white "
             >
               DISCORD LOGIN
             </Button>
@@ -131,7 +159,7 @@ export default function Login() {
           <div className="text-xs font-mono text-primary/70">
             [NEW OPERATOR?]{" "}
             <Link
-              href="/register"
+              href="/auth/register"
               className="text-primary hover:text-primary/80 neon-text"
             >
               INITIALIZE REGISTRATION

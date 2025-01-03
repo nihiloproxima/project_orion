@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import { api } from "@/lib/api";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
@@ -17,11 +18,11 @@ export async function login(formData: FormData) {
   );
 
   if (error) {
-    return redirect("/login?error=Invalid credentials");
+    return redirect(`/login?error=${error.message}`);
   }
 
   if (!authData.session) {
-    return redirect("/login?error=No session created");
+    return redirect(`/login?error=No session created`);
   }
 
   revalidatePath("/", "layout");
@@ -29,7 +30,7 @@ export async function login(formData: FormData) {
   return redirect("/dashboard");
 }
 
-export async function signup(formData: FormData) {
+export async function register(formData: FormData) {
   const supabase = await createClient();
 
   // type-casting here for convenience
@@ -37,13 +38,20 @@ export async function signup(formData: FormData) {
   const data = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
+    name: formData.get("name") as string,
   };
 
-  const { error } = await supabase.auth.signUp(data);
+  const { data: user, error } = await supabase.auth.signUp(data);
 
   if (error) {
-    redirect("/error");
+    redirect(`/register?error=${error.message}`);
   }
+
+  if (!user || !user.user) {
+    redirect(`/register?error=User not found`);
+  }
+
+  await api.users.register(user.user!.id, data.name);
 
   revalidatePath("/", "layout");
   redirect("/choose-homeworld");

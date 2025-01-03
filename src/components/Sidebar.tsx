@@ -1,8 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "../contexts/auth";
-import { useTheme } from "../contexts/theme";
+import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { Button } from "./ui/button";
 import {
   Select,
@@ -32,7 +32,7 @@ export function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    router.push("/login");
+    router.push("/auth/login");
   };
 
   return (

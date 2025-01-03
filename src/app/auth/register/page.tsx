@@ -1,24 +1,25 @@
 "use client";
+
 import { useState } from "react";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
   CardFooter,
-} from "../../components/ui/card";
-import { useRouter } from "next/navigation";
+} from "@/components/ui/card";
 import Link from "next/link";
-import { useAuth } from "../../contexts/auth";
-import { supabase } from "../../lib/supabase";
-import { api } from "../../lib/api";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 export default function Register() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -53,8 +54,7 @@ export default function Register() {
       if (!user || !user.user) throw new Error("User not found");
 
       await api.users.register(user.user!.id, name);
-
-      router.push("/login");
+      router.push("/dashboard");
     } catch (error: any) {
       setError(error.message || "Registration failed");
       console.error("Registration failed:", error);
@@ -97,6 +97,10 @@ export default function Register() {
       console.error("Discord auth failed:", error);
     }
   };
+
+  if (isAuthenticated) {
+    router.push("/dashboard");
+  }
 
   return (
     <div className="w-full min-h-screen bg-background cyber-grid flex items-center justify-center">
@@ -198,7 +202,9 @@ export default function Register() {
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setConfirmPassword(e.target.value)
+                }
                 required
                 className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
                 placeholder="****************"
@@ -217,7 +223,7 @@ export default function Register() {
           <div className="text-xs font-mono text-primary/70">
             [EXISTING OPERATOR?]{" "}
             <Link
-              href="/login"
+              href="/auth/login"
               className="text-primary hover:text-primary/80 neon-text"
             >
               ACCESS SYSTEM

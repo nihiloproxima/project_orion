@@ -8,7 +8,7 @@ import {
   CardTitle,
   CardContent,
 } from "../components/ui/card";
-import { useAuth } from "../contexts/auth";
+import { useAuth } from "../contexts/AuthContext";
 import { useGame } from "../contexts/GameContext";
 
 export default function Home() {
@@ -22,7 +22,7 @@ export default function Home() {
         <nav className="p-6 flex justify-between items-center backdrop-blur-sm border-b neon-border">
           <h1 className="text-2xl font-bold neon-text">PROJECT ORION</h1>
           <div className="space-x-4">
-            <Link href="/login">
+            <Link href="/auth/login">
               <Button
                 variant="outline"
                 className="neon-border hover:bg-primary/20"
@@ -30,7 +30,7 @@ export default function Home() {
                 LOGIN
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/auth/register">
               <Button className="bg-primary hover:bg-primary/80 text-primary-foreground">
                 REGISTER
               </Button>
@@ -53,7 +53,7 @@ export default function Home() {
           <span className="neon-text font-mono">{state.activePlayers}</span>{" "}
           commanders online
         </div>
-        <Link href="/login">
+        <Link href="/auth/login">
           <Button
             size="lg"
             className="px-8 py-6 text-xl bg-primary hover:bg-primary/80 text-primary-foreground neon-border"

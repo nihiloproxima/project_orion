@@ -30,6 +30,7 @@ import { Timer } from "../../../components/Timer";
 import { formatTimerTime } from "../../../lib/utils";
 import { ShipConfig } from "../../../models/ships_config";
 import { getPublicImageUrl } from "@/lib/images";
+import Image from "next/image";
 
 const QUEUE_CAPACITY = 5;
 
@@ -112,13 +113,12 @@ function QueueDisplay({ queue }: { queue: ShipyardQueue | null }) {
           return (
             <Card key={index} className="bg-black/30">
               <CardHeader className="flex flex-row items-center p-4">
-                <img
+                <Image
                   src={asset.image}
                   alt={asset.name}
+                  width={100}
+                  height={100}
                   className="w-12 h-12 rounded mr-4"
-                  onError={(e) => {
-                    e.currentTarget.src = "/src/assets/ships/default.png";
-                  }}
                 />
                 <div className="flex-1">
                   <div className="font-bold">{asset.name}</div>
@@ -225,7 +225,7 @@ function ShipCard({
     >
       <CardHeader className="flex flex-row items-start gap-6 pb-2">
         <div className="w-2/5 aspect-square relative">
-          <img
+          <Image
             src={asset.image}
             alt={asset.name}
             className={`w-full h-full object-cover rounded-lg ${
@@ -235,9 +235,9 @@ function ShipCard({
                 isQueueFull) &&
               "opacity-50"
             }`}
-            onError={(e) => {
-              e.currentTarget.src = "/src/assets/ships/default.png";
-            }}
+            width={100}
+            height={100}
+            aria-description={`Ship ${asset.name}`}
           />
         </div>
         <div className="flex flex-col gap-2 w-3/5">

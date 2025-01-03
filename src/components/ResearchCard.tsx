@@ -2,19 +2,27 @@ import { formatTimerTime } from "../lib/utils";
 import { ResearchConfig } from "../models";
 import { TechnologyId } from "../models";
 import { Technology } from "../models";
-import { ResearchPrerequisites } from "../models/research_config";
+import { ResearchPrerequisite } from "@/models/researchs_config";
 import { TECHNOLOGIES } from "../lib/constants";
 import { Timer } from "./Timer";
 import { Progress } from "./ui/progress";
 import { Beaker, Lock, AlertCircle } from "lucide-react";
+import Image from "next/image";
 
 interface ResearchCardProps {
   id: TechnologyId;
   research: ResearchConfig;
   tech: Technology;
-  prerequisites: ResearchPrerequisites[];
+  prerequisites: ResearchPrerequisite[];
   onStartResearch: (id: TechnologyId) => void;
-  currentResources: any;
+  currentResources: {
+    metal: number;
+    microchips: number;
+    deuterium: number;
+    science: number;
+    energy_production: number;
+    energy_consumption: number;
+  };
 }
 
 export function ResearchCard({
@@ -60,9 +68,12 @@ export function ResearchCard({
       <div className="p-4">
         <div className="flex items-center mb-4">
           <div className="relative">
-            <img
+            <Image
               src={assetConfig?.image}
               alt={assetConfig?.name}
+              width={100}
+              height={100}
+              aria-description={`Research ${assetConfig?.name}`}
               className={`w-16 h-16 rounded mr-4 ${
                 !prerequisitesMet ? "opacity-50 grayscale" : ""
               }`}
