@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "./ui/select";
 import {
-  Settings,
   LogOut,
   Terminal,
   Computer,
@@ -105,12 +104,6 @@ export function Sidebar() {
               //   label: "ALLIANCE_NET",
               //   color: "blue",
               // },
-              {
-                to: "/configs",
-                icon: Settings,
-                label: "SYS_CONFIG",
-                color: "cyan",
-              },
             ].map((item) => (
               <Link key={item.to} to={item.to}>
                 <Button
