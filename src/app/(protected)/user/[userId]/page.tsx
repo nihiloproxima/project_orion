@@ -17,6 +17,8 @@ import {
   Earth,
   Edit,
   ImageIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { supabase } from "../../../../lib/supabase";
 import { User } from "../../../../models/user";
@@ -42,8 +44,15 @@ export default function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState("");
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const avatars = Array.from({ length: 10 }, (_, i) => i + ".webp");
+  const avatars = Array.from({ length: 27 }, (_, i) => i + ".webp");
+  const avatarsPerPage = 9;
+  const totalPages = Math.ceil(avatars.length / avatarsPerPage);
+  const paginatedAvatars = avatars.slice(
+    currentPage * avatarsPerPage,
+    (currentPage + 1) * avatarsPerPage
+  );
 
   const isCurrentUser = state.currentUser?.id === userId;
 
@@ -224,8 +233,8 @@ export default function UserProfilePage() {
           <DialogHeader>
             <DialogTitle>Select Commander Avatar</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-4 gap-4 p-4">
-            {avatars.map((avatarName, index) => (
+          <div className="grid grid-cols-3 gap-4 p-4">
+            {paginatedAvatars.map((avatarName, index) => (
               <button
                 key={index}
                 className="relative overflow-hidden rounded-lg border-2 border-muted hover:border-primary transition-colors"
@@ -241,6 +250,29 @@ export default function UserProfilePage() {
                 />
               </button>
             ))}
+          </div>
+          <div className="flex justify-between items-center px-4 pb-4">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage + 1} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+              }
+              disabled={currentPage === totalPages - 1}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
