@@ -51,6 +51,7 @@ import { Planet } from "../../../models/planet";
 import Image from "next/image";
 import { ResourcePayload } from "@/models/fleet_movement";
 import { useToast } from "@/hooks/use-toast";
+import { formatTimerTime } from "@/lib/utils";
 
 const getShipImageUrl = (type: ShipType) => {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
@@ -84,10 +85,10 @@ type SortOrder = "asc" | "desc";
 type MissionType = "attack" | "transport" | "colonize" | "spy" | "recycle";
 
 const ResourceSelectionUI = ({
-  onConfirm,
+  onResourcesSelect,
   maxCargo,
 }: {
-  onConfirm: (resources: ResourcePayload) => void;
+  onResourcesSelect: (resources: ResourcePayload) => void;
   maxCargo: number;
 }) => {
   const [resources, setResources] = useState<ResourcePayload>({
@@ -119,6 +120,11 @@ const ResourceSelectionUI = ({
       [resource]: Math.max(0, Math.min(value, maxAllowed)),
     }));
   };
+
+  // Add useEffect to automatically update parent component when resources change
+  useEffect(() => {
+    onResourcesSelect(resources);
+  }, [resources, onResourcesSelect]);
 
   return (
     <div className="space-y-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
@@ -220,16 +226,14 @@ const ResourceSelectionUI = ({
           </span>
         </div>
       </div>
-
-      <Button
-        className="w-full"
-        onClick={() => onConfirm(resources)}
-        disabled={totalResourcesSelected === 0}
-      >
-        Confirm Resources
-      </Button>
     </div>
   );
+};
+
+const calculateDistance = (p1: Planet, p2: Planet) => {
+  const dx = p1.coordinate_x - p2.coordinate_x;
+  const dy = p1.coordinate_y - p2.coordinate_y;
+  return Math.sqrt(dx * dx + dy * dy);
 };
 
 export default function Fleet() {
@@ -251,6 +255,12 @@ export default function Fleet() {
   const [missionType, setMissionType] = useState<MissionType | null>(null);
   const [targetPlanet, setTargetPlanet] = useState<Planet | null>(null);
   const { toast } = useToast();
+  const [selectedResources, setSelectedResources] = useState<ResourcePayload>({
+    metal: 0,
+    deuterium: 0,
+    microchips: 0,
+    science: 0,
+  });
 
   // Reset mission setup when dialog closes
   useEffect(() => {
@@ -323,26 +333,32 @@ export default function Fleet() {
     (targetPlanet: Planet) => {
       if (!state.selectedPlanet) return null;
 
-      // Calculate distance
-      const dx = targetPlanet.coordinate_x - state.selectedPlanet.coordinate_x;
-      const dy = targetPlanet.coordinate_y - state.selectedPlanet.coordinate_y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+      // Calculate distance using the same formula as server
+      const distance = Math.sqrt(
+        Math.pow(
+          targetPlanet.coordinate_x - state.selectedPlanet.coordinate_x,
+          2
+        ) +
+          Math.pow(
+            targetPlanet.coordinate_y - state.selectedPlanet.coordinate_y,
+            2
+          )
+      );
 
-      // Get slowest ship speed (this will determine fleet travel time)
-      const slowestSpeed = Math.min(
+      // Get slowest ship speed (convoy speed)
+      const convoySpeed = Math.min(
         ...Array.from(selectedShips).map(
           (shipId) =>
             stationedShips.find((s) => s.id === shipId)?.speed || Infinity
         )
       );
 
-      if (slowestSpeed === Infinity) return null;
+      if (convoySpeed === Infinity) return null;
 
-      // Calculate time in seconds to match server
-      const travelTimeSeconds = distance / slowestSpeed;
+      // Calculate travel time in seconds (matching server logic exactly)
+      const travelTimeSeconds = Math.ceil(distance / convoySpeed);
 
-      // Convert to hours and round up
-      return Math.ceil(travelTimeSeconds / 3600);
+      return travelTimeSeconds;
     },
     [state.selectedPlanet, selectedShips, stationedShips]
   );
@@ -468,6 +484,7 @@ export default function Fleet() {
 
     return missionTypes;
   };
+
   const handleConfirmMission = async (resources?: ResourcePayload) => {
     if (!targetPlanet || !missionType) return;
 
@@ -478,6 +495,11 @@ export default function Fleet() {
         planet_id: targetPlanet.id,
         resources: resources,
       });
+
+      // Remove sent ships from stationedShips immediately
+      setStationedShips((current) =>
+        current.filter((ship) => !selectedShips.has(ship.id))
+      );
 
       toast({
         title: "Success",
@@ -594,17 +616,29 @@ export default function Fleet() {
                 </p>
                 {state.selectedPlanet && (
                   <p className="text-sm text-muted-foreground mt-2">
-                    Travel Time: {calculateTravelTime(targetPlanet)} hours
+                    Travel Time:{" "}
+                    {formatTimerTime(calculateTravelTime(targetPlanet) || 0)}
                   </p>
                 )}
 
                 {missionType === "transport" || missionType === "colonize" ? (
-                  <ResourceSelectionUI
-                    onConfirm={(resources) => {
-                      handleConfirmMission(resources);
-                    }}
-                    maxCargo={getTotalCargoCapacity()}
-                  />
+                  <div className="space-y-4">
+                    <ResourceSelectionUI
+                      onResourcesSelect={(resources) => {
+                        // Store selected resources in state
+                        setSelectedResources(resources);
+                      }}
+                      maxCargo={getTotalCargoCapacity()}
+                    />
+                    <Button
+                      className="w-full"
+                      disabled={!targetPlanet || !missionType}
+                      onClick={() => handleConfirmMission(selectedResources)}
+                    >
+                      <Target className="h-4 w-4 mr-2" />
+                      Confirm Mission
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     className="w-full mt-4"
@@ -654,12 +688,36 @@ export default function Fleet() {
                           return false;
                       }
                     })
-                    .map((planet) => (
-                      <SelectItem key={planet.id} value={planet.id}>
-                        {planet.name} ({planet.coordinate_x},{" "}
-                        {planet.coordinate_y})
-                      </SelectItem>
-                    ))}
+                    .sort((a, b) => {
+                      // Sort by distance for colonize missions
+                      if (missionType === "colonize" && state.selectedPlanet) {
+                        const distA = calculateDistance(
+                          a,
+                          state.selectedPlanet
+                        );
+                        const distB = calculateDistance(
+                          b,
+                          state.selectedPlanet
+                        );
+                        return distA - distB;
+                      }
+                      return 0;
+                    })
+                    .map((planet) => {
+                      const distance = state.selectedPlanet
+                        ? Math.round(
+                            calculateDistance(planet, state.selectedPlanet)
+                          )
+                        : null;
+
+                      return (
+                        <SelectItem key={planet.id} value={planet.id}>
+                          {planet.name} ({planet.coordinate_x},{" "}
+                          {planet.coordinate_y})
+                          {distance !== null && ` - ${distance} units away`}
+                        </SelectItem>
+                      );
+                    })}
                 </SelectContent>
               </Select>
 

@@ -18,6 +18,7 @@ import { api } from "../../../lib/api";
 import Image from "next/image";
 import { getPublicImageUrl } from "@/lib/images";
 import { FleetMovement } from "../../../models/fleet_movement";
+import { Ship } from "../../../models/ship";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -26,6 +27,8 @@ export default function Dashboard() {
   const [newMessage, setNewMessage] = useState("");
   const [hostileFleets, setHostileFleets] = useState<FleetMovement[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [stationedShips, setStationedShips] = useState<number>(0);
+  const [allShips, setAllShips] = useState<Ship[]>([]);
 
   useEffect(() => {
     // Initial fetch of messages
@@ -158,10 +161,109 @@ export default function Dashboard() {
     };
   }, [state.currentUser?.id, state.userPlanets]);
 
+  useEffect(() => {
+    const fetchStationedShips = async () => {
+      if (!state.selectedPlanet?.id) return;
+
+      const { data, error } = await supabase
+        .from("ships")
+        .select("*")
+        .eq("current_planet_id", state.selectedPlanet.id)
+        .eq("status", "stationed")
+        .is("mission_type", null);
+
+      if (error) {
+        console.error("Error fetching stationed ships:", error);
+        return;
+      }
+
+      setStationedShips(data?.length || 0);
+    };
+
+    fetchStationedShips();
+
+    // Subscribe to changes
+    const subscription = supabase
+      .channel(`stationed_ships_${state.selectedPlanet?.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ships",
+          filter: `current_planet_id=eq.${state.selectedPlanet?.id}`,
+        },
+        () => {
+          // Refetch ships when there are changes
+          fetchStationedShips();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [state.selectedPlanet?.id]);
+
+  useEffect(() => {
+    const fetchAllShips = async () => {
+      const { data, error } = await supabase
+        .from("ships")
+        .select("*")
+        .eq("owner_id", state.currentUser?.id);
+
+      if (error) {
+        console.error("Error fetching ships:", error);
+        return;
+      }
+
+      setAllShips(data || []);
+    };
+
+    fetchAllShips();
+
+    const subscription = supabase
+      .channel("user_ships")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ships",
+          filter: `owner_id=eq.${state.currentUser?.id}`,
+        },
+        () => {
+          fetchAllShips();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [state.currentUser?.id]);
+
+  const calculateFleetStats = () => {
+    const stats = {
+      total: allShips.length,
+      inCombat: allShips.filter(
+        (ship) => ship.status === "traveling" && ship.mission_type === "attack"
+      ).length,
+      inOrbit: allShips.filter(
+        (ship) => ship.status === "traveling" && ship.mission_type !== "attack"
+      ).length,
+      stationed: stationedShips,
+    };
+
+    return stats;
+  };
+
   if (state.userPlanets.length === 0) {
     router.push("/choose-homeworld");
     return null; // Return null while redirecting
   }
+
+  const fleetStats = calculateFleetStats();
 
   return (
     <div className="space-y-8">
@@ -220,9 +322,10 @@ export default function Dashboard() {
             <Rocket className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">15 Ships</div>
+            <div className="text-2xl font-bold">{fleetStats.total} Ships</div>
             <p className="text-xs text-muted-foreground">
-              3 in combat, 12 in orbit
+              {fleetStats.inCombat} in combat, {fleetStats.inOrbit} in orbit,{" "}
+              {fleetStats.stationed} stationed
             </p>
           </CardContent>
         </Card>

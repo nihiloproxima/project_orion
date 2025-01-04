@@ -10,16 +10,34 @@ import {
   CardTitle,
   CardContent,
 } from "../../../components/ui/card";
-import { AlertTriangle, ArrowRight, Rocket } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Rocket,
+  Hammer,
+  Microchip,
+  Flame,
+  Beaker,
+} from "lucide-react";
 import { Timer } from "../../../components/Timer";
 import { getPublicImageUrl } from "@/lib/images";
 import Image from "next/image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
 
 export default function FleetMovements() {
   const { state } = useGame();
   const [movements, setMovements] = useState<FleetMovement[]>([]);
   const [hostileMovements, setHostileMovements] = useState<FleetMovement[]>([]);
   const [expandedMovement, setExpandedMovement] = useState<string | null>(null);
+  const [missionFilter, setMissionFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("arrival");
+  const [displayMode, setDisplayMode] = useState<"grid" | "rows">("grid");
 
   // Fetch initial fleet movements
   useEffect(() => {
@@ -42,7 +60,7 @@ export default function FleetMovements() {
     };
 
     fetchMovements();
-  }, [state.currentUser?.id, state.planets]);
+  }, [state.currentUser?.id, state.userPlanets]);
 
   // Subscribe to fleet movement updates
   useEffect(() => {
@@ -57,17 +75,23 @@ export default function FleetMovements() {
           filter: `owner_id=eq.${state.currentUser?.id}`,
         },
         (payload) => {
-          const movement = payload.new as FleetMovement;
-          setMovements((current) => {
-            const updated = [...current];
-            const index = updated.findIndex((m) => m.id === movement.id);
-            if (index >= 0) {
-              updated[index] = movement;
-            } else {
-              updated.push(movement);
-            }
-            return updated;
-          });
+          if (payload.eventType === "DELETE") {
+            setMovements((current) =>
+              current.filter((m) => m.id !== payload.old.id)
+            );
+          } else {
+            const movement = payload.new as FleetMovement;
+            setMovements((current) => {
+              const updated = [...current];
+              const index = updated.findIndex((m) => m.id === movement.id);
+              if (index >= 0) {
+                updated[index] = movement;
+              } else {
+                updated.push(movement);
+              }
+              return updated;
+            });
+          }
         }
       )
       .subscribe();
@@ -86,18 +110,24 @@ export default function FleetMovements() {
             .join(",")})`,
         },
         (payload) => {
-          const movement = payload.new as FleetMovement;
-          if (movement.owner_id !== state.currentUser?.id) {
-            setHostileMovements((current) => {
-              const updated = [...current];
-              const index = updated.findIndex((m) => m.id === movement.id);
-              if (index >= 0) {
-                updated[index] = movement;
-              } else {
-                updated.push(movement);
-              }
-              return updated;
-            });
+          if (payload.eventType === "DELETE") {
+            setHostileMovements((current) =>
+              current.filter((m) => m.id !== payload.old.id)
+            );
+          } else {
+            const movement = payload.new as FleetMovement;
+            if (movement.owner_id !== state.currentUser?.id) {
+              setHostileMovements((current) => {
+                const updated = [...current];
+                const index = updated.findIndex((m) => m.id === movement.id);
+                if (index >= 0) {
+                  updated[index] = movement;
+                } else {
+                  updated.push(movement);
+                }
+                return updated;
+              });
+            }
           }
         }
       )
@@ -116,6 +146,111 @@ export default function FleetMovements() {
         ?.name || `(${x}, ${y})`
     );
   };
+
+  // Add sorting function
+  const sortMovements = (movements: FleetMovement[]) => {
+    return [...movements].sort((a, b) => {
+      switch (sortBy) {
+        case "arrival":
+          return (
+            new Date(a.arrival_time).getTime() -
+            new Date(b.arrival_time).getTime()
+          );
+        case "departure":
+          return (
+            new Date(a.departure_time).getTime() -
+            new Date(b.departure_time).getTime()
+          );
+        case "ships":
+          return (
+            Object.values(b.ship_counts || {}).reduce(
+              (sum, count) => sum + count,
+              0
+            ) -
+            Object.values(a.ship_counts || {}).reduce(
+              (sum, count) => sum + count,
+              0
+            )
+          );
+        case "resources":
+          return (
+            Object.values(b.resources || {}).reduce(
+              (sum, count) => sum + count,
+              0
+            ) -
+            Object.values(a.resources || {}).reduce(
+              (sum, count) => sum + count,
+              0
+            )
+          );
+        default:
+          return 0;
+      }
+    });
+  };
+
+  // Add filter function
+  const filterMovements = (movements: FleetMovement[]) => {
+    if (missionFilter === "all") return movements;
+    return movements.filter((m) => m.mission_type === missionFilter);
+  };
+
+  // Add controls component
+  const MovementControls = () => (
+    <div
+      className="flex flex-wrap gap-4 mb-4"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Select
+        value={missionFilter}
+        onValueChange={(value) => {
+          setMissionFilter(value);
+        }}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Filter by mission" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Missions</SelectItem>
+          <SelectItem value="attack">Attack</SelectItem>
+          <SelectItem value="transport">Transport</SelectItem>
+          <SelectItem value="colonize">Colonize</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={sortBy}
+        onValueChange={(value) => {
+          setSortBy(value);
+        }}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Sort by" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="arrival">Arrival Time</SelectItem>
+          <SelectItem value="departure">Departure Time</SelectItem>
+          <SelectItem value="ships">Ship Count</SelectItem>
+          <SelectItem value="resources">Resource Amount</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={displayMode}
+        onValueChange={(value: "grid" | "rows") => {
+          setDisplayMode(value);
+        }}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Display mode" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="grid">Grid View</SelectItem>
+          <SelectItem value="rows">Row View</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   const renderMovementCard = (
     movement: FleetMovement,
@@ -203,22 +338,40 @@ export default function FleetMovements() {
                   <div className="font-semibold mb-1">Cargo:</div>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(movement.resources).map(
-                      ([resource, amount]) =>
-                        amount > 0 && (
-                          <div
-                            key={resource}
-                            className="flex items-center gap-2"
-                          >
-                            <Image
-                              src={`/assets/resources/${resource.toLowerCase()}.png`}
-                              alt={resource}
-                              className="w-6 h-6"
-                              width={24}
-                              height={24}
-                            />
-                            {resource}: {amount}
-                          </div>
-                        )
+                      ([resource, amount]) => {
+                        const resourceConfig = {
+                          metal: {
+                            icon: <Hammer className="h-6 w-6 text-secondary" />,
+                            color: "text-secondary",
+                          },
+                          microchips: {
+                            icon: <Microchip className="h-6 w-6 text-accent" />,
+                            color: "text-accent",
+                          },
+                          deuterium: {
+                            icon: <Flame className="h-6 w-6 text-primary" />,
+                            color: "text-primary",
+                          },
+                          science: {
+                            icon: <Beaker className="h-6 w-6 text-blue-400" />,
+                            color: "text-blue-400",
+                          },
+                        }[resource.toLowerCase()];
+
+                        return (
+                          amount > 0 && (
+                            <div
+                              key={resource}
+                              className="flex items-center gap-2"
+                            >
+                              {resourceConfig?.icon}
+                              <span className={resourceConfig?.color}>
+                                {resource}: {amount}
+                              </span>
+                            </div>
+                          )
+                        );
+                      }
                     )}
                   </div>
                 </div>
@@ -247,8 +400,13 @@ export default function FleetMovements() {
           <h2 className="text-xl font-bold text-red-500">
             ⚠️ Hostile Fleet Movements
           </h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {hostileMovements.map((movement) =>
+          <MovementControls />
+          <div
+            className={
+              displayMode === "grid" ? "grid gap-4 md:grid-cols-2" : "space-y-4"
+            }
+          >
+            {sortMovements(filterMovements(hostileMovements)).map((movement) =>
               renderMovementCard(movement, true)
             )}
           </div>
@@ -257,9 +415,16 @@ export default function FleetMovements() {
 
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Your Fleet Movements</h2>
+        <MovementControls />
         {movements.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {movements.map((movement) => renderMovementCard(movement))}
+          <div
+            className={
+              displayMode === "grid" ? "grid gap-4 md:grid-cols-2" : "space-y-4"
+            }
+          >
+            {sortMovements(filterMovements(movements)).map((movement) =>
+              renderMovementCard(movement)
+            )}
           </div>
         ) : (
           <p className="text-muted-foreground">No active fleet movements</p>
