@@ -21,6 +21,7 @@ import {
   Eye,
   User,
   ArrowRight,
+  Trophy,
 } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 
@@ -111,6 +112,12 @@ export function Sidebar() {
                 to: `/user/${state.currentUser?.id}`,
                 icon: User,
                 label: "USER_PROFILE",
+                color: "blue",
+              },
+              {
+                to: "/rankings",
+                icon: Trophy,
+                label: "RANKINGS",
                 color: "blue",
               },
               // {

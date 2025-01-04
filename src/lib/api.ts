@@ -100,4 +100,23 @@ export const api = {
       return post("fleet", "sendMission", params);
     },
   },
+  rankings: {
+    getRankings: async (params: {
+      type: "global" | "defense" | "attack";
+      page: number;
+    }): Promise<{
+      status: "ok";
+      rankings: {
+        user_id: string;
+        name: string;
+        avatar: string;
+        score: number;
+        planets_count: number;
+      }[];
+      page: number;
+      users_per_page: number;
+    }> => {
+      return post("rankings", "getRankings", params);
+    },
+  },
 };
