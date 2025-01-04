@@ -35,7 +35,7 @@ export default function FleetMovements() {
         .from("fleet_movements")
         .select("*")
         .neq("owner_id", state.currentUser?.id)
-        .in("destination_planet_id", state.planets?.map((p) => p.id) || []);
+        .in("destination_planet_id", state.userPlanets?.map((p) => p.id) || []);
 
       setMovements(ownMovements || []);
       setHostileMovements(incomingMovements || []);
