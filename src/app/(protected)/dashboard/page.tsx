@@ -17,12 +17,14 @@ import { supabase } from "../../../lib/supabase";
 import { api } from "../../../lib/api";
 import Image from "next/image";
 import { getPublicImageUrl } from "@/lib/images";
+import { FleetMovement } from "../../../models/fleet_movement";
 
 export default function Dashboard() {
   const router = useRouter();
   const { state } = useGame();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [hostileFleets, setHostileFleets] = useState<FleetMovement[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -96,6 +98,66 @@ export default function Dashboard() {
     }
   }, [state.loading, state.selectedPlanet, state.userPlanets.length, router]);
 
+  useEffect(() => {
+    // Subscribe to hostile fleets targeting user's planets
+    const subscription = supabase
+      .channel("hostile_fleets")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "fleet_movements",
+          filter: `destination_planet_id=in.(${state.userPlanets
+            .map((p) => p.id)
+            .join(",")})`,
+        },
+        (payload) => {
+          const movement = payload.new as FleetMovement;
+          if (movement.owner_id !== state.currentUser?.id) {
+            if (payload.eventType === "INSERT") {
+              setHostileFleets((prev) => [...prev, movement]);
+            } else if (payload.eventType === "UPDATE") {
+              setHostileFleets((prev) =>
+                prev.map((fleet) =>
+                  fleet.id === movement.id ? movement : fleet
+                )
+              );
+            } else if (payload.eventType === "DELETE") {
+              setHostileFleets((prev) =>
+                prev.filter((fleet) => fleet.id !== payload.old.id)
+              );
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Initial fetch of hostile fleets
+    const fetchHostileFleets = async () => {
+      const { data } = await supabase
+        .from("fleet_movements")
+        .select("*")
+        .neq("owner_id", state.currentUser?.id)
+        .in(
+          "destination_planet_id",
+          state.userPlanets.map((p) => p.id)
+        )
+        .eq("status", "traveling")
+        .order("arrival_time", { ascending: true });
+
+      if (data) {
+        setHostileFleets(data);
+      }
+    };
+
+    fetchHostileFleets();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [state.currentUser?.id, state.userPlanets]);
+
   if (state.userPlanets.length === 0) {
     router.push("/choose-homeworld");
     return null; // Return null while redirecting
@@ -112,25 +174,41 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Alert Message */}
-      <Card className="bg-red-900/30 border-red-500/50 backdrop-blur-sm animate-pulse">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-red-500 font-bold flex items-center gap-2">
-            ⚠️ ALERT: INCOMING HOSTILE FLEET
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-red-400 space-y-2">
-            <p>Hostile fleet detected approaching Colony Alpha-7</p>
-            <div className="font-mono text-xl">
-              Time until impact: <span className="text-red-500">14:32</span>
+      {/* Dynamic Hostile Fleet Alerts */}
+      {hostileFleets.map((fleet) => (
+        <Card
+          key={fleet.id}
+          className="bg-red-900/30 border-red-500/50 backdrop-blur-sm animate-pulse"
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-red-500 font-bold flex items-center gap-2">
+              ⚠️ ALERT: INCOMING HOSTILE FLEET
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-red-400 space-y-2">
+              <p>
+                Hostile fleet detected approaching{" "}
+                {state.userPlanets.find(
+                  (p) => p.id === fleet.destination_planet_id
+                )?.name || "Unknown Planet"}
+              </p>
+              <div className="font-mono text-xl">
+                Time until impact:{" "}
+                <span className="text-red-500">
+                  {new Date(fleet.arrival_time).toLocaleTimeString()}
+                </span>
+              </div>
+              <div className="text-sm">
+                Fleet composition:{" "}
+                {Object.entries(fleet.ship_counts)
+                  .map(([type, count]) => `${count} ${type}`)
+                  .join(", ")}
+              </div>
             </div>
-            <div className="text-sm">
-              Fleet composition: 5 Battlecruisers, 12 Destroyers
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ))}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
