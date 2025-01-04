@@ -7,6 +7,7 @@ export interface Planet {
   coordinate_y: number;
   coordinate_z: number;
   owner_id: string | null;
+  owner_name?: string;
   is_homeworld: boolean;
   biome: PlanetBiome;
   size_km: number;

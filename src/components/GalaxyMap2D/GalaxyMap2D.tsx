@@ -115,7 +115,7 @@ export function GalaxyMap2D({
         }));
       }
     },
-    [viewport.zoom]
+    [viewport.zoom, viewport.x, viewport.y]
   );
 
   const handleMouseDown = useCallback(
@@ -261,7 +261,8 @@ export function GalaxyMap2D({
 
       // Draw planet
       const isHighlighted = highlightedPlanets.includes(planet.id);
-      const isAllowed = !allowedPlanets || allowedPlanets.includes(planet.id);
+      const isAllowed =
+        mode === "view-only" || allowedPlanets.includes(planet.id);
 
       ctx.fillStyle = getBiomeColor(planet.biome, isAllowed ? 1 : 0.4);
       ctx.beginPath();
@@ -287,6 +288,7 @@ export function GalaxyMap2D({
     viewport,
     highlightedPlanets,
     allowedPlanets,
+    mode,
     worldToScreen,
   ]);
 
@@ -335,13 +337,13 @@ export function GalaxyMap2D({
       });
 
       if (clickedPlanet) {
-        if (!allowedPlanets || allowedPlanets.includes(clickedPlanet.id)) {
+        if (mode === "view-only" || allowedPlanets.includes(clickedPlanet.id)) {
           setSelectedPlanet(clickedPlanet);
           setShowInfo(true);
         }
       }
     },
-    [state.planets, viewport, allowedPlanets, isDragging, worldToScreen]
+    [state.planets, viewport, allowedPlanets, isDragging, worldToScreen, mode]
   );
 
   // Calculate info card position based on selected planet
@@ -423,7 +425,7 @@ export function GalaxyMap2D({
     };
 
     animate();
-  }, [focusedPlanet]);
+  }, [focusedPlanet, viewport.zoom, viewport.x, viewport.y]);
 
   return (
     <div

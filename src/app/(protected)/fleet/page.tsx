@@ -49,6 +49,8 @@ import { LoadingScreen } from "../../../components/LoadingScreen";
 import { api } from "../../../lib/api";
 import { Planet } from "../../../models/planet";
 import Image from "next/image";
+import { ResourcePayload } from "@/models/fleet_movement";
+import { useToast } from "@/hooks/use-toast";
 
 const getShipImageUrl = (type: ShipType) => {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
@@ -81,6 +83,155 @@ type SortField = "speed" | "cargo_capacity" | "attack_power" | "defense";
 type SortOrder = "asc" | "desc";
 type MissionType = "attack" | "transport" | "colonize" | "spy" | "recycle";
 
+const ResourceSelectionUI = ({
+  onConfirm,
+  maxCargo,
+}: {
+  onConfirm: (resources: ResourcePayload) => void;
+  maxCargo: number;
+}) => {
+  const [resources, setResources] = useState<ResourcePayload>({
+    metal: 0,
+    deuterium: 0,
+    microchips: 0,
+    science: 0,
+  });
+
+  const { state } = useGame();
+  const currentResources = state.resources;
+
+  // Calculate total resources selected
+  const totalResourcesSelected = Object.values(resources).reduce(
+    (sum, value) => sum + value,
+    0
+  );
+
+  const handleChange = (resource: keyof ResourcePayload, value: number) => {
+    const otherResourcesTotal =
+      totalResourcesSelected - (resources[resource] || 0);
+    const maxAllowed = Math.min(
+      maxCargo - otherResourcesTotal,
+      currentResources?.[resource] || 0
+    );
+
+    setResources((prev) => ({
+      ...prev,
+      [resource]: Math.max(0, Math.min(value, maxAllowed)),
+    }));
+  };
+
+  return (
+    <div className="space-y-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+      <h3 className="font-bold">Select Resources to Transport</h3>
+      <div className="text-sm text-muted-foreground mb-2">
+        Cargo Capacity: {totalResourcesSelected}/{maxCargo}
+      </div>
+
+      <div className="grid gap-4">
+        <div className="flex items-center gap-2">
+          <label className="w-24">Metal:</label>
+          <Input
+            type="number"
+            min={0}
+            max={Math.min(
+              currentResources?.metal || 0,
+              maxCargo - (totalResourcesSelected - (resources.metal || 0))
+            )}
+            value={resources.metal}
+            onChange={(e) =>
+              handleChange("metal", parseInt(e.target.value) || 0)
+            }
+          />
+          <span className="text-sm text-muted-foreground">
+            Max:{" "}
+            {Math.min(
+              currentResources?.metal || 0,
+              maxCargo - (totalResourcesSelected - (resources.metal || 0))
+            )}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="w-24">Deuterium:</label>
+          <Input
+            type="number"
+            min={0}
+            max={Math.min(
+              currentResources?.deuterium || 0,
+              maxCargo - (totalResourcesSelected - (resources.deuterium || 0))
+            )}
+            value={resources.deuterium}
+            onChange={(e) =>
+              handleChange("deuterium", parseInt(e.target.value) || 0)
+            }
+          />
+          <span className="text-sm text-muted-foreground">
+            Max:{" "}
+            {Math.min(
+              currentResources?.deuterium || 0,
+              maxCargo - (totalResourcesSelected - (resources.deuterium || 0))
+            )}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="w-24">Microchips:</label>
+          <Input
+            type="number"
+            min={0}
+            max={Math.min(
+              currentResources?.microchips || 0,
+              maxCargo - (totalResourcesSelected - (resources.microchips || 0))
+            )}
+            value={resources.microchips}
+            onChange={(e) =>
+              handleChange("microchips", parseInt(e.target.value) || 0)
+            }
+          />
+          <span className="text-sm text-muted-foreground">
+            Max:{" "}
+            {Math.min(
+              currentResources?.microchips || 0,
+              maxCargo - (totalResourcesSelected - (resources.microchips || 0))
+            )}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="w-24">Science:</label>
+          <Input
+            type="number"
+            min={0}
+            max={Math.min(
+              currentResources?.science || 0,
+              maxCargo - (totalResourcesSelected - (resources.science || 0))
+            )}
+            value={resources.science}
+            onChange={(e) =>
+              handleChange("science", parseInt(e.target.value) || 0)
+            }
+          />
+          <span className="text-sm text-muted-foreground">
+            Max:{" "}
+            {Math.min(
+              currentResources?.science || 0,
+              maxCargo - (totalResourcesSelected - (resources.science || 0))
+            )}
+          </span>
+        </div>
+      </div>
+
+      <Button
+        className="w-full"
+        onClick={() => onConfirm(resources)}
+        disabled={totalResourcesSelected === 0}
+      >
+        Confirm Resources
+      </Button>
+    </div>
+  );
+};
+
 export default function Fleet() {
   const { state } = useGame();
   const { planets, userPlanets, loading: planetsLoading } = usePlanets();
@@ -99,6 +250,7 @@ export default function Fleet() {
   const [showMissionSetup, setShowMissionSetup] = useState(false);
   const [missionType, setMissionType] = useState<MissionType | null>(null);
   const [targetPlanet, setTargetPlanet] = useState<Planet | null>(null);
+  const { toast } = useToast();
 
   // Reset mission setup when dialog closes
   useEffect(() => {
@@ -186,8 +338,11 @@ export default function Fleet() {
 
       if (slowestSpeed === Infinity) return null;
 
-      // Calculate time in hours (you can adjust the formula based on your game design)
-      return Math.ceil(distance / slowestSpeed);
+      // Calculate time in seconds to match server
+      const travelTimeSeconds = distance / slowestSpeed;
+
+      // Convert to hours and round up
+      return Math.ceil(travelTimeSeconds / 3600);
     },
     [state.selectedPlanet, selectedShips, stationedShips]
   );
@@ -200,7 +355,8 @@ export default function Fleet() {
         .from("ships")
         .select("*")
         .eq("current_planet_id", state.selectedPlanet.id)
-        .eq("status", "stationed");
+        .eq("status", "stationed")
+        .is("mission_type", null);
 
       if (selectedType !== "all") {
         query = query.eq("type", selectedType);
@@ -210,6 +366,11 @@ export default function Fleet() {
 
       if (error) {
         console.error("Error fetching ships:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch stationed ships. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -224,7 +385,7 @@ export default function Fleet() {
     };
 
     fetchStationedShips();
-  }, [state.selectedPlanet?.id, selectedType, sortField, sortOrder]);
+  }, [state.selectedPlanet?.id, selectedType, sortField, sortOrder, toast]);
 
   const handleShipSelect = (shipId: string) => {
     setSelectedShips((prev) => {
@@ -254,15 +415,27 @@ export default function Fleet() {
       newShipName
     );
 
-    if (!error) {
-      setStationedShips((ships) =>
-        ships.map((ship) =>
-          ship.id === selectedShipToRename.id
-            ? { ...ship, name: newShipName }
-            : ship
-        )
-      );
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to rename ship. Please try again.",
+        variant: "destructive",
+      });
+      return;
     }
+
+    setStationedShips((ships) =>
+      ships.map((ship) =>
+        ship.id === selectedShipToRename.id
+          ? { ...ship, name: newShipName }
+          : ship
+      )
+    );
+
+    toast({
+      title: "Success",
+      description: "Ship renamed successfully.",
+    });
 
     setRenameDialogOpen(false);
     setSelectedShipToRename(null);
@@ -295,18 +468,35 @@ export default function Fleet() {
 
     return missionTypes;
   };
-
-  const handleConfirmMission = async () => {
+  const handleConfirmMission = async (resources?: ResourcePayload) => {
     if (!targetPlanet || !missionType) return;
 
-    // TODO: Implement mission confirmation logic
-    console.log("Mission confirmed:", {
-      ships: Array.from(selectedShips),
-      targetPlanet: targetPlanet,
-      missionType: missionType,
-    });
+    try {
+      await api.fleet.sendMission({
+        ships_ids: Array.from(selectedShips),
+        mission_type: missionType,
+        planet_id: targetPlanet.id,
+        resources: resources,
+      });
 
-    setShowMissionSetup(false);
+      toast({
+        title: "Success",
+        description: "Mission launched successfully.",
+      });
+
+      // Reset selection and close mission setup
+      setSelectedShips(new Set());
+      setShowMissionSetup(false);
+      setMissionType(null);
+      setTargetPlanet(null);
+    } catch (error) {
+      console.error("Error sending mission:", error);
+      toast({
+        title: "Error",
+        description: "Failed to launch mission. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Get highlighted planets based on mission type
@@ -332,6 +522,13 @@ export default function Fleet() {
       })
       .map((p) => p.id);
   }, [missionType, planets, state.currentUser?.id]);
+
+  const getTotalCargoCapacity = () => {
+    return Array.from(selectedShips).reduce((total, shipId) => {
+      const ship = stationedShips.find((s) => s.id === shipId);
+      return total + (ship?.cargo_capacity || 0);
+    }, 0);
+  };
 
   if (loading || planetsLoading) {
     return <LoadingScreen message="LOADING FLEET DATA..." />;
@@ -400,14 +597,24 @@ export default function Fleet() {
                     Travel Time: {calculateTravelTime(targetPlanet)} hours
                   </p>
                 )}
-                <Button
-                  className="w-full mt-4"
-                  disabled={!targetPlanet || !missionType}
-                  onClick={handleConfirmMission}
-                >
-                  <Target className="h-4 w-4 mr-2" />
-                  Confirm Mission
-                </Button>
+
+                {missionType === "transport" || missionType === "colonize" ? (
+                  <ResourceSelectionUI
+                    onConfirm={(resources) => {
+                      handleConfirmMission(resources);
+                    }}
+                    maxCargo={getTotalCargoCapacity()}
+                  />
+                ) : (
+                  <Button
+                    className="w-full mt-4"
+                    disabled={!targetPlanet || !missionType}
+                    onClick={() => handleConfirmMission()}
+                  >
+                    <Target className="h-4 w-4 mr-2" />
+                    Confirm Mission
+                  </Button>
+                )}
               </div>
             )}
           </div>

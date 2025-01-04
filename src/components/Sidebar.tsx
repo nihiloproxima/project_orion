@@ -18,9 +18,9 @@ import {
   Building,
   FlaskConical,
   Rocket,
-  Anchor,
   Eye,
   User,
+  ArrowRight,
 } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 
@@ -58,12 +58,15 @@ export function Sidebar() {
         {state.selectedPlanet && (
           <nav className="space-y-1">
             {[
+              // Main console
               {
                 to: "/dashboard",
                 icon: Computer,
                 label: "MAIN_CONSOLE",
                 color: "primary",
               },
+
+              // Planet management
               {
                 to: "/structures",
                 icon: Building,
@@ -76,6 +79,8 @@ export function Sidebar() {
                 label: "RESEARCH_LAB",
                 color: "green",
               },
+
+              // Fleet management
               {
                 to: "/shipyard",
                 icon: Rocket,
@@ -84,10 +89,18 @@ export function Sidebar() {
               },
               {
                 to: "/fleet",
-                icon: Anchor,
+                icon: Rocket,
                 label: "FLEET",
                 color: "blue",
               },
+              {
+                to: "/fleet-movements",
+                icon: ArrowRight,
+                label: "FLEET_MOVEMENTS",
+                color: "blue",
+              },
+
+              // Navigation & Profile
               {
                 to: "/galaxy",
                 icon: Eye,

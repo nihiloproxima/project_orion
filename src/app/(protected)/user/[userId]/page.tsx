@@ -43,9 +43,16 @@ export default function UserProfilePage() {
   const [newName, setNewName] = useState("");
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
 
-  const avatars = Array.from({ length: 10 }, (_, i) => `${i}.webp`);
+  const avatars = Array.from({ length: 10 }, (_, i) => i + ".webp");
 
   const isCurrentUser = state.currentUser?.id === userId;
+
+  useEffect(() => {
+    if (state.currentUser && state.currentUser.id === userId) {
+      setUser(state.currentUser);
+      setNewName(state.currentUser.name);
+    }
+  }, [state.currentUser]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -85,9 +92,9 @@ export default function UserProfilePage() {
   const handleAvatarSelect = async (avatarName: string) => {
     if (!user) return;
 
+    console.log("Updating avatar to:", avatarName);
     try {
       await api.users.update(user.name, avatarName.split(".")[0]);
-      setUser({ ...user, avatar: avatarName });
       setIsAvatarDialogOpen(false);
     } catch (error) {
       console.error("Error updating avatar:", error);

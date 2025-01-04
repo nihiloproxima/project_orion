@@ -88,7 +88,9 @@ export function PlanetInfoCard({
           {planet.owner_id && (
             <div className="text-sm">
               <span className="text-muted-foreground">Status: </span>
-              <span className="font-mono text-red-400">Colonized</span>
+              <span className="font-mono text-red-400">
+                Colonized by {planet.owner_name || "Unknown"}
+              </span>
             </div>
           )}
 

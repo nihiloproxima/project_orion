@@ -1,5 +1,7 @@
+"use client";
 import { AuthLayout } from "@/components/layouts/AuthLayout";
 import ProtectedRoute from "@/hoc/ProtectedRoutes";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function ProtectedLayout({
   children,
@@ -8,7 +10,10 @@ export default function ProtectedLayout({
 }) {
   return (
     <ProtectedRoute>
-      <AuthLayout>{children}</AuthLayout>
+      <AuthLayout>
+        {children}
+        <Toaster />
+      </AuthLayout>
     </ProtectedRoute>
   );
 }

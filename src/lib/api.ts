@@ -1,4 +1,5 @@
-import { ShipType } from "../models/ship";
+import { ResourcePayload } from "@/models/fleet_movement";
+import { MissionType, ShipType } from "../models/ship";
 import { StructureType } from "../models/structure";
 import { supabase } from "./supabase";
 
@@ -89,6 +90,14 @@ export const api = {
         ship_id: shipId,
         new_name: newName,
       });
+    },
+    sendMission: async (params: {
+      ships_ids: string[];
+      mission_type: MissionType;
+      planet_id: string;
+      resources?: ResourcePayload;
+    }) => {
+      return post("fleet", "sendMission", params);
     },
   },
 };

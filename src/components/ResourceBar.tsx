@@ -106,7 +106,7 @@ export function ResourceBar() {
                   {currentResources.metal >= 10000
                     ? millify(currentResources.metal)
                     : Math.floor(currentResources.metal)}
-                  <span className="text-xs text-secondary/50 ml-1">
+                  <span className="text-xs text-secondary ml-1">
                     /
                     {state.resources.max_metal >= 10000
                       ? millify(state.resources.max_metal)
@@ -140,7 +140,7 @@ export function ResourceBar() {
                   {currentResources.microchips >= 10000
                     ? millify(currentResources.microchips)
                     : Math.floor(currentResources.microchips)}
-                  <span className="text-xs text-accent/50 ml-1">
+                  <span className="text-xs text-accent ml-1">
                     /
                     {state.resources.max_microchips >= 10000
                       ? millify(state.resources.max_microchips)
@@ -173,7 +173,7 @@ export function ResourceBar() {
                   {currentResources.deuterium >= 10000
                     ? millify(currentResources.deuterium)
                     : Math.floor(currentResources.deuterium)}
-                  <span className="text-xs text-primary/50 ml-1">
+                  <span className="text-xs text-primary ml-1">
                     /
                     {state.resources.max_deuterium >= 10000
                       ? millify(state.resources.max_deuterium)
@@ -206,7 +206,7 @@ export function ResourceBar() {
                   {currentResources.science >= 10000
                     ? millify(currentResources.science)
                     : Math.floor(currentResources.science)}
-                  <span className="text-xs text-blue-400/50 ml-1">
+                  <span className="text-xs text-blue-400 ml-1">
                     /
                     {state.resources.max_science >= 10000
                       ? millify(state.resources.max_science)
