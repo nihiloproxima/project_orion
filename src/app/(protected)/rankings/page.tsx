@@ -30,7 +30,6 @@ interface RankingEntry {
   name: string;
   avatar: string;
   score: number;
-  planets_count: number;
 }
 
 // Military ranks based on score ranges
@@ -124,7 +123,20 @@ export default function Rankings() {
   const currentRankings = rankingsCache[rankingType][currentPage] || [];
 
   if (loading) {
-    return <LoadingScreen message="ACCESSING COMMANDER DATABASE..." />;
+    return (
+      <LoadingScreen
+        message="ACCESSING COMMANDER DATABASE..."
+        steps={[
+          "ESTABLISHING SECURE CONNECTION...",
+          "AUTHENTICATING CREDENTIALS...",
+          "DECRYPTING COMMANDER RECORDS...",
+          "ANALYZING PERFORMANCE METRICS...",
+          "CALCULATING RANKINGS...",
+          "GENERATING LEADERBOARDS...",
+          "FINALIZING DATA ACCESS...",
+        ]}
+      />
+    );
   }
 
   const rankingConfig = {
@@ -252,9 +264,6 @@ export default function Rankings() {
                         </div>
                         <div className="font-mono text-xl font-bold">
                           {entry.score.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {entry.planets_count} planets
                         </div>
                       </div>
                     </CardContent>

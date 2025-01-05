@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Terminal } from "lucide-react";
 
-const LOADING_MESSAGES = [
+const DEFAULT_LOADING_MESSAGES = [
   "INITIALIZING SYSTEM...",
   "ESTABLISHING CONNECTION...",
   "SCANNING STAR SYSTEMS...",
@@ -12,36 +12,46 @@ const LOADING_MESSAGES = [
   "INITIALIZING GAME STATE...",
 ];
 
+interface LoadingScreenProps {
+  message?: string;
+  steps?: string[];
+  duration?: number; // Duration in milliseconds
+}
+
 export function LoadingScreen({
   message = "SYSTEM BOOT SEQUENCE",
-}: {
-  message?: string;
-}) {
+  steps = DEFAULT_LOADING_MESSAGES,
+  duration = 3000,
+}: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState(0);
 
   useEffect(() => {
+    // Calculate intervals based on duration and steps
+    const progressInterval = duration / 100; // Split duration into 100 progress steps
+    const messageInterval = duration / steps.length;
+
     // Progress bar animation
-    const progressInterval = setInterval(() => {
+    const progressTimer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(progressInterval);
+          clearInterval(progressTimer);
           return 100;
         }
         return prev + 1;
       });
-    }, 30); // 3000ms / 100 steps = 30ms per step
+    }, progressInterval);
 
     // Cycle through messages
-    const messageInterval = setInterval(() => {
-      setCurrentMessage((prev) => (prev + 1) % LOADING_MESSAGES.length);
-    }, 375);
+    const messageTimer = setInterval(() => {
+      setCurrentMessage((prev) => (prev + 1) % steps.length);
+    }, messageInterval);
 
     return () => {
-      clearInterval(progressInterval);
-      clearInterval(messageInterval);
+      clearInterval(progressTimer);
+      clearInterval(messageTimer);
     };
-  }, []);
+  }, [duration, steps.length]);
 
   return (
     <div className="min-h-screen bg-background cyber-grid flex items-center justify-center">
@@ -62,7 +72,7 @@ export function LoadingScreen({
 
           {/* Scrolling terminal text */}
           <div className="p-4 space-y-2 text-primary/70">
-            {LOADING_MESSAGES.map((msg, i) => (
+            {steps.map((msg, i) => (
               <div
                 key={i}
                 className={`transition-opacity duration-500 ${
