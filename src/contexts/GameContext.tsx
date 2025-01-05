@@ -775,6 +775,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({
       ...prev,
       selectedPlanet: planet,
+      // Reset loading states for the new planet
+      loadedResources: false,
+      loadedStructures: false,
+      loadedPlanetResearchs: false,
+      // Keep these true as they are global configs
+      // loadedStructuresConfig: true,
+      // loadedResearchsConfig: true,
+      // loadedShipsConfig: true,
     }));
   };
 
