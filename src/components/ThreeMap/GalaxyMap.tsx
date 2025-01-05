@@ -1,21 +1,28 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, ThreeEvent, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { useGame } from "@/contexts/GameContext";
 import { Planet } from "@/models";
 import { supabase } from "@/lib/supabase";
 import { FleetMovement } from "@/models";
-import { formatTimerTime, formatTimeString } from "@/lib/utils";
+import { formatTimeString } from "@/lib/utils";
 
 function PlanetObject({
   planet,
   isHighlighted,
+  isSelectable,
+  onSelect,
+  mode,
 }: {
   planet: Planet;
   isHighlighted: boolean;
+  isSelectable: boolean;
+  onSelect?: () => void;
+  mode: "view-only" | "mission-target" | "homeworld";
 }) {
-  const [isSelected, setIsSelected] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isInfoCardHovered, setIsInfoCardHovered] = useState(false);
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
@@ -53,14 +60,9 @@ function PlanetObject({
   };
 
   const isOwnedByPlayer = planet.owner_id === state.currentUser?.id;
-  useEffect(() => {
-    if (isSelected) {
-      console.log("I'm selected", isSelected, planet.name);
-    }
-  }, [isSelected, planet.name]);
 
   useFrame((state) => {
-    if (meshRef.current && (isHighlighted || isSelected)) {
+    if (meshRef.current && (isHighlighted || isHovered)) {
       const scale = 1.2 + Math.sin(state.clock.elapsedTime * 2) * 0.1;
       meshRef.current.scale.set(scale, scale, 1);
     } else if (meshRef.current) {
@@ -76,18 +78,30 @@ function PlanetObject({
     }
   });
 
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    if (mode === "homeworld" && isSelectable && onSelect) {
+      onSelect();
+    }
+  };
+
+  const isActive = isHovered || isInfoCardHovered;
+
   return (
     <group
       position={[planet.coordinate_x, planet.coordinate_y, 0]}
-      onClick={(e) => {
-        e.stopPropagation();
-        setIsSelected(true);
-      }}
+      onClick={handleClick}
+      onPointerEnter={() => setIsHovered(true)}
+      onPointerLeave={() => setIsHovered(false)}
     >
       {/* Hitbox (invisible but clickable) */}
       <mesh>
         <circleGeometry args={[hitboxRadius, 32]} />
-        <meshBasicMaterial visible={false} />
+        <meshBasicMaterial
+          visible={false}
+          transparent
+          opacity={isSelectable ? 1 : 0}
+        />
       </mesh>
 
       {/* Main planet circle */}
@@ -96,12 +110,12 @@ function PlanetObject({
         <meshBasicMaterial
           color={getBiomeColor()}
           transparent
-          opacity={isHighlighted || isSelected ? 1 : 0.8}
+          opacity={!isSelectable ? 0.4 : isHighlighted || isHovered ? 1 : 0.8}
         />
       </mesh>
 
-      {/* Enhanced glow effect - only for owned planets */}
-      {isOwnedByPlayer && (
+      {/* Glow effect */}
+      {(isOwnedByPlayer || isHovered) && (
         <mesh ref={glowRef}>
           <circleGeometry args={[radius * 4, 32]} />
           <meshBasicMaterial
@@ -113,19 +127,32 @@ function PlanetObject({
           />
         </mesh>
       )}
-
-      {/* Planet label with dynamic sizing */}
+      {/* Planet label */}
       <Html position={[0, radius * 2, 0]}>
         <div
-          className="text-white pointer-events-none text-center"
+          className={`text-white pointer-events-none text-center ${
+            !isSelectable ? "opacity-40" : ""
+          }`}
           style={getTextStyle()}
         >
           {planet.name}
+          {mode === "homeworld" && isSelectable && (
+            <div className="text-emerald-400 text-xs">Select as Homeworld</div>
+          )}
         </div>
       </Html>
 
-      {isSelected && (
-        <Planet3DInfoCard planet={planet} position={[0, radius * 3, 0]} />
+      {/* Info card */}
+      {isActive && (
+        <Planet3DInfoCard
+          planet={planet}
+          position={[0, radius * 3, 0]}
+          mode={mode}
+          isSelectable={isSelectable}
+          onSelect={onSelect}
+          onHoverStart={() => setIsInfoCardHovered(true)}
+          onHoverEnd={() => setIsInfoCardHovered(false)}
+        />
       )}
     </group>
   );
@@ -133,22 +160,37 @@ function PlanetObject({
 const Planet3DInfoCard = ({
   planet,
   position,
+  mode,
+  isSelectable,
+  onSelect,
+  onHoverStart,
+  onHoverEnd,
 }: {
   planet: Planet;
   position: [number, number, number];
+  mode: "view-only" | "mission-target" | "homeworld";
+  isSelectable: boolean;
+  onSelect?: () => void;
+  onHoverStart?: () => void;
+  onHoverEnd?: () => void;
 }) => {
-  const { camera } = useThree();
-  const cardWidth = 200;
-
   return (
     <Html position={position}>
       <div
-        className="bg-neutral-900/95 border-2 border-emerald-400/30 p-3 
-                   -translate-x-1/2 -translate-y-1/2 text-neutral-100 font-sans text-sm 
-                   pointer-events-none whitespace-nowrap rounded-md shadow-lg"
+        className={`bg-neutral-900/95 border-2 ${
+          isSelectable ? "border-emerald-400/30" : "border-neutral-400/30"
+        } p-3 
+          -translate-x-1/2 -translate-y-1/2 text-neutral-100 font-sans text-sm 
+          pointer-events-auto whitespace-nowrap rounded-md shadow-lg`}
+        onMouseEnter={onHoverStart}
+        onMouseLeave={onHoverEnd}
       >
         <div className="flex justify-between items-center mb-3">
-          <span className="text-emerald-400 text-base font-bold tracking-wide">
+          <span
+            className={`${
+              isSelectable ? "text-emerald-400" : "text-neutral-400"
+            } text-base font-bold tracking-wide`}
+          >
             {planet.name}
           </span>
           <span className="text-emerald-400/60 ml-4 font-mono text-xs">
@@ -172,6 +214,30 @@ const Planet3DInfoCard = ({
           <div className="flex items-center">
             <span className="text-neutral-400 mr-2">Owner:</span>
             <span className="text-neutral-200">{planet.owner_name}</span>
+          </div>
+        )}
+
+        {mode === "mission-target" && (
+          <div className="mt-3">
+            {isSelectable ? (
+              <button
+                onClick={() => onSelect?.()}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-1.5 px-3 rounded-md 
+                          transition-colors duration-200 text-sm font-medium"
+              >
+                Select Target
+              </button>
+            ) : (
+              <div className="text-red-400 text-xs text-center">
+                Not available as target
+              </div>
+            )}
+          </div>
+        )}
+
+        {mode === "homeworld" && !isSelectable && (
+          <div className="mt-2 text-red-400 text-xs">
+            Not available as homeworld
           </div>
         )}
       </div>
@@ -338,10 +404,11 @@ const FleetMovementTracker = ({
 };
 
 interface GalaxyMapProps {
-  mode?: "view-only" | "select";
+  mode: "view-only" | "mission-target" | "homeworld";
   onPlanetSelect?: (planet: Planet) => void;
   allowedPlanets?: string[];
   highlightedPlanets?: string[];
+  focusedPlanet?: Planet | null;
 }
 
 const GalaxyMap = ({
@@ -349,10 +416,13 @@ const GalaxyMap = ({
   onPlanetSelect,
   allowedPlanets = [],
   highlightedPlanets = [],
+  focusedPlanet = null,
 }: GalaxyMapProps) => {
   const { state } = useGame();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fleetMovements, setFleetMovements] = useState<FleetMovement[]>([]);
+  const controlsRef = useRef<OrbitControls>(null);
+  const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
     // Initial fetch of fleet movements
@@ -408,6 +478,61 @@ const GalaxyMap = ({
     };
   }, [state.currentUser?.id]);
 
+  // Add effect to handle focused planet changes
+  useEffect(() => {
+    if (!focusedPlanet || !controlsRef.current || animating) return;
+
+    const controls = controlsRef.current;
+    const camera = controls.object;
+    setAnimating(true);
+
+    // Calculate target zoom
+    const targetZoom = 0.5;
+    const startZoom = controls.zoom;
+
+    // Get current camera position
+    const startPosition = new THREE.Vector3();
+    camera.getWorldPosition(startPosition);
+
+    // Calculate target position (centered on focused planet)
+    const targetPosition = new THREE.Vector3(
+      focusedPlanet.coordinate_x,
+      focusedPlanet.coordinate_y,
+      camera.position.z
+    );
+
+    const duration = 1000;
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function (cubic ease-out)
+      const easing = 1 - Math.pow(1 - progress, 3);
+
+      // Update camera position and zoom
+      controls.zoom = startZoom + (targetZoom - startZoom) * easing;
+
+      camera.position.lerpVectors(startPosition, targetPosition, easing);
+      controls.target.set(
+        focusedPlanet.coordinate_x,
+        focusedPlanet.coordinate_y,
+        0
+      );
+
+      controls.update();
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setAnimating(false);
+      }
+    };
+
+    animate();
+  }, [focusedPlanet, animating]);
+
   const handleCanvasClick = (event: any) => {
     if (event.target.tagName === "CANVAS") {
       console.log("Canvas clicked");
@@ -444,13 +569,18 @@ const GalaxyMap = ({
             key={planet.id}
             planet={planet}
             isHighlighted={highlightedPlanets.includes(planet.id)}
+            isSelectable={
+              mode === "view-only" || allowedPlanets.includes(planet.id)
+            }
+            onSelect={() => onPlanetSelect?.(planet)}
+            mode={mode}
           />
         ))}
-
         <OrbitControls
+          ref={controlsRef}
           enableRotate={false}
-          enablePan={true}
-          enableZoom={true}
+          enablePan={!animating}
+          enableZoom={!animating}
           maxZoom={2}
           minZoom={0.05}
           screenSpacePanning={true}

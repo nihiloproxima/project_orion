@@ -43,7 +43,6 @@ import {
   DialogFooter,
 } from "../../../components/ui/dialog";
 import { Input } from "../../../components/ui/input";
-import { GalaxyMap2D } from "../../../components/GalaxyMap2D/GalaxyMap2D";
 import { usePlanets } from "../../../hooks/usePlanets";
 import { LoadingScreen } from "../../../components/LoadingScreen";
 import { api } from "../../../lib/api";
@@ -53,6 +52,7 @@ import { ResourcePayload } from "@/models/fleet_movement";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimerTime } from "@/lib/utils";
 import { useFleetMissions } from "@/hooks/useFleetMissions";
+import GalaxyMap from "@/components/ThreeMap/GalaxyMap";
 
 const getShipImageUrl = (type: ShipType) => {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
@@ -711,7 +711,14 @@ export default function Fleet() {
               </Select>
 
               <div className="border rounded-lg p-4 w-full h-[calc(100vh-380px)] flex">
-                <GalaxyMap2D
+                <GalaxyMap
+                  mode="mission-target"
+                  onPlanetSelect={setTargetPlanet}
+                  allowedPlanets={getAllowedTargetPlanets()}
+                  focusedPlanet={targetPlanet}
+                />
+
+                {/* <GalaxyMap2D
                   mode={"mission-target"}
                   onPlanetSelect={setTargetPlanet}
                   allowedPlanets={getAllowedTargetPlanets()}
@@ -720,7 +727,7 @@ export default function Fleet() {
                   width="100%"
                   height="100%"
                   focusedPlanet={targetPlanet}
-                />
+                /> */}
               </div>
             </div>
           </div>

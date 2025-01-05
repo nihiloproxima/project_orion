@@ -8,6 +8,7 @@ import { usePlanets } from "@/hooks/usePlanets";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Planet } from "@/models/planet";
 import { api } from "@/lib/api";
+import GalaxyMap from "@/components/ThreeMap/GalaxyMap";
 
 export default function ChooseHomeworldPage() {
   const { state } = useGame();
@@ -51,7 +52,12 @@ export default function ChooseHomeworldPage() {
             </p>
 
             <div className="flex justify-center">
-              <GalaxyMap2D
+              <GalaxyMap
+                mode="homeworld"
+                onPlanetSelect={handlePlanetSelect}
+                allowedPlanets={unclaimedPlanets.map((p) => p.id)}
+              />
+              {/* <GalaxyMap2D
                 mode="homeworld"
                 onPlanetSelect={handlePlanetSelect}
                 allowedPlanets={unclaimedPlanets.map((p) => p.id)}
@@ -59,7 +65,7 @@ export default function ChooseHomeworldPage() {
                 initialCenter={{ x: 0, y: 0 }}
                 width="100%"
                 height="600px"
-              />
+              /> */}
             </div>
           </CardContent>
         </Card>
