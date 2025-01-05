@@ -7,3 +7,5 @@ export * from "./user";
 export * from "./game_config";
 export * from "./researchs_config";
 export * from "./planet_researchs";
+export * from "./report";
+export * from "./mail";

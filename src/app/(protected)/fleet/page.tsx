@@ -52,6 +52,7 @@ import Image from "next/image";
 import { ResourcePayload } from "@/models/fleet_movement";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimerTime } from "@/lib/utils";
+import { useFleetMissions } from "@/hooks/useFleetMissions";
 
 const getShipImageUrl = (type: ShipType) => {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
@@ -261,6 +262,7 @@ export default function Fleet() {
     microchips: 0,
     science: 0,
   });
+  const { sendMission } = useFleetMissions();
 
   // Reset mission setup when dialog closes
   useEffect(() => {
@@ -488,36 +490,23 @@ export default function Fleet() {
   const handleConfirmMission = async (resources?: ResourcePayload) => {
     if (!targetPlanet || !missionType) return;
 
-    try {
-      await api.fleet.sendMission({
-        ships_ids: Array.from(selectedShips),
-        mission_type: missionType,
-        planet_id: targetPlanet.id,
-        resources: resources,
-      });
+    const success = await sendMission({
+      ships_ids: Array.from(selectedShips),
+      mission_type: missionType,
+      target_planet: targetPlanet,
+      resources,
+    });
 
+    if (success) {
       // Remove sent ships from stationedShips immediately
       setStationedShips((current) =>
         current.filter((ship) => !selectedShips.has(ship.id))
       );
 
-      toast({
-        title: "Success",
-        description: "Mission launched successfully.",
-      });
-
       // Reset selection and close mission setup
       setSelectedShips(new Set());
       setShowMissionSetup(false);
       setMissionType(null);
-      setTargetPlanet(null);
-    } catch (error) {
-      console.error("Error sending mission:", error);
-      toast({
-        title: "Error",
-        description: "Failed to launch mission. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 

@@ -22,6 +22,7 @@ import {
   User,
   ArrowRight,
   Trophy,
+  MailIcon,
 } from "lucide-react";
 import { useGame } from "../contexts/GameContext";
 
@@ -98,6 +99,12 @@ export function Sidebar() {
                 to: "/fleet-movements",
                 icon: ArrowRight,
                 label: "FLEET_MOVEMENTS",
+                color: "blue",
+              },
+              {
+                to: "/secure-communications",
+                icon: MailIcon,
+                label: "SECURE_COMS",
                 color: "blue",
               },
 
