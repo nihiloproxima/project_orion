@@ -18,6 +18,9 @@ import {
   Plus,
   Minus,
   Clock,
+  Grid,
+  Grid2x2,
+  Grid3x3,
 } from "lucide-react";
 import { ErrorBoundary } from "../../../components/ErrorBoundary";
 import { ShipType } from "../../../models/ship";
@@ -31,6 +34,12 @@ import { formatTimerTime } from "../../../lib/utils";
 import { ShipConfig } from "../../../models/ships_config";
 import { getPublicImageUrl } from "@/lib/images";
 import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../../components/ui/dropdown-menu";
 
 const QUEUE_CAPACITY = 5;
 
@@ -217,14 +226,14 @@ function ShipCard({
 
   return (
     <Card
-      className={`bg-card/50 backdrop-blur-sm transition-all duration-300 ${
+      className={`bg-card/50 backdrop-blur-sm transition-all duration-300 h-full flex flex-col ${
         meetsShipyardLevel && meetsTechRequirements && canAfford && !isQueueFull
           ? "neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)]"
           : "border-red-500/50"
       }`}
     >
-      <CardHeader className="flex flex-row items-start gap-6 pb-2">
-        <div className="w-2/5 aspect-square relative">
+      <CardHeader className="flex flex-col md:flex-row items-start gap-6 pb-2 flex-1">
+        <div className="w-full md:w-2/5 aspect-square relative">
           <Image
             src={asset.image}
             alt={asset.name}
@@ -240,7 +249,7 @@ function ShipCard({
             aria-description={`Ship ${asset.name}`}
           />
         </div>
-        <div className="flex flex-col gap-2 w-3/5">
+        <div className="flex flex-col gap-2 w-full md:w-3/5">
           <CardTitle className="text-xl font-bold neon-text tracking-wide uppercase">
             {asset.name}
           </CardTitle>
@@ -354,43 +363,45 @@ function ShipCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-muted-foreground mt-2">
-            <Clock className="h-4 w-4" />
-            <span>Build Time: {formatTimerTime(buildTime)}</span>
-          </div>
+          <div className="flex flex-col gap-4 mt-4">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Build Time: {formatTimerTime(buildTime)}</span>
+            </div>
 
-          <div className="flex items-center gap-4 mt-2">
-            <div className="flex items-center gap-2 bg-black/30 rounded-lg p-2">
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex items-center gap-2 bg-black/30 rounded-lg p-2">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => adjustAmount(-1)}
+                  disabled={buildAmount <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="w-12 text-center">{buildAmount}</span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => adjustAmount(1)}
+                  disabled={buildAmount >= maxPossibleShips}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
               <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => adjustAmount(-1)}
-                disabled={buildAmount <= 1}
+                onClick={handleBuild}
+                disabled={
+                  !meetsShipyardLevel ||
+                  !meetsTechRequirements ||
+                  !canAfford ||
+                  isQueueFull
+                }
+                className="w-full max-w-[200px]"
               >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <span className="w-12 text-center">{buildAmount}</span>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => adjustAmount(1)}
-                disabled={buildAmount >= maxPossibleShips}
-              >
-                <Plus className="h-4 w-4" />
+                Build Ships
               </Button>
             </div>
-            <Button
-              onClick={handleBuild}
-              disabled={
-                !meetsShipyardLevel ||
-                !meetsTechRequirements ||
-                !canAfford ||
-                isQueueFull
-              }
-              className="flex-1"
-            >
-              Build Ships
-            </Button>
           </div>
         </div>
       </CardHeader>
@@ -403,6 +414,22 @@ export default function Shipyard() {
   const [selectedCategory, setSelectedCategory] = useState<string>("civilian");
   const [queue, setQueue] = useState<ShipyardQueue | null>(null);
   const [loading, setLoading] = useState(true);
+  const [gridCols, setGridCols] = useState(() => {
+    const saved = localStorage.getItem("shipyardGridCols");
+    return saved ? parseInt(saved) : 1;
+  });
+
+  const gridColsClass = {
+    1: "grid-cols-1",
+    2: "grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2",
+    3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3",
+    4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+  }[gridCols];
+
+  const updateGridCols = (cols: number) => {
+    setGridCols(cols);
+    localStorage.setItem("shipyardGridCols", cols.toString());
+  };
 
   useEffect(() => {
     if (!state.selectedPlanet?.id) return;
@@ -472,14 +499,38 @@ export default function Shipyard() {
   return (
     <ErrorBoundary>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
-            <Ship className="h-8 w-8" />
-            SHIPYARD
-          </h1>
-          <p className="text-muted-foreground">
-            Construct and manage your fleet of spacecraft
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
+              <Ship className="h-8 w-8" />
+              SHIPYARD
+            </h1>
+            <p className="text-muted-foreground">
+              Construct and manage your fleet of spacecraft
+            </p>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Grid className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => updateGridCols(1)}>
+                <Grid className="mr-2 h-4 w-4" /> Single Column
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(2)}>
+                <Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(3)}>
+                <Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => updateGridCols(4)}>
+                <Grid className="mr-2 h-4 w-4" /> Four Columns
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="grid grid-cols-4 gap-6">
@@ -514,7 +565,7 @@ export default function Shipyard() {
                   <p>{">"} LOADING SHIPYARD DATA...</p>
                 </div>
               ) : selectedCategory ? (
-                <div className="grid grid-cols-1 gap-6">
+                <div className={`grid ${gridColsClass} gap-6`}>
                   {SHIP_CATEGORIES[selectedCategory]!.types.map(
                     (type: ShipType) => (
                       <ShipCard

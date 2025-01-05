@@ -127,6 +127,39 @@ export function ResourceBar() {
 
           <div className="flex items-center gap-2">
             <div className="flex flex-col items-end">
+              <span className="text-xs text-primary/70">DEUTERIUM</span>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`font-mono font-bold ${
+                    currentResources.deuterium >= state.resources.max_deuterium
+                      ? "text-red-400"
+                      : "text-primary"
+                  }`}
+                >
+                  {currentResources.deuterium >= 10000
+                    ? millify(currentResources.deuterium)
+                    : Math.floor(currentResources.deuterium)}
+                  <span className="text-xs text-primary ml-1">
+                    /
+                    {state.resources.max_deuterium >= 10000
+                      ? millify(state.resources.max_deuterium)
+                      : Math.floor(state.resources.max_deuterium)}
+                  </span>
+                </span>
+                <Flame className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-xs text-primary font-medium">
+                +
+                {hourlyGenerationRate.deuterium >= 10000
+                  ? millify(hourlyGenerationRate.deuterium)
+                  : Math.floor(hourlyGenerationRate.deuterium)}
+                /h
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end">
               <span className="text-xs text-accent/70">MICROCHIPS</span>
               <div className="flex items-center gap-2">
                 <span
@@ -154,39 +187,6 @@ export function ResourceBar() {
                 {hourlyGenerationRate.microchips >= 10000
                   ? millify(hourlyGenerationRate.microchips)
                   : Math.floor(hourlyGenerationRate.microchips)}
-                /h
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col items-end">
-              <span className="text-xs text-primary/70">DEUTERIUM</span>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`font-mono font-bold ${
-                    currentResources.deuterium >= state.resources.max_deuterium
-                      ? "text-red-400"
-                      : "text-primary"
-                  }`}
-                >
-                  {currentResources.deuterium >= 10000
-                    ? millify(currentResources.deuterium)
-                    : Math.floor(currentResources.deuterium)}
-                  <span className="text-xs text-primary ml-1">
-                    /
-                    {state.resources.max_deuterium >= 10000
-                      ? millify(state.resources.max_deuterium)
-                      : Math.floor(state.resources.max_deuterium)}
-                  </span>
-                </span>
-                <Flame className="h-4 w-4 text-primary" />
-              </div>
-              <span className="text-xs text-primary font-medium">
-                +
-                {hourlyGenerationRate.deuterium >= 10000
-                  ? millify(hourlyGenerationRate.deuterium)
-                  : Math.floor(hourlyGenerationRate.deuterium)}
                 /h
               </span>
             </div>

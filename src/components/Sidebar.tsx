@@ -38,12 +38,12 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-black/95 border-r border-primary/30 h-full flex flex-col relative overflow-hidden font-mono">
+    <div className="w-[280px] md:w-64 bg-black/95 border-r border-primary/30 h-full flex flex-col relative overflow-hidden font-mono">
       {/* Matrix-like rain effect overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,255,0,0.03)1px,transparent_1px)] bg-[size:100%_2px] animate-matrix-rain pointer-events-none" />
 
       {/* Terminal-like header */}
-      <div className="mb-8 p-4 border-b border-primary/30 relative">
+      <div className="mb-4 md:mb-8 p-4 border-b border-primary/30 relative">
         <div className="flex">
           <Terminal className="mt-2  mr-1 h-4 w-4 text-primary animate-pulse" />
           <h2 className="text-xl font-bold text-primary tracking-wider effect">
@@ -56,7 +56,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="flex-1 px-4">
+      <div className="flex-1 px-2 md:px-4 overflow-y-auto">
         <nav className="space-y-1">
           {[
             // Only show secure communications if no planet is selected
@@ -168,7 +168,7 @@ export function Sidebar() {
       </div>
 
       {/* Theme selector with cyberpunk styling */}
-      <div className="p-4 border-t border-primary/30">
+      <div className="p-2 md:p-4 border-t border-primary/30">
         <Select defaultValue={theme} onValueChange={setTheme}>
           <SelectTrigger className="w-full bg-black border-primary/30 text-primary hover:border-primary/60 transition-colors">
             <SelectValue placeholder="SELECT_THEME" />
@@ -193,7 +193,7 @@ export function Sidebar() {
       </div>
 
       {/* Logout section with warning styling */}
-      <div className="p-4 border-t border-red-500/30">
+      <div className="p-2 md:p-4 border-t border-red-500/30">
         <Button
           variant="ghost"
           onClick={handleLogout}
