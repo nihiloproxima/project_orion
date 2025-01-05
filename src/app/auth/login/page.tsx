@@ -13,7 +13,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
-import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -30,6 +29,7 @@ export default function Login() {
 
     try {
       await login(email, password);
+      router.push("/auth/callback");
     } catch (error: any) {
       setError(error.message || "Login failed");
       console.error("Login failed:", error);
@@ -38,7 +38,7 @@ export default function Login() {
 
   const handleDiscordSignIn = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "discord",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -49,31 +49,19 @@ export default function Login() {
         },
       });
 
-      console.log(data);
-
       if (error) throw error;
 
-      // Get user data after successful sign in
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) throw new Error("User not found");
-
-      // Get Discord username from user metadata
-      const discordUsername =
-        user.user_metadata?.full_name || user.user_metadata?.name;
-
-      // Register user with Discord username
-      await api.users.register(user.id, discordUsername);
+      // Auth callback page will handle the rest of the flow
     } catch (error: any) {
       setError(error.message || "Discord authentication failed");
       console.error("Discord auth failed:", error);
     }
   };
 
+  // If already authenticated, redirect to dashboard
   if (isAuthenticated) {
     router.push("/dashboard");
+    return null;
   }
 
   return (

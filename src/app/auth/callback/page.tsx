@@ -31,11 +31,22 @@ export default function AuthCallback() {
         const discordUsername =
           user.user_metadata?.full_name || user.user_metadata?.name;
 
-        // Register user with Discord username if needed
-        await api.users.register(user.id, discordUsername);
+        // Check if user exists
+        const { data: existingUser } = await supabase
+          .from("users")
+          .select()
+          .eq("id", user.id)
+          .single();
 
-        // Redirect to dashboard
-        router.push("/dashboard");
+        if (existingUser) {
+          // User exists, redirect to dashboard
+          router.push("/dashboard");
+        } else {
+          // Register new user with Discord username
+          await api.users.register(discordUsername);
+          // Redirect to secure communications for onboarding
+          router.push("/secure-communications");
+        }
       } catch (error) {
         console.error("Auth callback error:", error);
         router.push("/auth/login");

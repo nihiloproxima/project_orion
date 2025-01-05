@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { api } from "@/lib/api";
 
 export default function Register() {
   const router = useRouter();
@@ -25,10 +24,22 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // If already authenticated, redirect to secure communications
+    if (isAuthenticated) {
+      router.push("/secure-communications");
+    }
+  }, [isAuthenticated, router]);
 
   const validatePasswords = () => {
     if (password !== confirmPassword) {
       setError("ACCESS CODES DO NOT MATCH");
+      return false;
+    }
+    if (password.length < 6) {
+      setError("ACCESS CODE MUST BE AT LEAST 6 CHARACTERS");
       return false;
     }
     setError("");
@@ -41,30 +52,46 @@ export default function Register() {
       return;
     }
 
+    if (!name) {
+      setError("OPERATOR NAME REQUIRED");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const { data: user, error } = await supabase.auth.signUp({
+      // First create the auth user
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: undefined,
+          data: {
+            name: name, // Store name in user metadata
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (error) throw error;
-      if (!user || !user.user) throw new Error("User not found");
+      if (signUpError) throw signUpError;
+      if (!data?.user) throw new Error("User creation failed");
 
-      await api.users.register(user.user!.id, name);
-      router.push("/dashboard");
+      // Registration will be completed in auth/callback after email verification
+      setError(
+        "Please check your email to verify your account before logging in."
+      );
+      await logout(); // Log them out until they verify email
     } catch (error: any) {
-      setError(error.message || "Registration failed");
       console.error("Registration failed:", error);
+      setError(error.message || "Registration failed");
       await logout();
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDiscordSignIn = async () => {
+    setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "discord",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -75,32 +102,15 @@ export default function Register() {
         },
       });
 
-      console.log(data);
-
       if (error) throw error;
-
-      // Get user data after successful sign in
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) throw new Error("User not found");
-
-      // Get Discord username from user metadata
-      const discordUsername =
-        user.user_metadata?.full_name || user.user_metadata?.name;
-
-      // Register user with Discord username
-      await api.users.register(user.id, discordUsername);
+      // Auth callback will handle the rest of the flow
     } catch (error: any) {
       setError(error.message || "Discord authentication failed");
       console.error("Discord auth failed:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  if (isAuthenticated) {
-    router.push("/dashboard");
-  }
 
   return (
     <div className="w-full min-h-screen bg-background cyber-grid flex items-center justify-center">
@@ -115,7 +125,7 @@ export default function Register() {
             {">"} INITIALIZING REGISTRATION SEQUENCE...
           </div>
           {error && (
-            <div className="text-xs font-mono text-red-500 bg-red-500/10 p-2 border border-red-500/30 rounded">
+            <div className="text-xs font-mono text-red-500 bg-red-500/10 p-2 border border-red-500/30 rounded animate-pulse">
               {">"} ERROR: {error}
             </div>
           )}
@@ -123,9 +133,10 @@ export default function Register() {
         <CardContent>
           <Button
             onClick={handleDiscordSignIn}
-            className="w-full mb-6 font-mono bg-[#5865F2]/80 hover:bg-[#5865F2]/90 border border-[#5865F2]/60 neon-border text-white "
+            disabled={isLoading}
+            className="w-full mb-6 font-mono bg-[#5865F2]/80 hover:bg-[#5865F2]/90 border border-[#5865F2]/60 neon-border text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            CONNECT WITH DISCORD
+            {isLoading ? "CONNECTING..." : "CONNECT WITH DISCORD"}
           </Button>
 
           <div className="relative mb-6">
@@ -153,7 +164,8 @@ export default function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
+                disabled={isLoading}
+                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border disabled:opacity-50"
                 placeholder="enter.operator@id"
               />
             </div>
@@ -170,7 +182,8 @@ export default function Register() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
+                disabled={isLoading}
+                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border disabled:opacity-50"
                 placeholder="enter_name"
               />
             </div>
@@ -187,7 +200,8 @@ export default function Register() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
+                disabled={isLoading}
+                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border disabled:opacity-50"
                 placeholder="****************"
               />
             </div>
@@ -206,16 +220,18 @@ export default function Register() {
                   setConfirmPassword(e.target.value)
                 }
                 required
-                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
+                disabled={isLoading}
+                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border disabled:opacity-50"
                 placeholder="****************"
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full font-mono bg-primary/80 hover:bg-primary/90 border border-primary/60 neon-border"
+              disabled={isLoading}
+              className="w-full font-mono bg-primary/80 hover:bg-primary/90 border border-primary/60 neon-border disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              INITIALIZE ACCESS
+              {isLoading ? "INITIALIZING..." : "INITIALIZE ACCESS"}
             </Button>
           </form>
         </CardContent>

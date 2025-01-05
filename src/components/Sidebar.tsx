@@ -57,118 +57,114 @@ export function Sidebar() {
       </div>
 
       <div className="flex-1 px-4">
-        {state.selectedPlanet && (
-          <nav className="space-y-1">
-            {[
-              // Main console
-              {
-                to: "/dashboard",
-                icon: Computer,
-                label: "MAIN_CONSOLE",
-                color: "primary",
-              },
+        <nav className="space-y-1">
+          {[
+            // Only show secure communications if no planet is selected
+            ...(state.selectedPlanet
+              ? [
+                  // Main console
+                  {
+                    to: "/dashboard",
+                    icon: Computer,
+                    label: "MAIN_CONSOLE",
+                    color: "primary",
+                  },
 
-              // Planet management
-              {
-                to: "/structures",
-                icon: Building,
-                label: "STRUCTURES",
-                color: "primary",
-              },
-              {
-                to: "/researchs",
-                icon: FlaskConical,
-                label: "RESEARCH_LAB",
-                color: "green",
-              },
+                  // Planet management
+                  {
+                    to: "/structures",
+                    icon: Building,
+                    label: "STRUCTURES",
+                    color: "primary",
+                  },
+                  {
+                    to: "/researchs",
+                    icon: FlaskConical,
+                    label: "RESEARCH_LAB",
+                    color: "green",
+                  },
 
-              // Fleet management
-              {
-                to: "/shipyard",
-                icon: Rocket,
-                label: "SHIPYARD",
-                color: "blue",
-              },
-              {
-                to: "/fleet",
-                icon: Rocket,
-                label: "FLEET",
-                color: "blue",
-              },
-              {
-                to: "/fleet-movements",
-                icon: ArrowRight,
-                label: "FLEET_MOVEMENTS",
-                color: "blue",
-              },
-              {
-                to: "/secure-communications",
-                icon: MailIcon,
-                label: "SECURE_COMS",
-                color: "blue",
-              },
-
-              // Navigation & Profile
-              {
-                to: "/galaxy",
-                icon: Eye,
-                label: "GALAXY_MAP",
-                color: "purple",
-              },
-              {
-                to: `/user/${state.currentUser?.id}`,
-                icon: User,
-                label: "USER_PROFILE",
-                color: "blue",
-              },
-              {
-                to: "/rankings",
-                icon: Trophy,
-                label: "RANKINGS",
-                color: "blue",
-              },
-              // {
-              //   to: "/alliances",
-              //   icon: Users,
-              //   label: "ALLIANCE_NET",
-              //   color: "blue",
-              // },
-            ].map((item) => (
-              <Link key={item.to} href={item.to}>
-                <Button
-                  variant="ghost"
-                  className={`w-full justify-start text-${
-                    item.color
-                  }-400 hover:bg-${item.color}-500/10 
-                  border border-transparent hover:border-${item.color}-500/30 
-                  group transition-all duration-300
-                  ${
+                  // Fleet management
+                  {
+                    to: "/shipyard",
+                    icon: Rocket,
+                    label: "SHIPYARD",
+                    color: "blue",
+                  },
+                  {
+                    to: "/fleet",
+                    icon: Rocket,
+                    label: "FLEET",
+                    color: "blue",
+                  },
+                  {
+                    to: "/fleet-movements",
+                    icon: ArrowRight,
+                    label: "FLEET_MOVEMENTS",
+                    color: "blue",
+                  },
+                  {
+                    to: "/galaxy",
+                    icon: Eye,
+                    label: "GALAXY_MAP",
+                    color: "purple",
+                  },
+                  {
+                    to: `/user/${state.currentUser?.id}`,
+                    icon: User,
+                    label: "USER_PROFILE",
+                    color: "blue",
+                  },
+                  {
+                    to: "/rankings",
+                    icon: Trophy,
+                    label: "RANKINGS",
+                    color: "blue",
+                  },
+                ]
+              : []),
+            // Always show secure communications
+            {
+              to: "/secure-communications",
+              icon: MailIcon,
+              label: "SECURE_COMS",
+              color: "blue",
+            },
+          ].map((item) => (
+            <Link key={item.to} href={item.to}>
+              <Button
+                variant="ghost"
+                className={`w-full justify-start text-${
+                  item.color
+                }-400 hover:bg-${item.color}-500/10 
+                border border-transparent hover:border-${item.color}-500/30 
+                group transition-all duration-300
+                ${
+                  location.pathname === item.to
+                    ? `bg-${item.color}-500/10 border-${item.color}-500/30`
+                    : ""
+                }`}
+              >
+                <item.icon
+                  className={`mr-2 ${
                     location.pathname === item.to
-                      ? `bg-${item.color}-500/10 border-${item.color}-500/30`
-                      : ""
+                      ? "animate-pulse"
+                      : "group-hover:animate-pulse"
+                  }`}
+                />
+                <span
+                  className={`font-mono ${
+                    location.pathname === item.to
+                      ? "text-primary "
+                      : "group-hover:text-primary group-hover:animate-glitch"
                   }`}
                 >
-                  <item.icon
-                    className={`mr-2 ${
-                      location.pathname === item.to
-                        ? "animate-pulse"
-                        : "group-hover:animate-pulse"
-                    }`}
-                  />
-                  <span
-                    className={`font-mono ${
-                      location.pathname === item.to
-                        ? "text-primary "
-                        : "group-hover:text-primary group-hover:animate-glitch"
-                    }`}
-                  >
-                    {`> ${item.label}`}
-                  </span>
-                </Button>
-              </Link>
-            ))}
-          </nav>
-        )}
+                  {`> ${item.label}`}
+                </span>
+              </Button>
+            </Link>
+          ))}
+        </nav>
       </div>
 
       {/* Theme selector with cyberpunk styling */}

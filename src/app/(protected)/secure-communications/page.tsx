@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { BaseMail, MailType } from "@/models/mail";
-import { generateTestMails } from "@/lib/test-data/mail";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { ReportContent } from "@/components/ReportContent";
+import { MailContent } from "@/components/MailContent";
+import { generateOnboardingMails } from "@/lib/onboarding-mails";
 
 type FilterCategory = "all" | MailType;
 
@@ -33,54 +33,65 @@ const MAIL_CATEGORIES = [
 
 export default function Reports() {
   const { state } = useGame();
-  const [reports, setReports] = useState<BaseMail[]>([]);
-  const [selectedReport, setSelectedReport] = useState<BaseMail | null>(null);
+  const [mails, setMails] = useState<BaseMail[]>([]);
+  const [selectedMail, setSelectedMail] = useState<BaseMail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<FilterCategory>("all");
   const [isViewingMail, setIsViewingMail] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
     const fetchMails = async () => {
-      const testData = generateTestMails(state.currentUser?.id || "test-user");
-      setReports(testData);
-      setLoading(false);
+      try {
+        if (!state.selectedPlanet) {
+          const onboardingMails = generateOnboardingMails(
+            state.currentUser?.id || ""
+          );
+          setMails(onboardingMails);
+          setLoading(false);
+          return;
+        }
+
+        let query = supabase
+          .from("mails")
+          .select("*")
+          .eq("owner_id", state.currentUser?.id)
+          .order("created_at", { ascending: false })
+          .range(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE - 1);
+
+        if (activeCategory !== "all") {
+          query = query.eq("type", activeCategory);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        setHasMore(data.length === ITEMS_PER_PAGE);
+
+        if (page === 0) {
+          setMails(data || []);
+        } else {
+          setMails((prev) => [...prev, ...(data || [])]);
+        }
+      } catch (error) {
+        console.error("Error fetching mails:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchMails();
+  }, [state.currentUser?.id, activeCategory, page, state.selectedPlanet]);
 
-    const subscription = supabase
-      .channel("mails")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "mails",
-          filter: `owner_id=eq.${state.currentUser?.id}`,
-        },
-        () => {
-          // Comment out the real-time updates for now
-          /* if (payload.eventType === "INSERT") {
-            setReports((current) => [payload.new as BaseMail, ...current]);
-          } else if (payload.eventType === "DELETE") {
-            setReports((current) =>
-              current.filter((r) => r.id !== payload.old.id)
-            );
-          } else if (payload.eventType === "UPDATE") {
-            setReports((current) =>
-              current.map((r) => (r.id === payload.new.id ? payload.new : r))
-            );
-          } */
-        }
-      )
-      .subscribe();
+  useEffect(() => {
+    setPage(0);
+    setHasMore(true);
+  }, [activeCategory]);
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [state.currentUser?.id]);
-
-  const getReportIcon = (type: string) => {
+  const getMailIcon = (type: string) => {
     const category = MAIL_CATEGORIES.find((cat) => cat.type === type);
     return category ? (
       <category.icon className="h-4 w-4" />
@@ -89,41 +100,49 @@ export default function Reports() {
     );
   };
 
-  const deleteReport = async (id: string) => {
+  const deleteMail = async (id: string) => {
     try {
-      await supabase.from("reports").delete().eq("id", id);
-      if (selectedReport?.id === id) {
-        setSelectedReport(null);
+      await supabase.from("mails").delete().eq("id", id);
+      if (selectedMail?.id === id) {
+        setSelectedMail(null);
       }
     } catch (error) {
-      console.error("Error deleting report:", error);
+      console.error("Error deleting mail:", error);
     }
   };
 
   const markAsRead = async (id: string) => {
     try {
-      await supabase.from("reports").update({ read: true }).eq("id", id);
-      setReports((current) =>
-        current.map((r) => (r.id === id ? { ...r, read: true } : r))
+      await supabase.from("mails").update({ read: true }).eq("id", id);
+      setMails((current) =>
+        current.map((m) => (m.id === id ? { ...m, read: true } : m))
       );
     } catch (error) {
-      console.error("Error marking report as read:", error);
+      console.error("Error marking mail as read:", error);
     }
   };
 
-  const filteredReports = reports.filter(
-    (report) => activeCategory === "all" || report.type === activeCategory
-  );
-
   const getUnreadCount = (category: FilterCategory) => {
-    return reports.filter(
-      (r) => !r.read && (category === "all" || r.type === category)
+    return mails.filter(
+      (m) => !m.read && (category === "all" || m.type === category)
     ).length;
   };
 
+  const handleMailClick = (mail: BaseMail) => {
+    setSelectedMail(mail);
+    setIsViewingMail(true);
+    if (!mail.read) {
+      markAsRead(mail.id);
+    }
+  };
+
   if (loading) {
-    return <LoadingScreen message="LOADING REPORTS..." />;
+    return <LoadingScreen message="LOADING MAILS..." />;
   }
+
+  const displayedMails = mails.filter(
+    (mail) => activeCategory === "all" || mail.type === activeCategory
+  );
 
   return (
     <div className="space-y-6">
@@ -167,48 +186,70 @@ export default function Reports() {
               {!isViewingMail ? (
                 <div className="flex-1 p-4">
                   <div className="space-y-2">
-                    {filteredReports.map((mail) => (
-                      <div
-                        key={mail.id}
-                        className={`p-3 border border-primary/30 rounded-md cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:bg-gray-800 hover:border-primary ${
-                          !mail.read ? "border-l-4 border-l-yellow-500" : ""
-                        }`}
-                        onClick={() => {
-                          setSelectedReport(mail);
-                          setIsViewingMail(true);
-                          if (!mail.read) {
-                            markAsRead(mail.id);
-                          }
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {getReportIcon(mail.type)}
-                            <div className="flex flex-col">
-                              <span className="font-medium text-blue-400">
-                                {mail.title}
-                              </span>
-                              <span className="text-xs text-gray-400">
-                                From: {mail.sender_name}
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteReport(mail.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="text-xs text-primary/60 mt-1">
-                          {new Date(mail.created_at).toLocaleString()}
+                    {displayedMails.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+                        <Mail className="h-12 w-12 mb-4 opacity-50" />
+                        <p className="text-lg font-medium">No messages found</p>
+                        <p className="text-sm">
+                          {activeCategory === "all"
+                            ? "Your inbox is empty"
+                            : `No ${
+                                MAIL_CATEGORIES.find(
+                                  (cat) => cat.type === activeCategory
+                                )?.label.toLowerCase() || "messages"
+                              } available`}
                         </p>
                       </div>
-                    ))}
+                    ) : (
+                      <>
+                        {displayedMails.map((mail) => (
+                          <div
+                            key={mail.id}
+                            className={`p-3 border border-primary/30 rounded-md cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:bg-gray-800 hover:border-primary ${
+                              !mail.read ? "border-l-4 border-l-yellow-500" : ""
+                            }`}
+                            onClick={() => handleMailClick(mail)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {getMailIcon(mail.type)}
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-blue-400">
+                                    {mail.title}
+                                  </span>
+                                  <span className="text-xs text-gray-400">
+                                    From: {mail.sender_name}
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteMail(mail.id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <p className="text-xs text-primary/60 mt-1">
+                              {new Date(mail.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                        {hasMore && (
+                          <Button
+                            variant="outline"
+                            className="w-full mt-4"
+                            onClick={() => setPage((p) => p + 1)}
+                            disabled={loading}
+                          >
+                            {loading ? "Loading..." : "Load More"}
+                          </Button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -223,9 +264,7 @@ export default function Reports() {
                       Back to Inbox
                     </Button>
                   </div>
-                  {selectedReport && (
-                    <ReportContent report={selectedReport as any} />
-                  )}
+                  {selectedMail && <MailContent mail={selectedMail as any} />}
                 </div>
               )}
             </div>

@@ -54,8 +54,8 @@ export const api = {
     },
   },
   users: {
-    register: async (id: string, name: string) => {
-      return post("users", "register", { id, name });
+    register: async (name: string) => {
+      return post("users", "register", { name });
     },
     update: async (name: string, avatar: string) => {
       return post("users", "update", { name, avatar });

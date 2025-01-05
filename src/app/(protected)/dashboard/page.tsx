@@ -97,7 +97,7 @@ export default function Dashboard() {
       !state.selectedPlanet &&
       state.userPlanets.length === 0
     ) {
-      router.push("/choose-homeworld");
+      router.push("/secure-communications");
     }
   }, [state.loading, state.selectedPlanet, state.userPlanets.length, router]);
 
@@ -259,7 +259,7 @@ export default function Dashboard() {
   };
 
   if (state.userPlanets.length === 0) {
-    router.push("/choose-homeworld");
+    router.push("/secure-communications");
     return null; // Return null while redirecting
   }
 
