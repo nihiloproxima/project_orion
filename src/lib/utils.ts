@@ -50,3 +50,23 @@ export const formatTimerTime = (seconds: number) => {
     .filter(Boolean)
     .join(" ");
 };
+
+export const formatTimeString = (timeRemainingMs: number) => {
+  const days = Math.floor(timeRemainingMs / (1000 * 60 * 60 * 24));
+  const hours = Math.floor(
+    (timeRemainingMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  );
+  const minutes = Math.floor(
+    (timeRemainingMs % (1000 * 60 * 60)) / (1000 * 60)
+  );
+  const seconds = Math.floor((timeRemainingMs % (1000 * 60)) / 1000);
+
+  return [
+    days > 0 && `${days}d`,
+    hours > 0 && `${hours}h`,
+    minutes > 0 && `${minutes}m`,
+    `${seconds}s`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+};

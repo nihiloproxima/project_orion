@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Progress } from "./ui/progress";
+import { formatTimeString } from "@/lib/utils";
 
 interface TimerProps {
   startTime: number;
@@ -52,26 +53,6 @@ export function Timer({
     };
   }, [startTime, finishTime]);
 
-  const formatTimeString = () => {
-    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(
-      (timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
-    const minutes = Math.floor(
-      (timeRemaining % (1000 * 60 * 60)) / (1000 * 60)
-    );
-    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-
-    return [
-      days > 0 && `${days}d`,
-      hours > 0 && `${hours}h`,
-      minutes > 0 && `${minutes}m`,
-      `${seconds}s`,
-    ]
-      .filter(Boolean)
-      .join(" ");
-  };
-
   return (
     <div
       className={`p-3 bg-${variant}/10 rounded-lg border border-${variant}/30 ${className}`}
@@ -79,7 +60,7 @@ export function Timer({
       <div className="flex items-center">
         <div className="animate-pulse mr-2 w-2 h-2 bg-primary rounded-full"></div>
         <p className={`text-${variant} font-medium`}>
-          Time remaining: {formatTimeString()}
+          Time remaining: {formatTimeString(timeRemaining)}
         </p>
       </div>
       {showProgressBar && (

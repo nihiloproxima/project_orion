@@ -15,7 +15,8 @@ export interface FleetMovement {
     [key: string]: number;
   };
   origin_planet_id: string;
-  destination_planet_id: string | null;
+  destination_planet_id: string;
+  destination_name: string;
   origin_x: number;
   origin_y: number;
   destination_x: number;

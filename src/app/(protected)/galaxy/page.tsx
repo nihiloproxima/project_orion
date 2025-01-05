@@ -7,7 +7,7 @@ import {
 } from "../../../components/ui/card";
 import { useGame } from "../../../contexts/GameContext";
 import { Eye } from "lucide-react";
-import { GalaxyMap2D } from "../../../components/GalaxyMap2D/GalaxyMap2D";
+import GalaxyMap from "@/components/ThreeMap/GalaxyMap";
 
 export default function GalaxyObservation() {
   const { state } = useGame();
@@ -33,14 +33,8 @@ export default function GalaxyObservation() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="flex justify-center">
-            <GalaxyMap2D
-              mode="view-only"
-              initialZoom={0.3}
-              initialCenter={{ x: 0, y: 0 }}
-              width="100%"
-              height="600px"
-            />
+          <div className="flex justify-center h-[500px]">
+            <GalaxyMap mode="view-only" />
           </div>
         </CardContent>
       </Card>
