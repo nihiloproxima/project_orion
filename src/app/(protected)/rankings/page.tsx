@@ -263,7 +263,7 @@ export default function Rankings() {
                           {rankingConfig[rankingType].label}
                         </div>
                         <div className="font-mono text-xl font-bold">
-                          {entry.score}
+                          {Math.round(entry.score).toLocaleString()}
                         </div>
                       </div>
                     </CardContent>
