@@ -19,6 +19,7 @@ import {
   Flame,
   Beaker,
   Gift,
+  X,
 } from "lucide-react";
 import { Timer } from "../../../components/Timer";
 import { getPublicImageUrl } from "@/lib/images";
@@ -30,6 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
+import { Button } from "../../../components/ui/button";
+import { api } from "../../../lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 const FleetMovements = () => {
   const { state } = useGame();
@@ -39,6 +43,7 @@ const FleetMovements = () => {
   const [missionFilter, setMissionFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("arrival");
   const [displayMode, setDisplayMode] = useState<"grid" | "rows">("grid");
+  const { toast } = useToast();
 
   // Fetch initial fleet movements
   useEffect(() => {
@@ -253,14 +258,37 @@ const FleetMovements = () => {
     </div>
   );
 
+  const handleCancelMission = async (
+    movementId: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+
+    try {
+      await api.fleet.cancelMission(movementId);
+      toast({
+        title: "Success",
+        description: "Mission cancelled successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to cancel mission:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel mission. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const renderMovementCard = (
     movement: FleetMovement,
     isHostile: boolean = false
   ) => {
-    // Consider transport missions as non-hostile even if from other players
     const isFriendlyTransport =
       movement.mission_type === "transport" &&
       movement.owner_id !== state.currentUser?.id;
+
+    const canCancel = !isHostile && movement.status === "traveling";
 
     return (
       <Card
@@ -279,15 +307,29 @@ const FleetMovements = () => {
         }
       >
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {isHostile && !isFriendlyTransport && (
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {isHostile && !isFriendlyTransport && (
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+              )}
+              {isFriendlyTransport && (
+                <Gift className="h-5 w-5 text-green-500" />
+              )}
+              <Rocket className="h-5 w-5" />
+              {movement.mission_type.charAt(0).toUpperCase() +
+                movement.mission_type.slice(1)}{" "}
+              Mission
+            </div>
+            {canCancel && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                onClick={(e) => handleCancelMission(movement.id, e)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             )}
-            {isFriendlyTransport && <Gift className="h-5 w-5 text-green-500" />}
-            <Rocket className="h-5 w-5" />
-            {movement.mission_type.charAt(0).toUpperCase() +
-              movement.mission_type.slice(1)}{" "}
-            Mission
           </CardTitle>
         </CardHeader>
         <CardContent>

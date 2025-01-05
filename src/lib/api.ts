@@ -102,6 +102,11 @@ export const api = {
     }) => {
       return post("fleet", "sendMission", params);
     },
+    cancelMission: async (fleet_movement_id: string) => {
+      return post("fleet", "cancelMission", {
+        fleet_movement_id,
+      });
+    },
   },
   rankings: {
     getRankings: async (params: {

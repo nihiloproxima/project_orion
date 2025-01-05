@@ -11,4 +11,5 @@ export interface PlanetResearchs {
     [technology_id: string]: Technology;
   };
   last_update: number;
+  is_researching: boolean;
 }

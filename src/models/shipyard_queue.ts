@@ -19,4 +19,5 @@ export interface ShipyardQueue {
   commands: Array<ShipyardQueueCommand>;
   capacity: number;
   created_at: number;
+  is_processing_command: boolean;
 }
