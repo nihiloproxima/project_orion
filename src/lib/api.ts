@@ -68,12 +68,15 @@ export const api = {
   },
   structures: {
     construct: async (planetId: string, type: StructureType) => {
-      return post("structures", "construct", { planet_id: planetId, type });
+      return post("structures", "construct", {
+        planet_id: planetId,
+        structure_type: type,
+      });
     },
-    upgrade: async (planetId: string, structureId: string) => {
+    upgrade: async (planetId: string, type: StructureType) => {
       return post("structures", "upgrade", {
         planet_id: planetId,
-        structure_id: structureId,
+        structure_type: type,
       });
     },
   },

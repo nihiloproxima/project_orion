@@ -165,7 +165,7 @@ function StructureCard({
   }, [existingStructure, state]); // Added state dependency
 
   const onUpgrade = async (structure: Structure) => {
-    await api.structures.upgrade(state.selectedPlanet!.id, structure.id);
+    await api.structures.upgrade(state.selectedPlanet!.id, structure.type);
   };
 
   const onConstruct = async (type: StructureType) => {
@@ -424,12 +424,24 @@ function ExistingStructureContent({
   futureEnergyRatio,
 }: ExistingStructureContentProps) {
   const { currentResources } = useGame();
+  // Add loading state
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   const canAfford =
     currentResources.metal >= upgradeCosts.metal &&
     currentResources.deuterium >= upgradeCosts.deuterium &&
     currentResources.science >= upgradeCosts.science &&
     currentResources.microchips >= upgradeCosts.microchips;
+
+  // Wrap onUpgrade with loading state handling
+  const handleUpgrade = async () => {
+    try {
+      setIsUpgrading(true);
+      await onUpgrade(structure);
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
 
   if (
     structure.is_under_construction &&
@@ -526,16 +538,18 @@ function ExistingStructureContent({
       )}
 
       <Button
-        onClick={() => onUpgrade(structure)}
-        disabled={structure.is_under_construction || !canAfford}
+        onClick={handleUpgrade}
+        disabled={structure.is_under_construction || !canAfford || isUpgrading}
         className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
-          structure.is_under_construction || !canAfford
+          structure.is_under_construction || !canAfford || isUpgrading
             ? "bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed"
             : "bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border"
         }`}
       >
         {structure.is_under_construction
           ? "Under Construction"
+          : isUpgrading
+          ? "Upgrading..."
           : canAfford
           ? `Upgrade to Level ${structure.level + 1}`
           : "Not Enough Resources"}
