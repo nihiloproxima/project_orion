@@ -313,7 +313,7 @@ export default function Fleet() {
           case "attack":
             return planet.owner_id && planet.owner_id !== state.currentUser?.id;
           case "transport":
-            return planet.owner_id === state.currentUser?.id;
+            return planet.owner_id !== null;
           case "spy":
             return planet.owner_id && planet.owner_id !== state.currentUser?.id;
           case "recycle":
@@ -639,7 +639,7 @@ export default function Fleet() {
                     ?.filter((p) => {
                       switch (missionType) {
                         case "transport":
-                          return p.owner_id === state.currentUser?.id;
+                          return p.owner_id !== null;
                         case "attack":
                         case "spy":
                           return (

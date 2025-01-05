@@ -18,6 +18,7 @@ import {
   Microchip,
   Flame,
   Beaker,
+  Gift,
 } from "lucide-react";
 import { Timer } from "../../../components/Timer";
 import { getPublicImageUrl } from "@/lib/images";
@@ -30,7 +31,7 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 
-export default function FleetMovements() {
+const FleetMovements = () => {
   const { state } = useGame();
   const [movements, setMovements] = useState<FleetMovement[]>([]);
   const [hostileMovements, setHostileMovements] = useState<FleetMovement[]>([]);
@@ -107,7 +108,7 @@ export default function FleetMovements() {
           table: "fleet_movements",
           filter: `destination_planet_id=in.(${state.planets
             ?.map((p) => p.id)
-            .join(",")})`,
+            .join(",")}) and mission_type!='spy'`,
         },
         (payload) => {
           if (payload.eventType === "DELETE") {
@@ -255,133 +256,154 @@ export default function FleetMovements() {
   const renderMovementCard = (
     movement: FleetMovement,
     isHostile: boolean = false
-  ) => (
-    <Card
-      key={movement.id}
-      className={`${
-        isHostile ? "border-red-500/50 bg-red-950/10" : "border-primary/20"
-      } cursor-pointer transition-all hover:scale-[1.02]`}
-      onClick={() =>
-        setExpandedMovement(
-          expandedMovement === movement.id ? null : movement.id
-        )
-      }
-    >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {isHostile && <AlertTriangle className="h-5 w-5 text-red-500" />}
-          <Rocket className="h-5 w-5" />
-          {movement.mission_type.charAt(0).toUpperCase() +
-            movement.mission_type.slice(1)}{" "}
-          Mission
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-2">
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              Origin: {getPlanetName(movement.origin_x, movement.origin_y)}
+  ) => {
+    // Consider transport missions as non-hostile even if from other players
+    const isFriendlyTransport =
+      movement.mission_type === "transport" &&
+      movement.owner_id !== state.currentUser?.id;
+
+    return (
+      <Card
+        key={movement.id}
+        className={`${
+          isHostile && !isFriendlyTransport
+            ? "border-red-500/50 bg-red-950/10"
+            : isFriendlyTransport
+            ? "border-green-500/50 bg-green-950/10"
+            : "border-primary/20"
+        } cursor-pointer transition-all hover:scale-[1.02]`}
+        onClick={() =>
+          setExpandedMovement(
+            expandedMovement === movement.id ? null : movement.id
+          )
+        }
+      >
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {isHostile && !isFriendlyTransport && (
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            )}
+            {isFriendlyTransport && <Gift className="h-5 w-5 text-green-500" />}
+            <Rocket className="h-5 w-5" />
+            {movement.mission_type.charAt(0).toUpperCase() +
+              movement.mission_type.slice(1)}{" "}
+            Mission
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm">
+                Origin: {getPlanetName(movement.origin_x, movement.origin_y)}
+              </div>
+              <ArrowRight className="h-4 w-4" />
+              <div className="text-sm">
+                Destination:{" "}
+                {getPlanetName(movement.destination_x, movement.destination_y)}
+              </div>
             </div>
-            <ArrowRight className="h-4 w-4" />
+
             <div className="text-sm">
-              Destination:{" "}
-              {getPlanetName(movement.destination_x, movement.destination_y)}
+              Status:{" "}
+              {movement.status.charAt(0).toUpperCase() +
+                movement.status.slice(1)}
             </div>
-          </div>
 
-          <div className="text-sm">
-            Status:{" "}
-            {movement.status.charAt(0).toUpperCase() + movement.status.slice(1)}
-          </div>
+            <div className="text-sm">
+              <Timer
+                startTime={movement.departure_time}
+                finishTime={movement.arrival_time}
+              />
+            </div>
 
-          <div className="text-sm">
-            <Timer
-              startTime={movement.departure_time}
-              finishTime={movement.arrival_time}
-            />
-          </div>
-
-          {expandedMovement === movement.id && (
-            <>
-              {movement.ship_counts && (
-                <div className="text-sm mt-2">
-                  <div className="font-semibold mb-1">Fleet:</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(movement.ship_counts).map(
-                      ([shipType, count]) =>
-                        count > 0 && (
-                          <div
-                            key={shipType}
-                            className="flex items-center gap-2"
-                          >
-                            <Image
-                              src={getPublicImageUrl(
-                                "ships",
-                                shipType + ".webp"
-                              )}
-                              width={24}
-                              height={24}
-                              alt={shipType}
-                              className="w-6 h-6"
-                            />
-                            {shipType}: {count}
-                          </div>
-                        )
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Expanded resources section */}
-              {movement.resources && (
-                <div className="text-sm mt-2">
-                  <div className="font-semibold mb-1">Cargo:</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(movement.resources).map(
-                      ([resource, amount]) => {
-                        const resourceConfig = {
-                          metal: {
-                            icon: <Hammer className="h-6 w-6 text-secondary" />,
-                            color: "text-secondary",
-                          },
-                          microchips: {
-                            icon: <Microchip className="h-6 w-6 text-accent" />,
-                            color: "text-accent",
-                          },
-                          deuterium: {
-                            icon: <Flame className="h-6 w-6 text-primary" />,
-                            color: "text-primary",
-                          },
-                          science: {
-                            icon: <Beaker className="h-6 w-6 text-blue-400" />,
-                            color: "text-blue-400",
-                          },
-                        }[resource.toLowerCase()];
-
-                        return (
-                          amount > 0 && (
+            {expandedMovement === movement.id && (
+              <>
+                {movement.ship_counts && (
+                  <div className="text-sm mt-2">
+                    <div className="font-semibold mb-1">Fleet:</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(movement.ship_counts).map(
+                        ([shipType, count]) =>
+                          count > 0 && (
                             <div
-                              key={resource}
+                              key={shipType}
                               className="flex items-center gap-2"
                             >
-                              {resourceConfig?.icon}
-                              <span className={resourceConfig?.color}>
-                                {resource}: {amount}
-                              </span>
+                              <Image
+                                src={getPublicImageUrl(
+                                  "ships",
+                                  shipType + ".webp"
+                                )}
+                                width={24}
+                                height={24}
+                                alt={shipType}
+                                className="w-6 h-6"
+                              />
+                              {shipType}: {count}
                             </div>
                           )
-                        );
-                      }
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+                )}
+
+                {/* Expanded resources section */}
+                {movement.resources && (
+                  <div className="text-sm mt-2">
+                    <div className="font-semibold mb-1">Cargo:</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(movement.resources).map(
+                        ([resource, amount]) => {
+                          const resourceConfig = {
+                            metal: {
+                              icon: (
+                                <Hammer className="h-6 w-6 text-secondary" />
+                              ),
+                              color: "text-secondary",
+                            },
+                            microchips: {
+                              icon: (
+                                <Microchip className="h-6 w-6 text-accent" />
+                              ),
+                              color: "text-accent",
+                            },
+                            deuterium: {
+                              icon: <Flame className="h-6 w-6 text-primary" />,
+                              color: "text-primary",
+                            },
+                            science: {
+                              icon: (
+                                <Beaker className="h-6 w-6 text-blue-400" />
+                              ),
+                              color: "text-blue-400",
+                            },
+                          }[resource.toLowerCase()];
+
+                          return (
+                            amount > 0 && (
+                              <div
+                                key={resource}
+                                className="flex items-center gap-2"
+                              >
+                                {resourceConfig?.icon}
+                                <span className={resourceConfig?.color}>
+                                  {resource}: {amount}
+                                </span>
+                              </div>
+                            )
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -432,4 +454,6 @@ export default function FleetMovements() {
       </div>
     </div>
   );
-}
+};
+
+export default FleetMovements;
