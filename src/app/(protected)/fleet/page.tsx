@@ -510,30 +510,6 @@ export default function Fleet() {
     }
   };
 
-  // Get highlighted planets based on mission type
-  const getHighlightedPlanets = useCallback(() => {
-    if (!planets || !missionType) return [];
-
-    return planets
-      .filter((planet) => {
-        switch (missionType) {
-          case "transport":
-            return planet.owner_id === state.currentUser?.id;
-          case "attack":
-          case "spy":
-            return planet.owner_id && planet.owner_id !== state.currentUser?.id;
-          case "colonize":
-            return !planet.owner_id;
-          case "recycle":
-            // Maybe highlight planets with debris or abandoned structures
-            return false;
-          default:
-            return false;
-        }
-      })
-      .map((p) => p.id);
-  }, [missionType, planets, state.currentUser?.id]);
-
   const getTotalCargoCapacity = () => {
     return Array.from(selectedShips).reduce((total, shipId) => {
       const ship = stationedShips.find((s) => s.id === shipId);
@@ -717,17 +693,6 @@ export default function Fleet() {
                   allowedPlanets={getAllowedTargetPlanets()}
                   focusedPlanet={targetPlanet}
                 />
-
-                {/* <GalaxyMap2D
-                  mode={"mission-target"}
-                  onPlanetSelect={setTargetPlanet}
-                  allowedPlanets={getAllowedTargetPlanets()}
-                  highlightedPlanets={getHighlightedPlanets()}
-                  initialZoom={0.3}
-                  width="100%"
-                  height="100%"
-                  focusedPlanet={targetPlanet}
-                /> */}
               </div>
             </div>
           </div>

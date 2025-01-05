@@ -73,7 +73,8 @@ function PlanetObject({
     if (glowRef.current && isOwnedByPlayer) {
       const glowOpacity = 0.2 + Math.sin(state.clock.elapsedTime * 3) * 0.1;
       const glowScale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.1;
-      glowRef.current.material.opacity = glowOpacity;
+      const material = glowRef.current.material as THREE.Material;
+      material.opacity = glowOpacity;
       glowRef.current.scale.set(glowScale, glowScale, 1);
     }
   });
@@ -309,7 +310,7 @@ const FleetMovementTracker = ({
   const lineRef = useRef<THREE.Line>(null);
 
   // Calculate current position based on journey progress
-  useFrame((state) => {
+  useFrame(() => {
     if (meshRef.current && lineRef.current) {
       const now = Date.now();
       const startTime = new Date(fleetMovement.departure_time).getTime();
@@ -338,7 +339,7 @@ const FleetMovementTracker = ({
   return (
     <group>
       {/* Dotted line path */}
-      <line ref={lineRef}>
+      <primitive object={new THREE.Line()} ref={lineRef}>
         <bufferGeometry
           attach="geometry"
           attributes={{
@@ -364,7 +365,7 @@ const FleetMovementTracker = ({
           transparent
           linewidth={1}
         />
-      </line>
+      </primitive>
 
       {/* Fleet marker with info card */}
       <group
@@ -421,7 +422,7 @@ const GalaxyMap = ({
   const { state } = useGame();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fleetMovements, setFleetMovements] = useState<FleetMovement[]>([]);
-  const controlsRef = useRef<OrbitControls>(null);
+  const controlsRef = useRef(null);
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
@@ -482,8 +483,8 @@ const GalaxyMap = ({
   useEffect(() => {
     if (!focusedPlanet || !controlsRef.current || animating) return;
 
-    const controls = controlsRef.current;
-    const camera = controls.object;
+    const controls = controlsRef.current as any;
+    const camera = controls.object as THREE.OrthographicCamera;
     setAnimating(true);
 
     // Calculate target zoom

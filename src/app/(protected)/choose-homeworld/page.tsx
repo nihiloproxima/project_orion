@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useGame } from "@/contexts/GameContext";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GalaxyMap2D } from "@/components/GalaxyMap2D/GalaxyMap2D";
 import { usePlanets } from "@/hooks/usePlanets";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Planet } from "@/models/planet";
@@ -57,15 +56,6 @@ export default function ChooseHomeworldPage() {
                 onPlanetSelect={handlePlanetSelect}
                 allowedPlanets={unclaimedPlanets.map((p) => p.id)}
               />
-              {/* <GalaxyMap2D
-                mode="homeworld"
-                onPlanetSelect={handlePlanetSelect}
-                allowedPlanets={unclaimedPlanets.map((p) => p.id)}
-                initialZoom={0.5}
-                initialCenter={{ x: 0, y: 0 }}
-                width="100%"
-                height="600px"
-              /> */}
             </div>
           </CardContent>
         </Card>
