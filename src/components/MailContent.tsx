@@ -36,6 +36,7 @@ export function MailContent({ mail }: MailContentProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <h3 className="font-semibold text-primary">Target Location</h3>
+            <p className="text-sm"> {mail.content}</p>
             <p className="text-sm">
               Coordinates: ({spyData.target_coordinates.x},{" "}
               {spyData.target_coordinates.y})

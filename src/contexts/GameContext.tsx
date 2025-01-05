@@ -42,6 +42,7 @@ interface GameState {
 interface GameContextType {
   state: GameState;
   selectPlanet: (planet: Planet) => void;
+  invalidatePlanetsCache: () => void;
   currentResources: {
     metal: number;
     microchips: number;
@@ -219,7 +220,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
       return false;
     };
-
     if (!loadFromCache()) {
       fetchPlanets();
     }
@@ -240,7 +240,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           filter: "owner_id IS NOT NULL",
         },
         (payload) => {
-          // Update only the owner_id of the changed planet
+          // Update state
           setState((prev) => ({
             ...prev,
             planets:
@@ -250,6 +250,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
                   : planet
               ) || null,
           }));
+
+          // Update cache
+          const cached = localStorage.getItem("planets_cache");
+          if (cached) {
+            try {
+              const { planets, timestamp } = JSON.parse(cached);
+              const updatedPlanets = planets.map((planet: any) =>
+                planet.id === payload.new.id
+                  ? { ...planet, owner_id: payload.new.owner_id }
+                  : planet
+              );
+
+              localStorage.setItem(
+                "planets_cache",
+                JSON.stringify({
+                  planets: updatedPlanets,
+                  timestamp,
+                })
+              );
+            } catch (error) {
+              console.error("Error updating planets cache:", error);
+            }
+          }
         }
       )
       .subscribe();
@@ -786,12 +809,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const invalidatePlanetsCache = () => {
+    try {
+      localStorage.removeItem("planets_cache");
+      console.log("Planets cache invalidated");
+    } catch (error) {
+      console.error("Error invalidating planets cache:", error);
+    }
+  };
+
   return (
     <GameContext.Provider
       value={{
         state,
         selectPlanet,
         currentResources,
+        invalidatePlanetsCache,
       }}
     >
       {children}
