@@ -34,6 +34,17 @@ import {
 import { Button } from "../../../components/ui/button";
 import { api } from "../../../lib/api";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const FleetMovements = () => {
   const { state } = useGame();
@@ -321,14 +332,38 @@ const FleetMovements = () => {
               Mission
             </div>
             {canCancel && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                onClick={(e) => handleCancelMission(movement.id, e)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                    onClick={(e) => e.stopPropagation()}
+                    title="Cancel Mission"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel Mission</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel this fleet movement? This
+                      action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e) => handleCancelMission(movement.id, e)}
+                    >
+                      Confirm
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </CardTitle>
         </CardHeader>
