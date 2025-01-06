@@ -58,28 +58,33 @@ Mom`,
     },
     {
       id: "welcome_3",
-      type: "ai_message",
+      type: "private_message",
       category: "messages",
       created_at: now - 2000,
       owner_id: ownerId,
-      sender_name: "AI Assistant",
-      title: "Welcome to Star Command",
-      content: `Greetings Commander,
+      sender_name: "Jake from the Academy",
+      title: "You Actually Made It!",
+      content: `Hey Commander Hotshot! 🚀
 
-I am your AI assistant, ready to help you navigate your new responsibilities. Here's what you need to know:
+Can't believe they actually let YOU graduate! Remember when you accidentally activated the emergency evacuation system during naptime in Stellar Navigation 101? The look on Professor Zorblax's face when his hover-chair shot him straight into the ceiling... PRICELESS! 😂
 
-1. First, check the message from the Supreme Council to choose your homeworld
-2. Once established, I'll guide you through building your first structures
-3. Keep an eye on your secure communications terminal for important updates
+Or that time you tried to impress Sarah from Quantum Physics by "improving" the cafeteria's food replicator, and it spent a week producing nothing but purple spaghetti that tasted like rubber bands? Good times!
 
-Need assistance? Just ask!
+But seriously, despite all our shenanigans (like that infamous incident with the training simulator and the space hamster - which was totally YOUR fault, by the way), you've actually become a pretty decent commander. Who would've thought?
 
-Your loyal AI Assistant`,
+Congrats on the promotion, you magnificent disaster! Try not to blow up your homeworld on the first day, okay? 
+
+P.S. I still have that embarrassing hologram from the graduation party. You know, the one where you tried to demonstrate your "perfect" impression of an Andromedan space whale mating call? That's prime blackmail material right there! 😈
+
+Your partner in crime,
+Jake
+
+P.P.S. But really, proud of you buddy! 🎉`,
       read: false,
       archived: false,
       data: {
-        ai_confidence: 1,
-        priority_level: "high",
+        friendship_level: "best_buddies",
+        blackmail_material: "abundant",
       },
     },
   ];

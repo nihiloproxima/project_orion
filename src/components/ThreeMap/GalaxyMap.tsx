@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas, ThreeEvent, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -137,9 +137,6 @@ function PlanetObject({
           style={getTextStyle()}
         >
           {planet.name}
-          {mode === "homeworld" && isSelectable && (
-            <div className="text-emerald-400 text-xs">Select as Homeworld</div>
-          )}
         </div>
       </Html>
 
@@ -236,9 +233,21 @@ const Planet3DInfoCard = ({
           </div>
         )}
 
-        {mode === "homeworld" && !isSelectable && (
-          <div className="mt-2 text-red-400 text-xs">
-            Not available as homeworld
+        {mode === "homeworld" && (
+          <div className="mt-3">
+            {isSelectable ? (
+              <button
+                onClick={() => onSelect?.()}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-1.5 px-3 rounded-md 
+                          transition-colors duration-200 text-sm font-medium"
+              >
+                Choose as Homeworld
+              </button>
+            ) : (
+              <div className="text-red-400 text-xs text-center">
+                Not available as homeworld
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -445,6 +454,40 @@ const FleetMovementTracker = ({
   );
 };
 
+const StarryBackground = () => {
+  const generateStars = useCallback(() => {
+    const stars = [];
+    const numStars = 2000;
+
+    for (let i = 0; i < numStars; i++) {
+      // Create a wider distribution of stars
+      const x = (Math.random() - 0.5) * 12000;
+      const y = (Math.random() - 0.5) * 12000;
+      const size = Math.random() * 1.5 + 0.5; // Random size between 0.5 and 2
+      const opacity = Math.random() * 0.5 + 0.2; // Random opacity between 0.2 and 0.7
+
+      stars.push({ position: [x, y, -100], size, opacity });
+    }
+    return stars;
+  }, []);
+
+  return (
+    <group>
+      {generateStars().map((star, i) => (
+        <mesh key={i} position={star.position as [number, number, number]}>
+          <circleGeometry args={[star.size, 32]} />
+          <meshBasicMaterial
+            color={0xffffff}
+            transparent
+            opacity={star.opacity}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
 interface GalaxyMapProps {
   mode: "view-only" | "mission-target" | "homeworld";
   onPlanetSelect?: (planet: Planet) => void;
@@ -622,6 +665,7 @@ const GalaxyMap = ({
         style={{ width: "100%", height: "100%" }}
         onClick={handleCanvasClick}
       >
+        <StarryBackground />
         <GridSystem />
 
         {/* Fleet movements */}

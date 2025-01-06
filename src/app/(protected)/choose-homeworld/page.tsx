@@ -50,7 +50,7 @@ export default function ChooseHomeworldPage() {
               {unclaimedPlanets.length} unclaimed worlds await your command.
             </p>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center w-full h-[calc(100vh-20rem)]">
               <GalaxyMap
                 mode="homeworld"
                 onPlanetSelect={handlePlanetSelect}
