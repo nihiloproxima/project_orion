@@ -105,7 +105,9 @@ export default function Reports() {
       await supabase.from("mails").delete().eq("id", id);
       if (selectedMail?.id === id) {
         setSelectedMail(null);
+        setIsViewingMail(false);
       }
+      setMails(mails.filter((mail) => mail.id !== id));
     } catch (error) {
       console.error("Error deleting mail:", error);
     }
@@ -254,7 +256,7 @@ export default function Reports() {
                 </div>
               ) : (
                 <div className="flex-1 p-6">
-                  <div className="mb-4 sticky top-0 bg-gray-900 z-10 py-2">
+                  <div className="mb-4 sticky top-0 bg-gray-900 z-10 py-2 flex justify-between">
                     <Button
                       variant="outline"
                       onClick={() => setIsViewingMail(false)}
@@ -263,6 +265,16 @@ export default function Reports() {
                       <Mail className="h-4 w-4" />
                       Back to Inbox
                     </Button>
+                    {selectedMail && (
+                      <Button
+                        variant="destructive"
+                        onClick={() => deleteMail(selectedMail.id)}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete Mail
+                      </Button>
+                    )}
                   </div>
                   {selectedMail && <MailContent mail={selectedMail as any} />}
                 </div>

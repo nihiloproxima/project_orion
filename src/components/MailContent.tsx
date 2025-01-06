@@ -36,7 +36,7 @@ export function MailContent({ mail }: MailContentProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <h3 className="font-semibold text-primary">Target Location</h3>
-            <p className="text-sm"> {mail.content}</p>
+            <p className="text-sm whitespace-pre-line">{mail.content}</p>
             <p className="text-sm">
               Coordinates: ({spyData.target_coordinates.x},{" "}
               {spyData.target_coordinates.y})
@@ -278,7 +278,9 @@ export function MailContent({ mail }: MailContentProps) {
         </div>
 
         <div className="prose prose-invert max-w-none">
-          {mail.content && <p>{mail.content}</p>}
+          {mail.content && (
+            <p className="whitespace-pre-line">{mail.content}</p>
+          )}
 
           {mail.data?.resources_delivered && (
             <div className="border border-primary/20 rounded-md p-4 mt-4">
@@ -366,7 +368,7 @@ export function MailContent({ mail }: MailContentProps) {
 
         <div className="prose prose-invert max-w-none">
           {mail.data?.context && (
-            <div className="text-sm text-gray-400 mb-4">
+            <div className="text-sm text-gray-400 mb-4 whitespace-pre-line">
               Context: {mail.data.context}
             </div>
           )}
