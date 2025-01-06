@@ -7,7 +7,6 @@ export type TechnologyId =
   | "deuterium_production_boost" // Boost deuterium production
   | "energy_efficiency" // Boost energy production
   | "espionage_tech" // Unlock spy probe, upgrade to enhance espionage
-  | "global_researchs" // All researchs are shared across your planets
   | "metal_production_boost" // Boost metal production
   | "microchips_production_boost" // Boost microchips production
   | "science_production_boost" // Boost science production through distributed
@@ -224,35 +223,6 @@ export const DEFAULT_RESEARCHS_CONFIG: ResearchsConfig = {
           resource_type: "energy",
           value: 5,
           per_level: true,
-        },
-      ],
-    },
-    global_researchs: {
-      id: "global_researchs",
-      category: "infrastructure",
-      max_level: 1,
-      prerequisites: [
-        {
-          technology_id: "microchips_production_boost",
-          required_level: 5,
-        },
-      ],
-      cost: {
-        base_metal: 150,
-        base_deuterium: 100,
-        base_science: 50,
-        base_microchips: 10,
-        percent_increase_per_level: 0,
-      },
-      time: {
-        base_seconds: 30,
-        percent_increase_per_level: 0,
-      },
-      effects: [
-        {
-          type: "research_sharing",
-          value: 1,
-          per_level: false,
         },
       ],
     },

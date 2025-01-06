@@ -94,11 +94,4 @@ export const TECHNOLOGIES: Record<
       "Develops synthetic neural matrices that mimic organic brain structures, enabling advanced computational processing and machine consciousness.",
     category: "infrastructure",
   },
-  global_researchs: {
-    name: "Ansible Network",
-    image: "ansible_network.png",
-    description:
-      "Enables research sharing between planets through quantum entanglement.",
-    category: "infrastructure",
-  },
 };
