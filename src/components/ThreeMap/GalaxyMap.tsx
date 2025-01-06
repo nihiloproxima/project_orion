@@ -491,6 +491,7 @@ const GalaxyMap = ({
         .select("*")
         .neq("owner_id", state.currentUser?.id)
         .neq("mission_type", "transport")
+        .neq("mission_type", "spy")
         .in("destination_planet_id", state.userPlanets?.map((p) => p.id) || [])
         .eq("status", "traveling");
 
@@ -512,7 +513,11 @@ const GalaxyMap = ({
           event: "*",
           schema: "public",
           table: "fleet_movements",
-          filter: `owner_id=eq.${state.currentUser?.id}`,
+          filter: `owner_id=eq.${
+            state.currentUser?.id
+          } OR (mission_type=eq.transport AND destination_planet_id=in.(${
+            state.userPlanets?.map((p) => p.id).join(",") || ""
+          }))`,
         },
         (payload) => {
           if (payload.eventType === "DELETE") {
