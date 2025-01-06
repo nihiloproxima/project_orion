@@ -1,0 +1,17 @@
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.grid-dot {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.fleet-trail {
+  filter: blur(4px);
+}

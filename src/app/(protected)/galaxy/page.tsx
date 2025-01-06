@@ -33,7 +33,7 @@ export default function GalaxyObservation() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="flex justify-center h-[500px]">
+          <div className="flex justify-center h-[500px] lg:h-[700px] xl:h-[800px]">
             <GalaxyMap mode="view-only" />
           </div>
         </CardContent>
