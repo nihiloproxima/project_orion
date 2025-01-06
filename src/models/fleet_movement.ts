@@ -10,6 +10,7 @@ export interface ResourcePayload {
 export interface FleetMovement {
   id: string;
   owner_id: string;
+  owner_name: string;
   ships_ids: string[];
   ship_counts: {
     [key: string]: number;

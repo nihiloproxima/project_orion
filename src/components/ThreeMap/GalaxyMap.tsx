@@ -308,6 +308,26 @@ const FleetMovementTracker = ({
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const lineRef = useRef<THREE.Line>(null);
+  const { state } = useGame();
+
+  // Determine movement type
+  const isAllyMovement =
+    fleetMovement.owner_id !== state.currentUser?.id &&
+    fleetMovement.mission_type === "transport";
+  const isHostileMovement =
+    fleetMovement.owner_id !== state.currentUser?.id &&
+    !["transport", "spy"].includes(fleetMovement.mission_type);
+
+  // Get color based on movement type
+  const getMovementColor = () => {
+    if (isHostileMovement) {
+      return 0xef4444; // Red color for hostile movements
+    }
+    if (isAllyMovement) {
+      return 0x3b82f6; // Blue color for ally transports
+    }
+    return 0x20e0a0; // Default green color for own movements
+  };
 
   // Calculate current position based on journey progress
   useFrame(() => {
@@ -336,6 +356,8 @@ const FleetMovementTracker = ({
     }
   });
 
+  const movementColor = getMovementColor();
+
   return (
     <group>
       {/* Dotted line path */}
@@ -358,7 +380,7 @@ const FleetMovementTracker = ({
         />
         <lineDashedMaterial
           attach="material"
-          color={0x20e0a0}
+          color={movementColor}
           dashSize={50}
           gapSize={50}
           opacity={0.4}
@@ -374,17 +396,31 @@ const FleetMovementTracker = ({
       >
         <mesh>
           <circleGeometry args={[10, 32]} />
-          <meshBasicMaterial color={0x20e0a0} transparent opacity={0.8} />
+          <meshBasicMaterial color={movementColor} transparent opacity={0.8} />
         </mesh>
 
         <Html position={[20, 0, 0]}>
           <div
-            className="bg-neutral-900/95 border border-emerald-400/30 px-2 py-1 
+            className={`bg-neutral-900/95 border ${
+              isHostileMovement
+                ? "border-red-400/30"
+                : isAllyMovement
+                ? "border-blue-400/30"
+                : "border-emerald-400/30"
+            } px-2 py-1 
                         text-neutral-100 font-sans text-xs 
-                        pointer-events-none whitespace-nowrap rounded-sm"
+                        pointer-events-none whitespace-nowrap rounded-sm`}
           >
             <div className="flex flex-col gap-0.5">
-              <span className="text-emerald-400">
+              <span
+                className={
+                  isHostileMovement
+                    ? "text-red-400"
+                    : isAllyMovement
+                    ? "text-blue-400"
+                    : "text-emerald-400"
+                }
+              >
                 → {fleetMovement.destination_name}
               </span>
               <span className="text-neutral-400 text-[10px]">
@@ -394,6 +430,11 @@ const FleetMovementTracker = ({
               {fleetMovement.mission_type && (
                 <span className="text-neutral-400 text-[10px] capitalize">
                   {fleetMovement.mission_type}
+                </span>
+              )}
+              {(isAllyMovement || isHostileMovement) && (
+                <span className="text-neutral-400 text-[10px]">
+                  From: {fleetMovement.owner_name}
                 </span>
               )}
             </div>
@@ -428,15 +469,36 @@ const GalaxyMap = ({
   useEffect(() => {
     // Initial fetch of fleet movements
     const fetchFleetMovements = async () => {
-      const { data } = await supabase
+      // Fetch own movements
+      const { data: ownMovements } = await supabase
         .from("fleet_movements")
         .select("*")
         .eq("owner_id", state.currentUser?.id)
         .eq("status", "traveling");
 
-      if (data) {
-        setFleetMovements(data);
-      }
+      // Fetch ally movements (transports coming to our planets)
+      const { data: allyMovements } = await supabase
+        .from("fleet_movements")
+        .select("*")
+        .neq("owner_id", state.currentUser?.id)
+        .eq("mission_type", "transport")
+        .in("destination_planet_id", state.userPlanets?.map((p) => p.id) || [])
+        .eq("status", "traveling");
+
+      // Fetch hostile movements targeting our planets
+      const { data: hostileMovements } = await supabase
+        .from("fleet_movements")
+        .select("*")
+        .neq("owner_id", state.currentUser?.id)
+        .neq("mission_type", "transport")
+        .in("destination_planet_id", state.userPlanets?.map((p) => p.id) || [])
+        .eq("status", "traveling");
+
+      setFleetMovements([
+        ...(ownMovements || []),
+        ...(allyMovements || []),
+        ...(hostileMovements || []),
+      ]);
     };
 
     fetchFleetMovements();
@@ -477,7 +539,7 @@ const GalaxyMap = ({
     return () => {
       subscription.unsubscribe();
     };
-  }, [state.currentUser?.id]);
+  }, [state.currentUser?.id, state.userPlanets]);
 
   // Add effect to handle focused planet changes
   useEffect(() => {

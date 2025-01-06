@@ -50,6 +50,7 @@ const FleetMovements = () => {
   const { state } = useGame();
   const [movements, setMovements] = useState<FleetMovement[]>([]);
   const [hostileMovements, setHostileMovements] = useState<FleetMovement[]>([]);
+  const [allyMovements, setAllyMovements] = useState<FleetMovement[]>([]);
   const [expandedMovement, setExpandedMovement] = useState<string | null>(null);
   const [missionFilter, setMissionFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("arrival");
@@ -65,15 +66,22 @@ const FleetMovements = () => {
         .select("*")
         .eq("owner_id", state.currentUser?.id);
 
-      // Get hostile movements targeting user's planets
+      // Get incoming movements targeting user's planets
       const { data: incomingMovements } = await supabase
         .from("fleet_movements")
         .select("*")
         .neq("owner_id", state.currentUser?.id)
         .in("destination_planet_id", state.userPlanets?.map((p) => p.id) || []);
 
+      // Split incoming movements into hostile and ally
+      const hostile =
+        incomingMovements?.filter((m) => m.mission_type === "attack") || [];
+      const ally =
+        incomingMovements?.filter((m) => m.mission_type === "transport") || [];
+
       setMovements(ownMovements || []);
-      setHostileMovements(incomingMovements || []);
+      setHostileMovements(hostile);
+      setAllyMovements(ally);
     };
 
     fetchMovements();
@@ -113,9 +121,9 @@ const FleetMovements = () => {
       )
       .subscribe();
 
-    // Subscribe to hostile movements
-    const hostileSubscription = supabase
-      .channel("hostile_movements")
+    // Subscribe to incoming movements
+    const incomingSubscription = supabase
+      .channel("incoming_movements")
       .on(
         "postgres_changes",
         {
@@ -131,19 +139,35 @@ const FleetMovements = () => {
             setHostileMovements((current) =>
               current.filter((m) => m.id !== payload.old.id)
             );
+            setAllyMovements((current) =>
+              current.filter((m) => m.id !== payload.old.id)
+            );
           } else {
             const movement = payload.new as FleetMovement;
             if (movement.owner_id !== state.currentUser?.id) {
-              setHostileMovements((current) => {
-                const updated = [...current];
-                const index = updated.findIndex((m) => m.id === movement.id);
-                if (index >= 0) {
-                  updated[index] = movement;
-                } else {
-                  updated.push(movement);
-                }
-                return updated;
-              });
+              if (movement.mission_type === "attack") {
+                setHostileMovements((current) => {
+                  const updated = [...current];
+                  const index = updated.findIndex((m) => m.id === movement.id);
+                  if (index >= 0) {
+                    updated[index] = movement;
+                  } else {
+                    updated.push(movement);
+                  }
+                  return updated;
+                });
+              } else if (movement.mission_type === "transport") {
+                setAllyMovements((current) => {
+                  const updated = [...current];
+                  const index = updated.findIndex((m) => m.id === movement.id);
+                  if (index >= 0) {
+                    updated[index] = movement;
+                  } else {
+                    updated.push(movement);
+                  }
+                  return updated;
+                });
+              }
             }
           }
         }
@@ -152,7 +176,7 @@ const FleetMovements = () => {
 
     return () => {
       movementsSubscription.unsubscribe();
-      hostileSubscription.unsubscribe();
+      incomingSubscription.unsubscribe();
     };
   }, [state.currentUser?.id, state.planets]);
 
@@ -293,21 +317,17 @@ const FleetMovements = () => {
 
   const renderMovementCard = (
     movement: FleetMovement,
-    isHostile: boolean = false
+    type: "own" | "hostile" | "ally" = "own"
   ) => {
-    const isFriendlyTransport =
-      movement.mission_type === "transport" &&
-      movement.owner_id !== state.currentUser?.id;
-
-    const canCancel = !isHostile && movement.status === "traveling";
+    const canCancel = type === "own" && movement.status === "traveling";
 
     return (
       <Card
         key={movement.id}
         className={`${
-          isHostile && !isFriendlyTransport
+          type === "hostile"
             ? "border-red-500/50 bg-red-950/10"
-            : isFriendlyTransport
+            : type === "ally"
             ? "border-green-500/50 bg-green-950/10"
             : "border-primary/20"
         } cursor-pointer transition-all hover:scale-[1.02]`}
@@ -320,12 +340,10 @@ const FleetMovements = () => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {isHostile && !isFriendlyTransport && (
+              {type === "hostile" && (
                 <AlertTriangle className="h-5 w-5 text-red-500" />
               )}
-              {isFriendlyTransport && (
-                <Gift className="h-5 w-5 text-green-500" />
-              )}
+              {type === "ally" && <Gift className="h-5 w-5 text-green-500" />}
               <Rocket className="h-5 w-5" />
               {movement.mission_type.charAt(0).toUpperCase() +
                 movement.mission_type.slice(1)}{" "}
@@ -506,7 +524,25 @@ const FleetMovements = () => {
             }
           >
             {sortMovements(filterMovements(hostileMovements)).map((movement) =>
-              renderMovementCard(movement, true)
+              renderMovementCard(movement, "hostile")
+            )}
+          </div>
+        </div>
+      )}
+
+      {allyMovements.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-green-500">
+            🤝 Incoming Allied Support
+          </h2>
+          <MovementControls />
+          <div
+            className={
+              displayMode === "grid" ? "grid gap-4 md:grid-cols-2" : "space-y-4"
+            }
+          >
+            {sortMovements(filterMovements(allyMovements)).map((movement) =>
+              renderMovementCard(movement, "ally")
             )}
           </div>
         </div>
@@ -522,7 +558,7 @@ const FleetMovements = () => {
             }
           >
             {sortMovements(filterMovements(movements)).map((movement) =>
-              renderMovementCard(movement)
+              renderMovementCard(movement, "own")
             )}
           </div>
         ) : (
