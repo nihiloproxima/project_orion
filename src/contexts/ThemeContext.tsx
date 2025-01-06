@@ -21,9 +21,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
       const savedTheme = localStorage.getItem("color-theme");
-      return (savedTheme as Theme) || "default";
+      return (savedTheme as Theme) || "blue";
     }
-    return "default";
+    return "blue";
   });
 
   useEffect(() => {

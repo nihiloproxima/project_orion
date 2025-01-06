@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
+import * as THREE from "three";
 
 interface FleetSimulation {
   id: number;
@@ -40,29 +41,32 @@ export function AnimatedSpaceBackground() {
   }, []);
 
   return (
-    <>
-      {/* Three.js background with stars */}
+    <div className="fixed inset-0 z-0">
+      {/* Make the Canvas container pointer-events-none */}
       <div className="fixed inset-0 pointer-events-none">
-        <Canvas>
+        <Canvas
+          camera={{ position: [0, 0, 1] }}
+          style={{ pointerEvents: "none" }}
+        >
           <Stars
-            radius={300}
+            radius={100}
             depth={50}
-            count={1000}
-            factor={2}
+            count={5000}
+            factor={4}
             saturation={0}
             fade
-            speed={0.5}
+            speed={1}
           />
-          <gridHelper
-            args={[
-              2000,
-              40,
-              "rgba(32, 224, 160, 0.1)",
-              "rgba(32, 224, 160, 0.05)",
-            ]}
-            position={[0, 0, -10]}
-          />
-          <ambientLight intensity={0.1} />
+          <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -20, 0]}>
+            <planeGeometry args={[100, 100, 50, 50]} />
+            <meshBasicMaterial
+              color={new THREE.Color("#20e0a0")}
+              wireframe
+              transparent
+              opacity={0.1}
+            />
+          </mesh>
+          <ambientLight intensity={0.5} />
         </Canvas>
       </div>
 
@@ -91,10 +95,10 @@ export function AnimatedSpaceBackground() {
           >
             {/* Fleet trail effect */}
             <motion.div
-              className="absolute w-full h-full bg-primary rounded-full"
+              className="absolute w-full h-full bg-primary rounded-full shadow-glow"
               animate={{
                 scale: [1, 2],
-                opacity: [0.5, 0],
+                opacity: [0.8, 0],
               }}
               transition={{
                 duration: 1,
@@ -102,10 +106,10 @@ export function AnimatedSpaceBackground() {
               }}
             />
             <motion.div
-              className="absolute w-full h-full bg-primary/50 rounded-full"
+              className="absolute w-full h-full bg-primary/50 rounded-full shadow-glow"
               animate={{
                 scale: [1, 3],
-                opacity: [0.3, 0],
+                opacity: [0.5, 0],
               }}
               transition={{
                 duration: 1.5,
@@ -115,6 +119,12 @@ export function AnimatedSpaceBackground() {
           </motion.div>
         ))}
       </div>
-    </>
+
+      <style jsx>{`
+        .shadow-glow {
+          box-shadow: 0 0 10px #20e0a0, 0 0 20px #20e0a0, 0 0 30px #20e0a0;
+        }
+      `}</style>
+    </div>
   );
 }

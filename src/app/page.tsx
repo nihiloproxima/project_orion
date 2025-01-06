@@ -75,24 +75,30 @@ export default function Home() {
       className="min-h-screen bg-background cyber-grid overflow-hidden"
       ref={targetRef}
     >
-      {/* Navigation */}
+      {/* Navigation - make it fixed and ensure it's above everything */}
       {!isAuthenticated && (
-        <nav className="p-6 flex justify-between items-center backdrop-blur-sm border-b neon-border z-50">
+        <nav className="fixed top-0 left-0 right-0 p-6 flex justify-between items-center backdrop-blur-sm border-b neon-border z-[999]">
           <div className="flex items-center gap-2">
             <Rocket className="w-8 h-8 text-primary animate-pulse" />
             <h1 className="text-2xl font-bold neon-text">PROJECT ORION</h1>
           </div>
           <div className="space-x-4">
-            <Link href="/auth/login">
+            <Link href="/auth/login" passHref legacyBehavior>
               <Button
+                type="button"
                 variant="outline"
                 className="neon-border hover:bg-primary/20"
+                onClick={() => (window.location.href = "/auth/login")}
               >
                 LOGIN
               </Button>
             </Link>
-            <Link href="/auth/register">
-              <Button className="bg-primary hover:bg-primary/80 text-primary-foreground">
+            <Link href="/auth/register" passHref legacyBehavior>
+              <Button
+                type="button"
+                className="bg-primary hover:bg-primary/80 text-primary-foreground"
+                onClick={() => (window.location.href = "/auth/register")}
+              >
                 REGISTER
               </Button>
             </Link>
@@ -332,7 +338,7 @@ export default function Home() {
           <CardHeader>
             <CardTitle className="text-2xl neon-text flex items-center gap-2">
               <Zap className="w-6 h-6" />
-              LATEST UPDATE: v1.0.1
+              LATEST UPDATE: v0.0.1
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 relative z-10">
@@ -344,10 +350,10 @@ export default function Home() {
                 </h3>
                 <ul className="space-y-2">
                   {[
-                    "Advanced AI battle simulation",
-                    "Dynamic trade system",
-                    "Enhanced fleet management",
-                    "New ship classes and weapons",
+                    "Enhanced fleet visualization and map galaxy interface",
+                    "New mail system for mission reports",
+                    "Ally transport mission system",
+                    "Improved queue management system",
                   ].map((feature, index) => (
                     <motion.li
                       key={index}
@@ -370,10 +376,9 @@ export default function Home() {
                 </h3>
                 <ul className="space-y-2">
                   {[
-                    "Enhanced neural interface",
-                    "Optimized quantum calculations",
-                    "Improved battle simulation engine",
-                    "Advanced resource distribution",
+                    "Fixed critical queue system issues",
+                    "Optimized galaxy map performance",
+                    "Enhanced mission reporting interface",
                   ].map((improvement, index) => (
                     <motion.li
                       key={index}
@@ -393,7 +398,7 @@ export default function Home() {
         </Card>
       </motion.div>
 
-      {/* Replace the existing particles background */}
+      {/* Add position-fixed and lower z-index to background */}
       <AnimatedSpaceBackground />
     </div>
   );

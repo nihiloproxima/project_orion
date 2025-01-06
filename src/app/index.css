@@ -98,13 +98,55 @@
     @apply text-accent drop-shadow-[0_0_8px_theme(colors.accent.DEFAULT/50%)];
   }
 
+  .neon-glow {
+    box-shadow: 0 0 5px theme(colors.primary.DEFAULT),
+      0 0 20px theme(colors.primary.DEFAULT/50%),
+      0 0 40px theme(colors.primary.DEFAULT/25%);
+  }
+
+  .neon-text-glow {
+    text-shadow: 0 0 5px theme(colors.primary.DEFAULT),
+      0 0 20px theme(colors.primary.DEFAULT/50%),
+      0 0 40px theme(colors.primary.DEFAULT/25%);
+  }
+
   .cyber-grid {
     background-image: linear-gradient(
+        to right,
         hsl(var(--primary) / 0.1) 1px,
         transparent 1px
       ),
-      linear-gradient(90deg, hsl(var(--primary) / 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-    background-attachment: fixed;
+      linear-gradient(to bottom, hsl(var(--primary) / 0.1) 1px, transparent 1px);
+    background-size: 4rem 4rem;
+    background-position: center;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      black 15%,
+      black 85%,
+      transparent
+    );
+  }
+
+  .cyber-gradient {
+    background: linear-gradient(
+      45deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--secondary)) 50%,
+      hsl(var(--accent)) 100%
+    );
+  }
+
+  .cyber-border {
+    border: 1px solid transparent;
+    background: linear-gradient(var(--background), var(--background))
+        padding-box,
+      linear-gradient(
+          45deg,
+          hsl(var(--primary)),
+          hsl(var(--secondary)),
+          hsl(var(--accent))
+        )
+        border-box;
   }
 }
