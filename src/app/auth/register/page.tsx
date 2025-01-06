@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 export default function Register() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function Register() {
         password,
         options: {
           data: {
-            name: name, // Store name in user metadata
+            name: name,
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
@@ -74,11 +75,26 @@ export default function Register() {
       if (signUpError) throw signUpError;
       if (!data?.user) throw new Error("User creation failed");
 
-      // Registration will be completed in auth/callback after email verification
+      // Create user in our database
+      const response = await api.users.register(name);
+
+      if (!response.ok) {
+        throw new Error("Failed to create user record");
+      }
+
+      // Registration successful
       setError(
         "Please check your email to verify your account before logging in."
       );
       await logout(); // Log them out until they verify email
+
+      // Clear form
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setName("");
+
+      router.push("/auth/login");
     } catch (error: any) {
       console.error("Registration failed:", error);
       setError(error.message || "Registration failed");

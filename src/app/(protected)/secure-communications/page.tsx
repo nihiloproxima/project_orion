@@ -102,6 +102,16 @@ export default function Reports() {
 
   const deleteMail = async (id: string) => {
     try {
+      // Check if this is an onboarding mail and user has no planet selected
+      const mailToDelete = mails.find((m) => m.id === id);
+      if (
+        !state.selectedPlanet &&
+        mailToDelete?.type === "game_message" &&
+        mailToDelete.title.includes("Choose Your Homeworld")
+      ) {
+        return; // Prevent deletion of homeworld selection mail
+      }
+
       await supabase.from("mails").delete().eq("id", id);
       if (selectedMail?.id === id) {
         setSelectedMail(null);
@@ -224,16 +234,22 @@ export default function Reports() {
                                   </span>
                                 </div>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteMail(mail.id);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {!state.selectedPlanet &&
+                              mail.type === "game_message" &&
+                              mail.title.includes(
+                                "Choose Your Homeworld"
+                              ) ? null : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteMail(mail.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                             <p className="text-xs text-primary/60 mt-1">
                               {new Date(mail.created_at).toLocaleString()}
@@ -265,7 +281,12 @@ export default function Reports() {
                       <Mail className="h-4 w-4" />
                       Back to Inbox
                     </Button>
-                    {selectedMail && (
+                    {selectedMail &&
+                    !state.selectedPlanet &&
+                    selectedMail.type === "game_message" &&
+                    selectedMail.title.includes(
+                      "Choose Your Homeworld"
+                    ) ? null : (
                       <Button
                         variant="destructive"
                         onClick={() => deleteMail(selectedMail.id)}
