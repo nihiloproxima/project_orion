@@ -102,14 +102,10 @@ export default function Reports() {
 
   const deleteMail = async (id: string) => {
     try {
-      // Check if this is an onboarding mail and user has no planet selected
+      // Check if this is a game message
       const mailToDelete = mails.find((m) => m.id === id);
-      if (
-        !state.selectedPlanet &&
-        mailToDelete?.type === "game_message" &&
-        mailToDelete.title.includes("Choose Your Homeworld")
-      ) {
-        return; // Prevent deletion of homeworld selection mail
+      if (mailToDelete?.type === "game_message") {
+        return; // Prevent deletion of game messages
       }
 
       await supabase.from("mails").delete().eq("id", id);
@@ -234,11 +230,7 @@ export default function Reports() {
                                   </span>
                                 </div>
                               </div>
-                              {!state.selectedPlanet &&
-                              mail.type === "game_message" &&
-                              mail.title.includes(
-                                "Choose Your Homeworld"
-                              ) ? null : (
+                              {mail.type === "game_message" ? null : (
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -281,15 +273,10 @@ export default function Reports() {
                       <Mail className="h-4 w-4" />
                       Back to Inbox
                     </Button>
-                    {selectedMail &&
-                    !state.selectedPlanet &&
-                    selectedMail.type === "game_message" &&
-                    selectedMail.title.includes(
-                      "Choose Your Homeworld"
-                    ) ? null : (
+                    {selectedMail?.type === "game_message" ? null : (
                       <Button
                         variant="destructive"
-                        onClick={() => deleteMail(selectedMail.id)}
+                        onClick={() => deleteMail(selectedMail?.id || "")}
                         className="gap-2"
                       >
                         <Trash2 className="h-4 w-4" />

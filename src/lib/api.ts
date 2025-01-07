@@ -54,12 +54,12 @@ export const api = {
     },
   },
   users: {
-    register: async (name: string) => {
-      return post("users", "register", { name });
-    },
-    update: async (name: string, avatar: string) => {
-      return post("users", "update", { name, avatar });
-    },
+    register: (name: string, avatar: string) =>
+      post("users", "register", { name, avatar }),
+    update: (name: string, avatar: string) =>
+      post("users", "update", { name, avatar }),
+    chooseHomeworld: (planetId: string) =>
+      post("users", "chooseHomeworld", { planet_id: planetId }),
   },
   planets: {
     claim: async (planetId: string, homeworld: boolean) => {

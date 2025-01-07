@@ -77,7 +77,7 @@ function ResearchCard({
     1 + (research.time.percent_increase_per_level * tech.level) / 100;
   const researchSpeedBonus = getTechnologyBonus(
     state.researchsConfig!,
-    state.planetResearchs!,
+    state.userResearchs!,
     "research_speed"
   );
   const researchTime =
@@ -102,8 +102,8 @@ function ResearchCard({
     !research.prerequisites ||
     research.prerequisites.every(
       (prereq) =>
-        (state.planetResearchs?.technologies[prereq.technology_id]?.level ||
-          0) >= prereq.required_level
+        (state.userResearchs?.technologies[prereq.technology_id]?.level || 0) >=
+        prereq.required_level
     );
 
   // Helper function to format time (similar to the one in Structures.tsx)
@@ -380,12 +380,12 @@ export default function Researchs() {
     localStorage.setItem("structuresGridCols", cols.toString());
   };
 
-  if (!state.researchsConfig || !state.planetResearchs) {
+  if (!state.researchsConfig || !state.userResearchs) {
     return <div>Loading...</div>;
   }
 
   // Check if laboratory exists
-  const hasLaboratory = state.structures?.some(
+  const hasLaboratory = state.planetStructures?.some(
     (structure) => structure.type === "research_lab"
   );
 
@@ -418,7 +418,7 @@ export default function Researchs() {
   };
 
   const isAnyResearchInProgress = Object.values(
-    state.planetResearchs.technologies
+    state.userResearchs.technologies
   ).some((tech) => tech.is_researching);
 
   return (
@@ -462,7 +462,7 @@ export default function Researchs() {
         <div className={`grid ${gridColsClass} gap-6`}>
           {Object.entries(state.researchsConfig.available_researchs).map(
             ([id, research]) => {
-              const tech = state.planetResearchs?.technologies[id] || {
+              const tech = state.userResearchs?.technologies[id] || {
                 level: 0,
                 is_researching: false,
                 research_start_time: null,

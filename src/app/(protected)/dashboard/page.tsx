@@ -92,14 +92,22 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    if (
-      !state.loading &&
-      !state.selectedPlanet &&
-      state.userPlanets.length === 0
-    ) {
-      router.push("/secure-communications");
+    if (!state.loading) {
+      if (state.currentUser) {
+        if (!state.selectedPlanet && state.userPlanets.length === 0) {
+          router.push("/secure-communications");
+        }
+      } else {
+        router.push("/create-user");
+      }
     }
-  }, [state.loading, state.selectedPlanet, state.userPlanets.length, router]);
+  }, [
+    state.loading,
+    state.currentUser,
+    state.selectedPlanet,
+    state.userPlanets.length,
+    router,
+  ]);
 
   useEffect(() => {
     // Subscribe to hostile fleets targeting user's planets

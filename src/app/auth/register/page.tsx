@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,26 +13,15 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { api } from "@/lib/api";
 
 export default function Register() {
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    // If already authenticated, redirect to secure communications
-    if (isAuthenticated) {
-      router.push("/secure-communications");
-    }
-  }, [isAuthenticated, router]);
 
   const validatePasswords = () => {
     if (password !== confirmPassword) {
@@ -44,30 +33,23 @@ export default function Register() {
       return false;
     }
     setError("");
+
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setIsLoading(true);
     e.preventDefault();
     if (!validatePasswords()) {
+      setIsLoading(false);
       return;
     }
 
-    if (!name) {
-      setError("OPERATOR NAME REQUIRED");
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      // First create the auth user
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            name: name,
-          },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
@@ -75,37 +57,34 @@ export default function Register() {
       if (signUpError) throw signUpError;
       if (!data?.user) throw new Error("User creation failed");
 
-      // Create user in our database
-      const response = await api.users.register(name);
-
-      if (!response.ok) {
-        throw new Error("Failed to create user record");
-      }
-
-      // Registration successful
-      setError(
-        "Please check your email to verify your account before logging in."
-      );
-      await logout(); // Log them out until they verify email
-
       // Clear form
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      setName("");
 
-      router.push("/auth/login");
+      // Check user status after successful login
+      const { data: existingUser } = await supabase
+        .from("users")
+        .select()
+        .eq("id", (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!existingUser) {
+        router.push("/create-user");
+      } else if (!existingUser.home_planet_id) {
+        router.push("/secure-communications");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error: any) {
-      console.error("Registration failed:", error);
-      setError(error.message || "Registration failed");
-      await logout();
+      console.error("Login failed:", error);
+      setError(error.message || "Login failed");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDiscordSignIn = async () => {
-    setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "discord",
@@ -123,8 +102,6 @@ export default function Register() {
     } catch (error: any) {
       setError(error.message || "Discord authentication failed");
       console.error("Discord auth failed:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -141,8 +118,11 @@ export default function Register() {
             {">"} INITIALIZING REGISTRATION SEQUENCE...
           </div>
           {error && (
-            <div className="text-xs font-mono text-red-500 bg-red-500/10 p-2 border border-red-500/30 rounded animate-pulse">
-              {">"} ERROR: {error}
+            <div className="text-xs font-mono text-red-500 bg-red-500/10 p-2 border border-red-500/30 rounded animate-pulse shadow-lg shadow-red-500/20 backdrop-blur-sm">
+              <span className="inline-block animate-ping mr-2">!</span>
+              <span className="inline-block animate-pulse">{">"}</span>
+              <span className="font-bold tracking-wider ml-1">ERROR:</span>
+              <span className="opacity-90 ml-1">{error}</span>
             </div>
           )}
         </CardHeader>
@@ -183,24 +163,6 @@ export default function Register() {
                 disabled={isLoading}
                 className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border disabled:opacity-50"
                 placeholder="enter.operator@id"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label
-                htmlFor="pseudonym"
-                className="font-mono text-sm text-primary/90"
-              >
-                [OPERATOR NAME]
-              </Label>
-              <Input
-                id="pseudonym"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                disabled={isLoading}
-                className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border disabled:opacity-50"
-                placeholder="enter_name"
               />
             </div>
             <div className="space-y-2">

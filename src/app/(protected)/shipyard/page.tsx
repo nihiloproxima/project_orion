@@ -177,14 +177,13 @@ function ShipCard({
   const { state, currentResources } = useGame();
   const [buildAmount, setBuildAmount] = useState(1);
   const asset = SHIP_ASSETS[type];
-  const shipyard = state.structures?.find((s) => s.type === "shipyard");
+  const shipyard = state.planetStructures?.find((s) => s.type === "shipyard");
 
   // Check if requirements are met
   const meetsShipyardLevel =
     shipyard && shipyard.level >= config.requirements.shipyard_level;
   const meetsTechRequirements = config.requirements.technologies.every(
-    (req: any) =>
-      state.planetResearchs!.technologies[req.id]?.level >= req.level
+    (req: any) => state.userResearchs!.technologies[req.id]?.level >= req.level
   );
 
   // Calculate max ships possible with current resources
@@ -474,7 +473,7 @@ export default function Shipyard() {
   }, [state.selectedPlanet?.id]);
 
   // Check if shipyard exists
-  const hasShipyard = state.structures?.some(
+  const hasShipyard = state.planetStructures?.some(
     (structure) => structure.type === "shipyard" && structure.level >= 1
   );
 

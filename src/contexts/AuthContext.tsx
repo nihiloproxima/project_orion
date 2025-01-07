@@ -15,7 +15,6 @@ import { LoadingScreen } from "../components/LoadingScreen";
 interface AuthContextType {
   isAuthenticated: boolean;
   authedUser: User | null;
-  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -44,15 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
-    router.push("/dashboard");
-  };
-
   const logout = async () => {
     await supabase.auth.signOut();
     router.push("/auth/login");
@@ -67,7 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         isAuthenticated: !!user,
         authedUser: user,
-        login,
         logout,
         loading,
       }}

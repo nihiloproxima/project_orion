@@ -25,6 +25,7 @@ function PlanetObject({
   const [isInfoCardHovered, setIsInfoCardHovered] = useState(false);
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
+  const starRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
   const { state } = useGame();
 
@@ -69,13 +70,21 @@ function PlanetObject({
       meshRef.current.scale.set(1, 1, 1);
     }
 
-    // Only animate glow for owned planets
-    if (glowRef.current && isOwnedByPlayer) {
+    // Only animate glow for selectable planets
+    if (glowRef.current && isSelectable) {
       const glowOpacity = 0.2 + Math.sin(state.clock.elapsedTime * 3) * 0.1;
       const glowScale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.1;
       const material = glowRef.current.material as THREE.Material;
       material.opacity = glowOpacity;
       glowRef.current.scale.set(glowScale, glowScale, 1);
+    }
+
+    // Add star animation for owned planets
+    if (starRef.current && isOwnedByPlayer) {
+      const starScale = 1.5 + Math.sin(state.clock.elapsedTime * 1.5) * 0.2;
+      const starRotation = state.clock.elapsedTime * 0.5;
+      starRef.current.scale.set(starScale, starScale, 1);
+      starRef.current.rotation.z = starRotation;
     }
   });
 
@@ -116,7 +125,7 @@ function PlanetObject({
       </mesh>
 
       {/* Glow effect */}
-      {(isOwnedByPlayer || isHovered) && (
+      {(isSelectable || isHovered) && (
         <mesh ref={glowRef}>
           <circleGeometry args={[radius * 4, 32]} />
           <meshBasicMaterial
@@ -152,9 +161,69 @@ function PlanetObject({
           onHoverEnd={() => setIsInfoCardHovered(false)}
         />
       )}
+
+      {/* Add star effect for owned planets */}
+      {isOwnedByPlayer && (
+        <mesh ref={starRef}>
+          <starGeometry args={[radius * 2.5, radius * 5, 5]} />
+          <meshBasicMaterial
+            color={0xffd700}
+            transparent
+            opacity={0.4}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
     </group>
   );
 }
+
+// Add this custom geometry right after the PlanetObject component
+class StarGeometry extends THREE.BufferGeometry {
+  constructor(innerRadius: number, outerRadius: number, points: number) {
+    super();
+
+    const vertices = [];
+    const step = (Math.PI * 2) / points;
+
+    for (let i = 0; i < points; i++) {
+      const angle = i * step;
+      const nextAngle = (i + 1) * step;
+
+      // Center point
+      vertices.push(0, 0, 0);
+
+      // Outer point
+      vertices.push(
+        Math.cos(angle) * outerRadius,
+        Math.sin(angle) * outerRadius,
+        0
+      );
+
+      // Inner point
+      vertices.push(
+        Math.cos(angle + step / 2) * innerRadius,
+        Math.sin(angle + step / 2) * innerRadius,
+        0
+      );
+    }
+
+    this.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(vertices, 3)
+    );
+  }
+}
+
+// Register the custom geometry
+THREE.BufferGeometry.prototype.starGeometry = StarGeometry;
+declare module "three" {
+  interface BufferGeometry {
+    starGeometry: typeof StarGeometry;
+  }
+}
+
 const Planet3DInfoCard = ({
   planet,
   position,

@@ -18,21 +18,37 @@ import Link from "next/link";
 
 export default function Login() {
   const router = useRouter();
-  const { login, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
     try {
-      await login(email, password);
-      router.push("/auth/callback");
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+
+      // Check user status after successful login
+      const { data: existingUser } = await supabase
+        .from("users")
+        .select()
+        .eq("id", (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!existingUser) {
+        router.push("/create-user");
+      } else if (!existingUser.home_planet_id) {
+        router.push("/secure-communications");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error: any) {
-      setError(error.message || "Login failed");
       console.error("Login failed:", error);
+      setError(error.message || "Login failed");
     }
   };
 

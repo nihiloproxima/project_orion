@@ -23,7 +23,7 @@ export default function ChooseHomeworldPage() {
 
   const handlePlanetSelect = async (planet: Planet) => {
     try {
-      await api.planets.claim(planet.id, true);
+      await api.users.chooseHomeworld(planet.id);
       router.push("/dashboard");
     } catch (error) {
       console.error("Error claiming planet:", error);

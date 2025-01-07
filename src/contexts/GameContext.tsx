@@ -1,841 +1,728 @@
-"use client";
+'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
-import { supabase } from "../lib/supabase";
-import { Structure } from "../models/structure";
-import { useAuth } from "./AuthContext";
-import { StructuresConfig } from "../models/structures_config";
-import { Planet } from "../models/planet";
-import { PlanetResources } from "../models/planets_resources";
-import { ResearchsConfig } from "../models/researchs_config";
-import { PlanetResearchs, User } from "../models";
-import { ShipsConfig } from "../models/ships_config";
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
+import { GameConfig, PlanetStructures, Planet, PlanetResources, UserResearchs, User } from '../models/';
+import { calculateResourceGeneration, calculateStorageCapacities } from '../utils/resources_calculations';
 
 interface GameState {
-  userPlanets: Planet[];
-  selectedPlanet: Planet | null;
-  resources: PlanetResources | null;
-  structures: Structure[];
-  structuresConfig: StructuresConfig | null;
-  researchsConfig: ResearchsConfig | null;
-  shipsConfig: ShipsConfig | null;
-  loading: boolean;
-  loadedResources: boolean;
-  loadedPlanets: boolean;
-  loadedStructures: boolean;
-  loadedStructuresConfig: boolean;
-  loadedResearchsConfig: boolean;
-  loadedShipsConfig: boolean;
-  activePlayers: number;
-  planetResearchs: PlanetResearchs | null;
-  loadedPlanetResearchs: boolean;
-  currentUser: User | null;
-  planets: Planet[] | null;
+	activePlayers: number;
+	currentUser: User | null;
+	gameConfig: GameConfig | null;
+	loadedGameConfig: boolean;
+	loadedPlanets: boolean;
+	loadedResources: boolean;
+	loadedStructures: boolean;
+	loadedUserResearchs: boolean;
+	loading: boolean;
+	planets: Planet[];
+	resources: (PlanetResources & { energy_production: number; energy_consumption: number }) | null;
+	selectedPlanet: Planet | null;
+	planetStructures: PlanetStructures | null;
+	userPlanets: Planet[];
+	userResearchs: UserResearchs | null;
 }
 
 interface GameContextType {
-  state: GameState;
-  selectPlanet: (planet: Planet) => void;
-  invalidatePlanetsCache: () => void;
-  currentResources: {
-    metal: number;
-    microchips: number;
-    deuterium: number;
-    science: number;
-    energy_production: number;
-    energy_consumption: number;
-  };
+	state: GameState;
+	selectPlanet: (planet: Planet) => void;
+	invalidatePlanetsCache: () => void;
 }
 
 const GameContext = createContext<GameContextType | null>(null);
 
 const initialState: GameState = {
-  loading: true,
-  loadedResources: false,
-  loadedPlanets: false,
-  loadedStructures: false,
-  loadedStructuresConfig: false,
-  loadedResearchsConfig: false,
-  loadedShipsConfig: false,
-  loadedPlanetResearchs: false,
-  userPlanets: [],
-  selectedPlanet: null,
-  resources: null,
-  structures: [],
-  structuresConfig: null,
-  researchsConfig: null,
-  shipsConfig: null,
-  activePlayers: 0,
-  planetResearchs: null,
-  currentUser: null,
-  planets: null,
+	loading: true,
+	loadedResources: false,
+	loadedPlanets: false,
+	loadedStructures: false,
+	loadedGameConfig: false,
+	loadedUserResearchs: false,
+	userPlanets: [],
+	selectedPlanet: null,
+	resources: null,
+	planetStructures: null,
+	activePlayers: 0,
+	userResearchs: null,
+	currentUser: null,
+	planets: [],
+	gameConfig: null,
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<GameState>(initialState);
-  const [currentResources, setCurrentResources] = useState({
-    metal: 0,
-    microchips: 0,
-    deuterium: 0,
-    science: 0,
-    energy_production: 0,
-    energy_consumption: 0,
-  });
-
-  const { authedUser } = useAuth();
-
-  // Reset state when user logs out
-  useEffect(() => {
-    if (!authedUser) {
-      setState(initialState);
-      setCurrentResources({
-        metal: 0,
-        microchips: 0,
-        deuterium: 0,
-        science: 0,
-        energy_production: 0,
-        energy_consumption: 0,
-      });
-      return;
-    }
-
-    const fetchCurrentUser = async () => {
-      const { data: user, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", authedUser.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching current user:", error);
-        return;
-      }
-
-      setState((prev) => ({
-        ...prev,
-        currentUser: user,
-      }));
-    };
-
-    fetchCurrentUser();
-
-    const userSubscription = supabase
-      .channel("users-channel")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "users",
-          filter: `id=eq.${authedUser.id}`,
-        },
-        (payload: any) => {
-          if (payload.eventType === "DELETE") {
-            setState((prev) => ({
-              ...prev,
-              currentUser: null,
-            }));
-          } else {
-            setState((prev) => ({
-              ...prev,
-              currentUser: payload.new,
-            }));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      userSubscription.unsubscribe();
-    };
-  }, [authedUser]);
-
-  // Fetch planets once on initialization
-  useEffect(() => {
-    const fetchPlanets = async () => {
-      if (state.loadedPlanets) return;
-
-      try {
-        const { data: planets, error } = await supabase
-          .from("planets")
-          .select("*")
-          .order("created_at")
-          .range(0, 999); // Fetch up to 1000 planets to ensure we get all 500
-
-        if (error) {
-          console.error("Error fetching planets:", error);
-          return;
-        }
-
-        console.log(`Loaded ${planets?.length || 0} planets`);
-
-        setState((prev) => ({
-          ...prev,
-          planets,
-          loadedPlanets: true,
-        }));
-
-        localStorage.setItem(
-          "planets_cache",
-          JSON.stringify({
-            planets,
-            timestamp: Date.now(),
-          })
-        );
-      } catch (error) {
-        console.error("Error in fetchPlanets:", error);
-      }
-    };
-
-    const loadFromCache = () => {
-      const cached = localStorage.getItem("planets_cache");
-      if (!cached) {
-        console.log("No planets cache found");
-        return false;
-      }
-
-      try {
-        const { planets, timestamp } = JSON.parse(cached);
-        const CACHE_DURATION = 1000 * 60 * 30; // 30 minutes
-
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          console.log(`Loaded ${planets?.length || 0} planets from cache`);
-          setState((prev) => ({
-            ...prev,
-            planets,
-            loadedPlanets: true,
-          }));
-          return true;
-        } else {
-          console.log("Planet cache expired");
-        }
-      } catch (error) {
-        console.error("Error parsing planets cache:", error);
-      }
-      return false;
-    };
-    if (!loadFromCache()) {
-      fetchPlanets();
-    }
-  }, [state.loadedPlanets]);
-
-  // Subscribe to planet ownership changes
-  useEffect(() => {
-    if (!state.loadedPlanets) return;
-
-    const subscription = supabase
-      .channel("planet_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "planets",
-          filter: "owner_id IS NOT NULL",
-        },
-        (payload) => {
-          // Update state
-          setState((prev) => ({
-            ...prev,
-            planets:
-              prev.planets?.map((planet) =>
-                planet.id === payload.new.id
-                  ? { ...planet, owner_id: payload.new.owner_id }
-                  : planet
-              ) || null,
-          }));
-
-          // Update cache
-          const cached = localStorage.getItem("planets_cache");
-          if (cached) {
-            try {
-              const { planets, timestamp } = JSON.parse(cached);
-              const updatedPlanets = planets.map((planet: any) =>
-                planet.id === payload.new.id
-                  ? { ...planet, owner_id: payload.new.owner_id }
-                  : planet
-              );
-
-              localStorage.setItem(
-                "planets_cache",
-                JSON.stringify({
-                  planets: updatedPlanets,
-                  timestamp,
-                })
-              );
-            } catch (error) {
-              console.error("Error updating planets cache:", error);
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [state.loadedPlanets]);
-
-  useEffect(() => {
-    if (!authedUser) return;
-
-    // Initial fetch of user's planets
-    const fetchUserPlanets = async () => {
-      const { data: planets, error } = await supabase
-        .from("planets")
-        .select("*")
-        .eq("owner_id", authedUser.id);
-
-      if (error) {
-        console.error("Error fetching planets:", error);
-        return;
-      }
-
-      setState((prev) => ({
-        ...prev,
-        userPlanets: planets || [],
-        selectedPlanet: state.selectedPlanet
-          ? state.selectedPlanet
-          : planets?.find((p) => p.is_homeworld) || null,
-        loadedPlanets: true,
-        // If user has no planets, mark everything as loaded to prevent infinite loading
-        ...((!planets || planets.length === 0) && {
-          loadedResources: true,
-          loadedStructures: true,
-          loadedStructuresConfig: true,
-          loadedResearchsConfig: true,
-          loadedShipsConfig: true,
-          loadedPlanetResearchs: true,
-        }),
-      }));
-    };
-
-    fetchUserPlanets();
-
-    // Subscribe to changes in user's planets
-    const planetsSubscription = supabase
-      .channel("planets-channel")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "planets",
-          filter: `owner_id=eq.${authedUser.id}`,
-        },
-        (payload: any) => {
-          setState((prev) => {
-            // Get updated planets list
-            let updatedPlanets = [...prev.userPlanets];
-
-            if (payload.eventType === "DELETE") {
-              updatedPlanets = updatedPlanets.filter(
-                (p) => p.id !== payload.old.id
-              );
-            } else {
-              const planetIndex = updatedPlanets.findIndex(
-                (p) => p.id === payload.new.id
-              );
-              if (planetIndex >= 0) {
-                updatedPlanets[planetIndex] = payload.new;
-              } else {
-                updatedPlanets.push(payload.new);
-              }
-            }
-
-            // Determine selected planet
-            let selectedPlanet = prev.selectedPlanet;
-            if (!selectedPlanet && updatedPlanets.length > 0) {
-              selectedPlanet =
-                updatedPlanets.find((p) => p.is_homeworld) || updatedPlanets[0];
-            }
-
-            return {
-              ...prev,
-              userPlanets: updatedPlanets,
-              selectedPlanet: selectedPlanet,
-            };
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      planetsSubscription.unsubscribe();
-    };
-  }, [authedUser, state.selectedPlanet?.id]);
-
-  useEffect(() => {
-    if (!state.selectedPlanet?.id) return;
-
-    const fetchPlanetResources = async () => {
-      const { data: resources, error } = await supabase
-        .from("planets_resources")
-        .select("*")
-        .eq("planet_id", state.selectedPlanet?.id);
-
-      if (error) {
-        console.error("Error fetching planet resources:", error);
-        return;
-      }
-
-      setState((prev) => ({
-        ...prev,
-        resources: resources.at(0) as PlanetResources,
-        loadedResources: true,
-      }));
-    };
-
-    fetchPlanetResources();
-
-    // Subscribe to changes in resources
-    const resourcesSubscription = supabase
-      .channel("resources-channel")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "planets_resources",
-          filter: `planet_id=eq.${state.selectedPlanet?.id}`,
-        },
-        (payload: any) => {
-          console.log("resources update");
-          setState((prev) => ({
-            ...prev,
-            resources: payload.new as PlanetResources,
-            loadedResources: true,
-          }));
-        }
-      )
-      .subscribe();
-
-    // Fetch planet research
-    const fetchPlanetResearch = async () => {
-      const { data: research, error } = await supabase
-        .from("planet_researchs")
-        .select("*")
-        .eq("planet_id", state.selectedPlanet?.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching planet research:", error);
-        return;
-      }
-
-      setState((prev) => ({
-        ...prev,
-        planetResearchs: research || [],
-        loadedPlanetResearchs: true,
-      }));
-    };
-
-    fetchPlanetResearch();
-
-    // Subscribe to changes in planet research
-    const researchSubscription = supabase
-      .channel(`research-${state.selectedPlanet.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "planet_researchs",
-          filter: `planet_id=eq.${state.selectedPlanet.id}`,
-        },
-        (payload: any) => {
-          setState((prev) => {
-            switch (payload.eventType) {
-              case "DELETE":
-                return {
-                  ...prev,
-                  planetResearchs: null,
-                };
-              case "INSERT":
-                return {
-                  ...prev,
-                  planetResearchs: payload.new as PlanetResearchs,
-                };
-              case "UPDATE":
-                return {
-                  ...prev,
-                  planetResearchs: payload.new as PlanetResearchs,
-                };
-              default:
-                return prev;
-            }
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      resourcesSubscription.unsubscribe();
-      researchSubscription.unsubscribe();
-    };
-  }, [state.selectedPlanet]);
-
-  useEffect(() => {
-    const fetchConfigs = async () => {
-      // Fetch structures config
-      const { data, error } = await supabase.from("game_configs").select("*");
-      if (error) {
-        console.error("Error fetching configs:", error);
-        return;
-      }
-
-      let structuresData: StructuresConfig | null = null;
-      let researchData: ResearchsConfig | null = null;
-      let shipsData: ShipsConfig | null = null;
-
-      for (const config of data) {
-        if (config.id === "structures") {
-          structuresData = config.config_data;
-        } else if (config.id === "researchs") {
-          researchData = config.config_data;
-        } else if (config.id === "ships") {
-          shipsData = config.config_data;
-        }
-      }
-
-      setState((prev) => ({
-        ...prev,
-        structuresConfig: structuresData,
-        researchsConfig: researchData,
-        shipsConfig: shipsData,
-        loadedStructuresConfig: true,
-        loadedResearchsConfig: true,
-        loadedShipsConfig: true,
-      }));
-    };
-
-    fetchConfigs();
-
-    const subscription = supabase
-      .channel("gameconfig-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "game_configs",
-          filter: "id=in.(structures,researchs,ships)",
-        },
-        (payload: any) => {
-          setState((prev) => {
-            if (payload.new.id === "structures") {
-              return {
-                ...prev,
-                structuresConfig: payload.new.config_data,
-              };
-            } else if (payload.new.id === "researchs") {
-              return {
-                ...prev,
-                researchsConfig: payload.new.config_data,
-              };
-            } else if (payload.new.id === "ships") {
-              return {
-                ...prev,
-                shipsConfig: payload.new.config_data,
-              };
-            }
-            return prev;
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!state.selectedPlanet) return;
-
-    const fetchStructures = async () => {
-      const { data, error } = await supabase
-        .from("structures")
-        .select("*")
-        .eq("planet_id", state.selectedPlanet?.id);
-
-      if (error) {
-        console.error("Error fetching structures:", error);
-        return;
-      }
-
-      setState((prev) => ({
-        ...prev,
-        structures: data || [],
-        loadedStructures: true,
-      }));
-    };
-
-    fetchStructures();
-
-    // Subscribe to changes in structures
-    const subscription = supabase
-      .channel(`structures-${state.selectedPlanet.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "structures",
-          filter: `planet_id=eq.${state.selectedPlanet.id}`,
-        },
-        (payload: any) => {
-          setState((prev) => {
-            switch (payload.eventType) {
-              case "DELETE":
-                return {
-                  ...prev,
-                  structures: prev.structures.filter(
-                    (s) => s.id !== payload.old.id
-                  ),
-                };
-              case "INSERT":
-                return {
-                  ...prev,
-                  structures: [...prev.structures, payload.new],
-                };
-              case "UPDATE":
-                return {
-                  ...prev,
-                  structures: prev.structures.map((s) =>
-                    s.id === payload.new.id ? payload.new : s
-                  ),
-                };
-              default:
-                return prev;
-            }
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [state.selectedPlanet]);
-
-  useEffect(() => {
-    if (
-      state.loadedPlanets &&
-      state.loadedResources &&
-      state.loadedStructures &&
-      state.loadedStructuresConfig &&
-      state.loadedResearchsConfig &&
-      state.loadedShipsConfig &&
-      state.loadedPlanetResearchs
-    ) {
-      setState((prev) => ({ ...prev, loading: false }));
-    }
-  }, [
-    state.loadedPlanets,
-    state.loadedResources,
-    state.loadedStructures,
-    state.loadedStructuresConfig,
-    state.loadedResearchsConfig,
-    state.loadedShipsConfig,
-    state.loadedPlanetResearchs,
-  ]);
-
-  useEffect(() => {
-    if (!state.resources || !state.selectedPlanet || !state.structuresConfig)
-      return;
-
-    // Initialize with current values
-    const initialResources = {
-      metal: state.resources.metal,
-      microchips: state.resources.microchips,
-      deuterium: state.resources.deuterium,
-      science: state.resources.science,
-      energy_production: state.resources.energy_production,
-      energy_consumption: state.resources.energy_consumption,
-    };
-    setCurrentResources(initialResources);
-
-    // Update resources every second based on generation rates
-    const interval = setInterval(() => {
-      if (!state.resources || !state.selectedPlanet || !state.structuresConfig)
-        return;
-      const now = Date.now();
-      const lastUpdate = state.resources.last_update;
-      const elapsedSeconds = (now - lastUpdate) / 1000;
-
-      // Calculate energy ratio and production malus
-      const energyDeficit =
-        state.resources.energy_production - state.resources.energy_consumption;
-      let productionMalus = 1;
-      if (energyDeficit < 0) {
-        // Production scales from 100% at deficit=0 to 0% at deficit=-consumption or below
-        productionMalus = 1 - energyDeficit / 100;
-      }
-
-      // Calculate current resources based on generation rates with energy malus
-      const updatedResources: PlanetResources = {
-        ...state.resources,
-        metal:
-          state.resources.metal >= state.resources.max_metal
-            ? state.resources.metal
-            : Math.min(
-                state.resources.max_metal,
-                state.resources.metal +
-                  state.resources.metal_production_rate *
-                    elapsedSeconds *
-                    productionMalus
-              ),
-        microchips:
-          state.resources.microchips >= state.resources.max_microchips
-            ? state.resources.microchips
-            : Math.min(
-                state.resources.max_microchips,
-                state.resources.microchips +
-                  state.resources.microchips_production_rate *
-                    elapsedSeconds *
-                    productionMalus
-              ),
-        deuterium:
-          state.resources.deuterium >= state.resources.max_deuterium
-            ? state.resources.deuterium
-            : Math.min(
-                state.resources.max_deuterium,
-                state.resources.deuterium +
-                  state.resources.deuterium_production_rate *
-                    elapsedSeconds *
-                    productionMalus
-              ),
-        science:
-          state.resources.science >= state.resources.max_science
-            ? state.resources.science
-            : Math.min(
-                state.resources.max_science,
-                state.resources.science +
-                  state.resources.science_production_rate *
-                    elapsedSeconds *
-                    productionMalus
-              ),
-        energy_production: state.resources.energy_production,
-        energy_consumption: state.resources.energy_consumption,
-        last_update: now,
-      };
-
-      setCurrentResources(updatedResources);
-      setState((prev) => ({
-        ...prev,
-        resources: {
-          ...prev.resources!,
-          ...updatedResources,
-          last_update: Date.now(),
-        },
-      }));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [
-    state.resources,
-    state.selectedPlanet,
-    state.structures,
-    state.structuresConfig,
-  ]);
-
-  // Add presence tracking
-  useEffect(() => {
-    if (!authedUser) return;
-
-    const channel = supabase.channel("online-users", {
-      config: {
-        presence: {
-          key: authedUser.id,
-        },
-      },
-    });
-
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const presenceState = channel.presenceState();
-        const totalUsers = Object.keys(presenceState).length;
-
-        setState((prev) => ({
-          ...prev,
-          activePlayers: totalUsers,
-        }));
-      })
-      .on("presence", { event: "join" }, () => {
-        setState((prev) => ({
-          ...prev,
-          activePlayers: prev.activePlayers + 1,
-        }));
-      })
-      .on("presence", { event: "leave" }, () => {
-        setState((prev) => ({
-          ...prev,
-          activePlayers: Math.max(0, prev.activePlayers - 1),
-        }));
-      })
-      .subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.track({
-            user_id: authedUser.id,
-            online_at: new Date().toISOString(),
-          });
-        }
-      });
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [authedUser]);
-
-  const selectPlanet = (planet: Planet) => {
-    setState((prev) => ({
-      ...prev,
-      selectedPlanet: planet,
-      // Reset loading states for the new planet
-      loadedResources: false,
-      loadedStructures: false,
-      loadedPlanetResearchs: false,
-      // Keep these true as they are global configs
-      // loadedStructuresConfig: true,
-      // loadedResearchsConfig: true,
-      // loadedShipsConfig: true,
-    }));
-  };
-
-  const invalidatePlanetsCache = () => {
-    try {
-      localStorage.removeItem("planets_cache");
-      console.log("Planets cache invalidated");
-    } catch (error) {
-      console.error("Error invalidating planets cache:", error);
-    }
-  };
-
-  return (
-    <GameContext.Provider
-      value={{
-        state,
-        selectPlanet,
-        currentResources,
-        invalidatePlanetsCache,
-      }}
-    >
-      {children}
-    </GameContext.Provider>
-  );
+	const [state, setState] = useState<GameState>(initialState);
+
+	const { authedUser } = useAuth();
+
+	// Reset state when user logs out
+	useEffect(() => {
+		if (!authedUser) {
+			setState(initialState);
+			return;
+		}
+
+		const fetchCurrentUser = async () => {
+			const { data: user, error } = await supabase.from('users').select('*').eq('id', authedUser.id).single();
+
+			if (error) {
+				console.error('Error fetching current user:', error);
+				return;
+			}
+
+			setState((prev) => ({
+				...prev,
+				currentUser: user,
+			}));
+		};
+
+		fetchCurrentUser();
+
+		const userSubscription = supabase
+			.channel('users-channel')
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'users',
+					filter: `id=eq.${authedUser.id}`,
+				},
+				(payload: any) => {
+					if (payload.eventType === 'DELETE') {
+						setState((prev) => ({
+							...prev,
+							currentUser: null,
+						}));
+					} else {
+						setState((prev) => ({
+							...prev,
+							currentUser: payload.new,
+						}));
+					}
+				}
+			)
+			.subscribe();
+
+		return () => {
+			userSubscription.unsubscribe();
+		};
+	}, [authedUser]);
+
+	// Fetch planets once on initialization
+	useEffect(() => {
+		const fetchPlanets = async () => {
+			if (state.loadedPlanets) return;
+
+			try {
+				const { data: planets, error } = await supabase
+					.from('planets')
+					.select('*')
+					.order('created_at')
+					.range(0, 999); // Fetch up to 1000 planets to ensure we get all 500
+
+				if (error) {
+					console.error('Error fetching planets:', error);
+					return;
+				}
+
+				console.log(`Loaded ${planets?.length || 0} planets`);
+
+				setState((prev) => ({
+					...prev,
+					planets,
+					loadedPlanets: true,
+				}));
+
+				localStorage.setItem(
+					'planets_cache',
+					JSON.stringify({
+						planets,
+						timestamp: Date.now(),
+					})
+				);
+			} catch (error) {
+				console.error('Error in fetchPlanets:', error);
+			}
+		};
+
+		const loadFromCache = () => {
+			const cached = localStorage.getItem('planets_cache');
+			if (!cached) {
+				console.log('No planets cache found');
+				return false;
+			}
+
+			try {
+				const { planets, timestamp } = JSON.parse(cached);
+				const CACHE_DURATION = 1000 * 60 * 30; // 30 minutes
+
+				if (Date.now() - timestamp < CACHE_DURATION) {
+					console.log(`Loaded ${planets?.length || 0} planets from cache`);
+					setState((prev) => ({
+						...prev,
+						planets,
+						loadedPlanets: true,
+					}));
+					return true;
+				} else {
+					console.log('Planet cache expired');
+				}
+			} catch (error) {
+				console.error('Error parsing planets cache:', error);
+			}
+			return false;
+		};
+		if (!loadFromCache()) {
+			fetchPlanets();
+		}
+	}, [state.loadedPlanets]);
+
+	// Subscribe to planet ownership changes
+	useEffect(() => {
+		if (!state.loadedPlanets) return;
+
+		const subscription = supabase
+			.channel('planet_changes')
+			.on(
+				'postgres_changes',
+				{
+					event: 'UPDATE',
+					schema: 'public',
+					table: 'planets',
+					filter: 'owner_id IS NOT NULL',
+				},
+				(payload) => {
+					// Update state
+					setState((prev) => ({
+						...prev,
+						planets:
+							prev.planets?.map((planet) =>
+								planet.id === payload.new.id ? { ...planet, owner_id: payload.new.owner_id } : planet
+							) || null,
+					}));
+
+					// Update cache
+					const cached = localStorage.getItem('planets_cache');
+					if (cached) {
+						try {
+							const { planets, timestamp } = JSON.parse(cached);
+							const updatedPlanets = planets.map((planet: any) =>
+								planet.id === payload.new.id ? { ...planet, owner_id: payload.new.owner_id } : planet
+							);
+
+							localStorage.setItem(
+								'planets_cache',
+								JSON.stringify({
+									planets: updatedPlanets,
+									timestamp,
+								})
+							);
+						} catch (error) {
+							console.error('Error updating planets cache:', error);
+						}
+					}
+				}
+			)
+			.subscribe();
+
+		return () => {
+			subscription.unsubscribe();
+		};
+	}, [state.loadedPlanets]);
+
+	useEffect(() => {
+		if (!authedUser) return;
+
+		// Initial fetch of user's planets
+		const fetchUserPlanets = async () => {
+			const { data: planets, error } = await supabase.from('planets').select('*').eq('owner_id', authedUser.id);
+
+			if (error) {
+				console.error('Error fetching planets:', error);
+				return;
+			}
+
+			setState((prev) => ({
+				...prev,
+				userPlanets: planets || [],
+				selectedPlanet: state.selectedPlanet
+					? state.selectedPlanet
+					: planets?.find((p) => p.is_homeworld) || null,
+				loadedPlanets: true,
+				// If user has no planets, mark everything as loaded to prevent infinite loading
+				...((!planets || planets.length === 0) && {
+					loadedResources: true,
+					loadedStructures: true,
+					loadedStructuresConfig: true,
+					loadedResearchsConfig: true,
+					loadedShipsConfig: true,
+					loadedUserResearchs: true,
+				}),
+			}));
+		};
+
+		fetchUserPlanets();
+
+		// Subscribe to changes in user's planets
+		const planetsSubscription = supabase
+			.channel('planets-channel')
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'planets',
+					filter: `owner_id=eq.${authedUser.id}`,
+				},
+				(payload: any) => {
+					setState((prev) => {
+						// Get updated planets list
+						let updatedPlanets = [...prev.userPlanets];
+
+						if (payload.eventType === 'DELETE') {
+							updatedPlanets = updatedPlanets.filter((p) => p.id !== payload.old.id);
+						} else {
+							const planetIndex = updatedPlanets.findIndex((p) => p.id === payload.new.id);
+							if (planetIndex >= 0) {
+								updatedPlanets[planetIndex] = payload.new;
+							} else {
+								updatedPlanets.push(payload.new);
+							}
+						}
+
+						// Determine selected planet
+						let selectedPlanet = prev.selectedPlanet;
+						if (!selectedPlanet && updatedPlanets.length > 0) {
+							selectedPlanet = updatedPlanets.find((p) => p.is_homeworld) || updatedPlanets[0];
+						}
+
+						return {
+							...prev,
+							userPlanets: updatedPlanets,
+							selectedPlanet: selectedPlanet,
+						};
+					});
+				}
+			)
+			.subscribe();
+
+		return () => {
+			planetsSubscription.unsubscribe();
+		};
+	}, [authedUser, state.selectedPlanet?.id, state.selectedPlanet]);
+
+	useEffect(() => {
+		if (!state.selectedPlanet?.id) return;
+
+		const fetchPlanetResources = async () => {
+			const { data: resources, error } = await supabase
+				.from('planet_resources')
+				.select('*')
+				.eq('planet_id', state.selectedPlanet?.id);
+
+			if (error) {
+				console.error('Error fetching planet resources:', error);
+				return;
+			}
+
+			setState((prev) => ({
+				...prev,
+				resources: {
+					...(resources.at(0) as PlanetResources),
+					energy_production: 0,
+					energy_consumption: 0,
+				},
+				loadedResources: true,
+			}));
+		};
+
+		fetchPlanetResources();
+
+		// Subscribe to changes in resources
+		const resourcesSubscription = supabase
+			.channel('resources-channel')
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'planets_resources',
+					filter: `planet_id=eq.${state.selectedPlanet?.id}`,
+				},
+				(payload: any) => {
+					console.log('resources update');
+					setState((prev) => ({
+						...prev,
+						resources: {
+							...(prev.resources as PlanetResources),
+							...(payload.new as PlanetResources),
+							energy_production: 0,
+							energy_consumption: 0,
+						},
+						loadedResources: true,
+					}));
+				}
+			)
+			.subscribe();
+
+		// Fetch planet research
+		const fetchPlanetResearch = async () => {
+			const { data: research, error } = await supabase
+				.from('user_researchs')
+				.select('*')
+				.eq('user_id', authedUser?.id)
+				.single();
+
+			if (error) {
+				console.error('Error fetching planet research:', error);
+				return;
+			}
+
+			setState((prev) => ({
+				...prev,
+				userResearchs: research || [],
+				loadedUserResearchs: true,
+			}));
+		};
+
+		fetchPlanetResearch();
+
+		// Subscribe to changes in planet research
+		const researchSubscription = supabase
+			.channel(`research-${state.selectedPlanet.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'planet_researchs',
+					filter: `planet_id=eq.${state.selectedPlanet.id}`,
+				},
+				(payload: any) => {
+					setState((prev) => {
+						switch (payload.eventType) {
+							case 'DELETE':
+								return {
+									...prev,
+									userResearchs: null,
+								};
+							case 'INSERT':
+								return {
+									...prev,
+									userResearchs: payload.new as UserResearchs,
+								};
+							case 'UPDATE':
+								return {
+									...prev,
+									userResearchs: payload.new as UserResearchs,
+								};
+							default:
+								return prev;
+						}
+					});
+				}
+			)
+			.subscribe();
+
+		return () => {
+			resourcesSubscription.unsubscribe();
+			researchSubscription.unsubscribe();
+		};
+	}, [state.selectedPlanet, authedUser]);
+
+	useEffect(() => {
+		const fetchConfigs = async () => {
+			// Fetch structures config
+			const { data: gameConfig, error } = await supabase.from('configs').select().eq('id', 'game').single();
+
+			if (error) {
+				console.error('Error fetching configs:', error);
+				return;
+			}
+
+			setState((prev) => ({
+				...prev,
+				gameConfig: gameConfig.config_data,
+				loadedGameConfig: true,
+			}));
+		};
+
+		fetchConfigs();
+
+		const subscription = supabase
+			.channel('gameconfig-changes')
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'configs',
+					filter: 'id=eq.game',
+				},
+				(payload: any) => {
+					setState((prev) => {
+						return {
+							...prev,
+							gameConfig: payload.new.config_data,
+						};
+					});
+				}
+			)
+			.subscribe();
+
+		return () => {
+			subscription.unsubscribe();
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!state.selectedPlanet) return;
+
+		const fetchStructures = async () => {
+			const { data: planetStructures, error } = await supabase
+				.from('planet_structures')
+				.select()
+				.eq('planet_id', state.selectedPlanet?.id)
+				.single();
+
+			if (error) {
+				console.error('Error fetching structures:', error);
+				return;
+			}
+
+			setState((prev) => ({
+				...prev,
+				planetStructures: planetStructures,
+				loadedStructures: true,
+			}));
+		};
+
+		fetchStructures();
+		// Subscribe to changes in structures
+		const structuresSubscription = supabase
+			.channel(`structures-${state.selectedPlanet.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'planet_structures',
+					filter: `planet_id=eq.${state.selectedPlanet.id}`,
+				},
+				(payload: any) => {
+					setState((prev) => {
+						switch (payload.eventType) {
+							case 'DELETE':
+								return {
+									...prev,
+									planetStructures: null,
+								};
+							case 'INSERT':
+								return {
+									...prev,
+									planetStructures: payload.new as PlanetStructures,
+								};
+							case 'UPDATE':
+								return {
+									...prev,
+									planetStructures: payload.new as PlanetStructures,
+								};
+							default:
+								return prev;
+						}
+					});
+				}
+			)
+			.subscribe();
+
+		return () => {
+			structuresSubscription.unsubscribe();
+		};
+	}, [state.selectedPlanet]);
+
+	useEffect(() => {
+		if (
+			state.gameConfig &&
+			state.loadedPlanets &&
+			state.loadedResources &&
+			state.loadedStructures &&
+			state.loadedUserResearchs
+		) {
+			setState((prev) => ({ ...prev, loading: false }));
+		}
+	}, [
+		state.gameConfig,
+		state.loadedPlanets,
+		state.loadedResources,
+		state.loadedStructures,
+		state.loadedUserResearchs,
+	]);
+
+	useEffect(() => {
+		if (
+			!state.resources ||
+			!state.selectedPlanet ||
+			!state.gameConfig ||
+			!state.planetStructures ||
+			!state.userResearchs
+		) {
+			return;
+		}
+
+		// Update resources every second based on generation rates
+		const interval = setInterval(() => {
+			if (
+				!state.resources ||
+				!state.selectedPlanet ||
+				!state.gameConfig ||
+				!state.planetStructures ||
+				!state.userResearchs
+			) {
+				return;
+			}
+
+			const now = Date.now();
+			const lastUpdate = state.resources.updated_at;
+			const elapsedSeconds = (now - lastUpdate) / 1000;
+
+			// Calculate storage capacities and resource generation
+			const storageCapacities = calculateStorageCapacities(state.gameConfig, state.planetStructures.structures);
+
+			const resourceGeneration = calculateResourceGeneration(
+				state.gameConfig,
+				state.planetStructures.structures,
+				state.userResearchs,
+				elapsedSeconds,
+				state.resources
+			);
+
+			// Calculate energy balance
+			const energyBalance = resourceGeneration.energy_balance;
+
+			// Update current resources with calculated values, using storage capacities
+			const updatedResources = {
+				...state.resources,
+				metal: Math.min(
+					storageCapacities.metal,
+					state.resources.metal + resourceGeneration.metal * elapsedSeconds
+				),
+				microchips: Math.min(
+					storageCapacities.microchips,
+					state.resources.microchips + resourceGeneration.microchips * elapsedSeconds
+				),
+				deuterium: Math.min(
+					storageCapacities.deuterium,
+					state.resources.deuterium + resourceGeneration.deuterium * elapsedSeconds
+				),
+				science: Math.min(
+					storageCapacities.science,
+					state.resources.science + resourceGeneration.science * elapsedSeconds
+				),
+				energy_production: energyBalance.production,
+				energy_consumption: energyBalance.consumption,
+				last_update: now,
+			};
+
+			console.log(`Updated resources`, updatedResources);
+
+			setState((prev) => ({
+				...prev,
+				resources: {
+					...prev.resources!,
+					...updatedResources,
+				},
+			}));
+		}, 1000);
+
+		return () => clearInterval(interval);
+	}, [state.resources, state.selectedPlanet, state.gameConfig, state.planetStructures, state.userResearchs]);
+
+	// Add presence tracking
+	useEffect(() => {
+		if (!authedUser) return;
+
+		const channel = supabase.channel('online-users', {
+			config: {
+				presence: {
+					key: authedUser.id,
+				},
+			},
+		});
+
+		channel
+			.on('presence', { event: 'sync' }, () => {
+				const presenceState = channel.presenceState();
+				const totalUsers = Object.keys(presenceState).length;
+
+				setState((prev) => ({
+					...prev,
+					activePlayers: totalUsers,
+				}));
+			})
+			.on('presence', { event: 'join' }, () => {
+				setState((prev) => ({
+					...prev,
+					activePlayers: prev.activePlayers + 1,
+				}));
+			})
+			.on('presence', { event: 'leave' }, () => {
+				setState((prev) => ({
+					...prev,
+					activePlayers: Math.max(0, prev.activePlayers - 1),
+				}));
+			})
+			.subscribe(async (status) => {
+				if (status === 'SUBSCRIBED') {
+					await channel.track({
+						user_id: authedUser.id,
+						online_at: new Date().toISOString(),
+					});
+				}
+			});
+
+		return () => {
+			channel.unsubscribe();
+		};
+	}, [authedUser]);
+
+	const selectPlanet = (planet: Planet) => {
+		setState((prev) => ({
+			...prev,
+			selectedPlanet: planet,
+			// Reset loading states for the new planet
+			loadedResources: false,
+			loadedStructures: false,
+			loadedUserResearchs: false,
+		}));
+	};
+
+	const invalidatePlanetsCache = () => {
+		try {
+			localStorage.removeItem('planets_cache');
+			console.log('Planets cache invalidated');
+		} catch (error) {
+			console.error('Error invalidating planets cache:', error);
+		}
+	};
+
+	return (
+		<GameContext.Provider
+			value={{
+				state,
+				selectPlanet,
+				invalidatePlanetsCache,
+			}}
+		>
+			{children}
+		</GameContext.Provider>
+	);
 }
 
 export function useGame() {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error("useGame must be used within a GameProvider");
-  }
-  return context;
+	const context = useContext(GameContext);
+	if (!context) {
+		throw new Error('useGame must be used within a GameProvider');
+	}
+	return context;
 }

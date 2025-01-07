@@ -1,4 +1,4 @@
-import { BaseMail, SpyMail, CombatMail } from "@/models/mail";
+import { BaseMail, SpyMail, CombatMail, MissionMail } from "@/models/mail";
 import {
   Eye,
   Building,
@@ -270,6 +270,8 @@ export function MailContent({ mail }: MailContentProps) {
 
   // Mission Mail Handler
   if (mail.type === "mission") {
+    const missionMail = mail as MissionMail;
+
     return (
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center gap-2 text-blue-500">
@@ -278,17 +280,17 @@ export function MailContent({ mail }: MailContentProps) {
         </div>
 
         <div className="prose prose-invert max-w-none">
-          {mail.content && (
-            <p className="whitespace-pre-line">{mail.content}</p>
+          {missionMail.content && (
+            <p className="whitespace-pre-line">{missionMail.content}</p>
           )}
 
-          {mail.data?.resources_delivered && (
+          {missionMail.data.resources_delivered && (
             <div className="border border-primary/20 rounded-md p-4 mt-4">
               <h3 className="text-lg font-semibold mb-2">
                 Resources Delivered
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                {Object.entries(mail.data.resources_delivered).map(
+                {Object.entries(missionMail.data.resources_delivered).map(
                   ([resource, amount]) => (
                     <div key={resource} className="flex justify-between">
                       <span className="capitalize">{resource}:</span>

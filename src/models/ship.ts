@@ -25,12 +25,12 @@ export interface Ship {
     attack_power: number;
     defense: number;
     owner_id: string;
-    home_planet_id: string;
     current_planet_id: string | null;
     type: ShipType;
     status: ShipStatus;
     mission_type: MissionType | null;
-    destination_planet_id: string | null;
+    destination_x: number | null;
+    destination_y: number | null;
     departure_time: number | null;
     arrival_time: number | null;
 }
