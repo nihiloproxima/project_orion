@@ -1,9 +1,8 @@
 import { StructureType } from '@/models/planet_structures';
-
 import { GameConfig } from '@/models/game_config';
 import { ResourceType } from '@/models/planets_resources';
-import { getTechnologyBonus } from '@/lib/utils';
 import { UserResearchs } from '@/models/user_researchs';
+import { getTechnologyBonus } from './researchs_calculations';
 
 interface HourlyProductionResult {
 	resource: ResourceType | null;

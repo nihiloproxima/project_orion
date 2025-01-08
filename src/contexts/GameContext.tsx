@@ -1,10 +1,11 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { GameConfig, Planet, PlanetResources, PlanetStructures, User, UserResearchs } from '../models/';
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { calculateEnergyBalance, calculatePlanetResources } from '../utils/resources_calculations';
+
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
-import { GameConfig, PlanetStructures, Planet, PlanetResources, UserResearchs, User } from '../models/';
-import { calculateResourceGeneration, calculateStorageCapacities } from '../utils/resources_calculations';
 
 interface GameState {
 	activePlayers: number;
@@ -367,7 +368,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			.subscribe();
 
 		// Fetch planet research
-		const fetchPlanetResearch = async () => {
+		const fetchUserResearchs = async () => {
 			const { data: research, error } = await supabase
 				.from('user_researchs')
 				.select('*')
@@ -386,7 +387,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			}));
 		};
 
-		fetchPlanetResearch();
+		fetchUserResearchs();
 
 		// Subscribe to changes in planet research
 		const researchSubscription = supabase
@@ -396,30 +397,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				{
 					event: '*',
 					schema: 'public',
-					table: 'planet_researchs',
-					filter: `planet_id=eq.${state.selectedPlanet.id}`,
+					table: 'user_researchs',
+					filter: `user_id=eq.${authedUser?.id}`,
 				},
 				(payload: any) => {
 					setState((prev) => {
-						switch (payload.eventType) {
-							case 'DELETE':
-								return {
-									...prev,
-									userResearchs: null,
-								};
-							case 'INSERT':
-								return {
-									...prev,
-									userResearchs: payload.new as UserResearchs,
-								};
-							case 'UPDATE':
-								return {
-									...prev,
-									userResearchs: payload.new as UserResearchs,
-								};
-							default:
-								return prev;
-						}
+						return {
+							...prev,
+							userResearchs: payload.new as UserResearchs,
+						};
 					});
 				}
 			)
@@ -511,6 +497,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					filter: `planet_id=eq.${state.selectedPlanet.id}`,
 				},
 				(payload: any) => {
+					console.log('struct updated');
 					setState((prev) => {
 						switch (payload.eventType) {
 							case 'DELETE':
@@ -579,58 +566,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				!state.planetStructures ||
 				!state.userResearchs
 			) {
+				console.log('not ready');
 				return;
 			}
 
-			const now = Date.now();
-			const lastUpdate = state.resources.updated_at;
-			const elapsedSeconds = (now - lastUpdate) / 1000;
-
-			// Calculate storage capacities and resource generation
-			const storageCapacities = calculateStorageCapacities(state.gameConfig, state.planetStructures.structures);
-
-			const resourceGeneration = calculateResourceGeneration(
+			const planetResources = calculatePlanetResources(
 				state.gameConfig,
-				state.planetStructures.structures,
-				state.userResearchs,
-				elapsedSeconds,
-				state.resources
+				state.planetStructures,
+				state.resources,
+				state.userResearchs
 			);
-
-			// Calculate energy balance
-			const energyBalance = resourceGeneration.energy_balance;
-
-			// Update current resources with calculated values, using storage capacities
-			const updatedResources = {
-				...state.resources,
-				metal: Math.min(
-					storageCapacities.metal,
-					state.resources.metal + resourceGeneration.metal * elapsedSeconds
-				),
-				microchips: Math.min(
-					storageCapacities.microchips,
-					state.resources.microchips + resourceGeneration.microchips * elapsedSeconds
-				),
-				deuterium: Math.min(
-					storageCapacities.deuterium,
-					state.resources.deuterium + resourceGeneration.deuterium * elapsedSeconds
-				),
-				science: Math.min(
-					storageCapacities.science,
-					state.resources.science + resourceGeneration.science * elapsedSeconds
-				),
-				energy_production: energyBalance.production,
-				energy_consumption: energyBalance.consumption,
-				last_update: now,
-			};
-
-			console.log(`Updated resources`, updatedResources);
+			const energyBalance = calculateEnergyBalance(state.gameConfig, state.planetStructures.structures);
 
 			setState((prev) => ({
 				...prev,
 				resources: {
-					...prev.resources!,
-					...updatedResources,
+					...planetResources,
+					energy_production: energyBalance.production,
+					energy_consumption: energyBalance.consumption,
 				},
 			}));
 		}, 1000);

@@ -2,7 +2,49 @@ import { useGame } from '../contexts/GameContext';
 import millify from 'millify';
 import { Beaker, Flame, Hammer, Microchip, Zap } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { calculateHourlyRates, calculateStorageCapacities } from '@/utils/resources_calculations';
+import {
+	calculateBaseRates,
+	calculateStorageCapacities,
+	ResourceGenerationRates,
+} from '@/utils/resources_calculations';
+import { ResourceType } from '@/models';
+
+// First, define a resource config object
+type ResourceConfig = {
+	[key in ResourceType]?: {
+		label: string;
+		icon: React.ElementType<{ className?: string }>;
+		textColor: string;
+		iconColor: string;
+	};
+};
+
+const RESOURCE_CONFIG: ResourceConfig = {
+	metal: {
+		label: 'METAL',
+		icon: Hammer,
+		textColor: 'text-secondary',
+		iconColor: 'text-secondary',
+	},
+	deuterium: {
+		label: 'DEUTERIUM',
+		icon: Flame,
+		textColor: 'text-primary',
+		iconColor: 'text-primary',
+	},
+	microchips: {
+		label: 'MICROCHIPS',
+		icon: Microchip,
+		textColor: 'text-accent',
+		iconColor: 'text-accent',
+	},
+	science: {
+		label: 'SCIENCE',
+		icon: Beaker,
+		textColor: 'text-blue-400',
+		iconColor: 'text-blue-400',
+	},
+} as const;
 
 export function ResourceBar() {
 	const { state, selectPlanet } = useGame();
@@ -16,12 +58,13 @@ export function ResourceBar() {
 	if (!state.userResearchs) return null;
 	if (!state.resources) return null;
 
-	const hourlyGenerationRate = calculateHourlyRates(
-		state.planetStructures.structures,
-		state.gameConfig,
-		state.resources,
-		state.userResearchs
-	);
+	const baseRates = calculateBaseRates(state.gameConfig, state.planetStructures.structures, state.userResearchs);
+	const hourlyRates: ResourceGenerationRates = {
+		metal: baseRates.metal * 3600,
+		deuterium: baseRates.deuterium * 3600,
+		microchips: baseRates.microchips * 3600,
+		science: baseRates.science * 3600,
+	};
 
 	const storageCapacities = calculateStorageCapacities(state.gameConfig, state.planetStructures.structures);
 
@@ -53,118 +96,36 @@ export function ResourceBar() {
 					</Select>
 				</div>
 				<div className="flex justify-end gap-6">
-					<div className="flex items-center gap-2">
-						<div className="flex flex-col items-end">
-							<span className="text-xs text-secondary/70">METAL</span>
-							<div className="flex items-center gap-2">
-								<span
-									className={`font-mono font-bold ${
-										state.resources.metal >= storageCapacities.metal
-											? 'text-red-400'
-											: 'text-secondary'
-									}`}
-								>
-									{millify(state.resources.metal)}
-
-									<span className="text-xs text-secondary ml-1">
-										/{millify(storageCapacities.metal)}
+					{Object.entries(RESOURCE_CONFIG).map(([resource, config]) => (
+						<div key={resource} className="flex items-center gap-2">
+							<div className="flex flex-col items-end">
+								<span className={`text-xs ${config.textColor}/70`}>{config.label}</span>
+								<div className="flex items-center gap-2">
+									<span
+										className={`font-mono font-bold ${
+											state.resources![resource as ResourceType] >=
+											storageCapacities[resource as ResourceType]
+												? 'text-red-400'
+												: config.textColor
+										}`}
+									>
+										{millify(Math.floor(state.resources![resource as ResourceType]))}
+										<span className={`text-xs ${config.textColor} ml-1`}>
+											/{millify(storageCapacities[resource as ResourceType])}
+										</span>
 									</span>
+									<config.icon className={`h-4 w-4 ${config.iconColor}`} />
+								</div>
+								<span className={`text-xs ${config.textColor} font-medium`}>
+									+
+									{hourlyRates[resource as ResourceType]! >= 10000
+										? millify(hourlyRates[resource as ResourceType]!)
+										: Math.floor(hourlyRates[resource as ResourceType]!)}
+									/h
 								</span>
-								<Hammer className="h-4 w-4 text-secondary" />
 							</div>
-							<span className="text-xs text-secondary font-medium">
-								+
-								{hourlyGenerationRate.metal >= 10000
-									? millify(hourlyGenerationRate.metal)
-									: Math.floor(hourlyGenerationRate.metal)}
-								/h
-							</span>
 						</div>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<div className="flex flex-col items-end">
-							<span className="text-xs text-primary/70">DEUTERIUM</span>
-							<div className="flex items-center gap-2">
-								<span
-									className={`font-mono font-bold ${
-										state.resources.deuterium >= storageCapacities.deuterium
-											? 'text-red-400'
-											: 'text-primary'
-									}`}
-								>
-									{millify(state.resources.deuterium)}
-									<span className="text-xs text-primary ml-1">
-										/{millify(storageCapacities.deuterium)}
-									</span>
-								</span>
-								<Flame className="h-4 w-4 text-primary" />
-							</div>
-							<span className="text-xs text-primary font-medium">
-								+
-								{hourlyGenerationRate.deuterium >= 10000
-									? millify(hourlyGenerationRate.deuterium)
-									: Math.floor(hourlyGenerationRate.deuterium)}
-								/h
-							</span>
-						</div>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<div className="flex flex-col items-end">
-							<span className="text-xs text-accent/70">MICROCHIPS</span>
-							<div className="flex items-center gap-2">
-								<span
-									className={`font-mono font-bold ${
-										state.resources.microchips >= storageCapacities.microchips
-											? 'text-red-400'
-											: 'text-accent'
-									}`}
-								>
-									{millify(state.resources.microchips)}
-									<span className="text-xs text-accent ml-1">
-										/{millify(storageCapacities.microchips)}
-									</span>
-								</span>
-								<Microchip className="h-4 w-4 text-accent" />
-							</div>
-							<span className="text-xs text-accent font-medium">
-								+
-								{hourlyGenerationRate.microchips >= 10000
-									? millify(hourlyGenerationRate.microchips)
-									: Math.floor(hourlyGenerationRate.microchips)}
-								/h
-							</span>
-						</div>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<div className="flex flex-col items-end">
-							<span className="text-xs text-blue-400/70">SCIENCE</span>
-							<div className="flex items-center gap-2">
-								<span
-									className={`font-mono font-bold ${
-										state.resources.science >= storageCapacities.science
-											? 'text-red-400'
-											: 'text-blue-400'
-									}`}
-								>
-									{millify(state.resources.science)}
-									<span className="text-xs text-blue-400 ml-1">
-										/{millify(storageCapacities.science)}
-									</span>
-								</span>
-								<Beaker className="h-4 w-4 text-blue-400" />
-							</div>
-							<span className="text-xs text-blue-400 font-medium">
-								+
-								{hourlyGenerationRate.science >= 10000
-									? millify(hourlyGenerationRate.science)
-									: Math.floor(hourlyGenerationRate.science)}
-								/h
-							</span>
-						</div>
-					</div>
+					))}
 
 					<div className="flex items-center gap-2">
 						<div className="flex flex-col items-end">

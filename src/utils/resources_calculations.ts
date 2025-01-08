@@ -4,7 +4,7 @@ import { PlanetResources, ResourceType } from '../models/planets_resources';
 import { UserResearchs } from '../models/user_researchs';
 import { StorageCapacities } from './structures_calculations';
 
-interface ResourceGenerationRates {
+export interface ResourceGenerationRates {
 	metal: number;
 	microchips: number;
 	deuterium: number;
@@ -59,7 +59,7 @@ function calculateResearchProductionBoost(
 	return bonus;
 }
 
-function calculateBaseRates(
+export function calculateBaseRates(
 	gameConfig: GameConfig,
 	structures: Structure[],
 	userResearchs: UserResearchs

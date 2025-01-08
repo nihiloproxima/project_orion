@@ -1,34 +1,39 @@
 'use client';
-import { useGame } from '../../../contexts/GameContext';
+
+import { AlertTriangle, Beaker, Building2, Flame, Grid, Grid2x2, Grid3x3, Hammer, Microchip } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import millify from 'millify';
-import { Structure, StructureType } from '../../../models/';
-import { Button } from '../../../components/ui/button';
-import { Building2, Beaker, Flame, Hammer, Microchip, Grid2x2, Grid3x3, Grid, AlertTriangle } from 'lucide-react';
-import { ErrorBoundary } from '../../../components/ErrorBoundary';
-import { useState } from 'react';
-import { Timer } from '../../../components/Timer';
-import { api } from '../../../lib/api';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '../../../components/ui/dropdown-menu';
-import { formatTimerTime } from '@/lib/utils';
-import { StructureConfig } from '@/models';
-import { TECHNOLOGIES } from '@/lib/constants';
-import Image from 'next/image';
-import { getPublicImageUrl } from '@/lib/images';
 import {
+	StorageCapacities,
+	calculateConstructionTime,
 	calculateStructureEnergyConsumption,
 	calculateStructureEnergyProduction,
 	calculateStructureHourlyProduction,
 	calculateStructureStorageCapacities,
 	calculateUpgradeCost,
-	StorageCapacities,
 } from '@/utils/structures_calculations';
+import { Structure, StructureType } from '../../../models/';
+
+import { Button } from '../../../components/ui/button';
+import { ErrorBoundary } from '../../../components/ErrorBoundary';
+import Image from 'next/image';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { StructureConfig } from '@/models';
+import { TECHNOLOGIES } from '@/lib/constants';
+import { Timer } from '../../../components/Timer';
+import { api } from '../../../lib/api';
+import { formatTimerTime } from '@/lib/utils';
+import { getPublicImageUrl } from '@/lib/images';
+import millify from 'millify';
+import { motion } from 'framer-motion';
+import { useGame } from '../../../contexts/GameContext';
+import { useState } from 'react';
+
 interface StructureInfo {
 	type: StructureType;
 	name: string;
@@ -47,19 +52,19 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
 		icon: <Building2 className="h-5 w-5" />,
 		hasStorage: false,
 	},
-	energy_plant: {
-		type: 'energy_plant',
-		name: 'Energy Plant',
-		description: 'Generates power to fuel your planetary operations. Each level increases energy output.',
-		productionType: 'energy',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: false,
-	},
 	deuterium_synthesizer: {
 		type: 'deuterium_synthesizer',
 		name: 'Deuterium Synthesizer',
 		description: 'Extracts hydrogen and synthesizes deuterium fuel. Each level increases deuterium production.',
 		productionType: 'deuterium',
+		icon: <Building2 className="h-5 w-5" />,
+		hasStorage: false,
+	},
+	energy_plant: {
+		type: 'energy_plant',
+		name: 'Energy Plant',
+		description: 'Generates power to fuel your planetary operations. Each level increases energy output.',
+		productionType: 'energy',
 		icon: <Building2 className="h-5 w-5" />,
 		hasStorage: false,
 	},
@@ -135,10 +140,14 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
 };
 
 function StructureCard({ structure }: { structure: Structure }) {
-	const { state, currentResources } = useGame();
+	const { state } = useGame();
+
+	if (!state.resources || !state.gameConfig || !state.planetStructures || !state.userResearchs) {
+		return <LoadingScreen message="Loading structures..." />;
+	}
 
 	const onUpgrade = async (structure: Structure) => {
-		await api.structures.upgrade(state.selectedPlanet!.id, structure.type);
+		await api.structures.startConstruction(state.selectedPlanet!.id, structure.type);
 	};
 
 	const structureConfig = state.gameConfig!.structures.find((s) => s.type === structure.type);
@@ -155,6 +164,12 @@ function StructureCard({ structure }: { structure: Structure }) {
 		structure.level + 1
 	);
 	const upgradeCost = calculateUpgradeCost(state.gameConfig!, structure.type, structure.level);
+	const upgradeTime = calculateConstructionTime(
+		state.gameConfig!,
+		state.userResearchs!,
+		structure.type,
+		structure.level
+	);
 
 	const energyConsumption = calculateStructureEnergyConsumption(state.gameConfig!, structure.type, structure.level);
 	const futureEnergyConsumption = calculateStructureEnergyConsumption(
@@ -162,7 +177,12 @@ function StructureCard({ structure }: { structure: Structure }) {
 		structure.type,
 		structure.level + 1
 	);
-	const energyProduction = calculateStructureEnergyProduction(state.gameConfig!, structure.type, structure.level);
+
+	const currentEnergyProduction = calculateStructureEnergyProduction(
+		state.gameConfig!,
+		structure.type,
+		structure.level
+	);
 	const futureEnergyProduction = calculateStructureEnergyProduction(
 		state.gameConfig!,
 		structure.type,
@@ -170,21 +190,22 @@ function StructureCard({ structure }: { structure: Structure }) {
 	);
 
 	const storageCapacities = calculateStructureStorageCapacities(state.gameConfig!, structure.type, structure.level);
-	const futureStorageCapacities = calculateStructureStorageCapacities(
-		state.gameConfig!,
-		structure.type,
-		structure.level + 1
-	);
 
 	const futureEnergyRatio =
-		currentResources.energy_production /
-		(currentResources.energy_consumption + futureEnergyConsumption - energyConsumption);
+		(state.resources.energy_production - currentEnergyProduction + futureEnergyProduction) /
+		(state.resources.energy_consumption - energyConsumption + futureEnergyConsumption);
+	const currentEnergyRatio = state.resources.energy_production / state.resources.energy_consumption;
 
 	// Skip rendering if structure has no production and no storage
 	return (
 		<Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
 			<CardHeader className="flex flex-row items-start gap-6 pb-2">
-				<div className="w-2/5 aspect-square">
+				<motion.div
+					initial={{ opacity: 0, x: -20 }}
+					animate={{ opacity: 1, x: 0 }}
+					transition={{ duration: 0.5 }}
+					className="w-2/5 aspect-square"
+				>
 					<Image
 						src={getPublicImageUrl('structures', info.type + '.webp')}
 						alt={info.name}
@@ -192,9 +213,14 @@ function StructureCard({ structure }: { structure: Structure }) {
 						height={100}
 						className="w-full h-full object-cover rounded-lg"
 					/>
-				</div>
+				</motion.div>
 
-				<div className="flex flex-col gap-2 w-3/5">
+				<motion.div
+					initial={{ opacity: 0, x: 20 }}
+					animate={{ opacity: 1, x: 0 }}
+					transition={{ duration: 0.5, delay: 0.2 }}
+					className="flex flex-col gap-2 w-3/5"
+				>
 					<CardTitle className="text-xl font-bold neon-text tracking-wide uppercase hover:scale-105 transition-transform">
 						{info.name}
 					</CardTitle>
@@ -207,7 +233,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 								<div className="flex items-center gap-2">
 									<span
 										className={
-											currentResources.energy_production < currentResources.energy_consumption
+											state.resources.energy_production < state.resources.energy_consumption
 												? 'text-red-400'
 												: ''
 										}
@@ -217,7 +243,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 											? structure.production_rate
 											: millify(currentHourlyProduction.amount)}
 										{info.type === 'energy_plant' ? (
-											info.productionType
+											` ${info.productionType}`
 										) : (
 											<span className="text-muted-foreground">/h</span>
 										)}
@@ -232,7 +258,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 													? futureEnergyProduction
 													: millify(futureHourlyProduction.amount)}
 												{info.type === 'energy_plant' ? (
-													info.productionType
+													` ${info.productionType}`
 												) : (
 													<span className="text-muted-foreground">/h</span>
 												)}
@@ -287,36 +313,27 @@ function StructureCard({ structure }: { structure: Structure }) {
 							)}
 						</div>
 					)}
-				</div>
+				</motion.div>
 			</CardHeader>
 
 			<CardContent className="space-y-4 pt-4 border-t border-primary/20">
-				{structure ? (
-					<ExistingStructureContent
-						structure={structure}
-						info={info}
-						upgradeCosts={constructionCost}
-						constructionTime={constructionTime}
-						onUpgrade={onUpgrade}
-						futureEnergyRatio={futureEnergyRatio}
-					/>
-				) : (
-					<NewStructureContent
-						constructionCost={constructionCost}
-						constructionTime={constructionTime}
-						info={info}
-						onConstruct={onConstruct}
-						energyConsumption={energyConsumption}
-						futureEnergyRatio={futureEnergyRatio}
-						config={state.structuresConfig!.available_structures[info.type]}
-					/>
-				)}
+				<StructureContent
+					structure={structure}
+					info={info}
+					upgradeCosts={upgradeCost}
+					upgradeTime={upgradeTime}
+					onUpgrade={onUpgrade}
+					futureEnergyRatio={futureEnergyRatio}
+					currentEnergyRatio={currentEnergyRatio}
+					config={structureConfig!}
+					energyConsumption={energyConsumption}
+				/>
 			</CardContent>
 		</Card>
 	);
 }
 
-interface ExistingStructureContentProps {
+interface StructureContentProps {
 	structure: Structure;
 	info: StructureInfo;
 	upgradeCosts: {
@@ -325,29 +342,54 @@ interface ExistingStructureContentProps {
 		microchips: number;
 		science: number;
 	};
-	constructionTime: number;
+	upgradeTime: number;
 	onUpgrade: (structure: Structure) => void;
 	futureEnergyRatio: number;
+	currentEnergyRatio: number;
+	config: StructureConfig;
+	energyConsumption: number;
 }
 
-function ExistingStructureContent({
+function StructureContent({
 	structure,
+	info,
 	upgradeCosts,
-	constructionTime,
+	upgradeTime,
 	onUpgrade,
+	currentEnergyRatio,
 	futureEnergyRatio,
-}: ExistingStructureContentProps) {
-	const { currentResources } = useGame();
-	// Add loading state
+	config,
+	energyConsumption,
+}: StructureContentProps) {
+	const { state } = useGame();
 	const [isUpgrading, setIsUpgrading] = useState(false);
 
 	const canAfford =
-		currentResources.metal >= upgradeCosts.metal &&
-		currentResources.deuterium >= upgradeCosts.deuterium &&
-		currentResources.science >= upgradeCosts.science &&
-		currentResources.microchips >= upgradeCosts.microchips;
+		state.resources!.metal >= upgradeCosts.metal &&
+		state.resources!.deuterium >= upgradeCosts.deuterium &&
+		state.resources!.microchips >= upgradeCosts.microchips &&
+		state.resources!.science >= upgradeCosts.science;
 
-	// Wrap onUpgrade with loading state handling
+	// Only check prerequisites if structure is level 0
+	let prerequisitesMet = true;
+	if (structure.level === 0) {
+		for (const prereq of config.prerequisites.structures) {
+			const existingStructure = state.planetStructures?.structures.find((s) => s.type === prereq.type);
+			if (!existingStructure || existingStructure.level < prereq.level) {
+				prerequisitesMet = false;
+				break;
+			}
+		}
+
+		for (const prereq of config.prerequisites.technologies) {
+			const tech = state.userResearchs?.technologies[prereq.id];
+			if (!tech || tech.level < prereq.level) {
+				prerequisitesMet = false;
+				break;
+			}
+		}
+	}
+
 	const handleUpgrade = async () => {
 		try {
 			setIsUpgrading(true);
@@ -357,160 +399,25 @@ function ExistingStructureContent({
 		}
 	};
 
-	if (structure.is_under_construction && structure.construction_finish_time && structure.construction_start_time) {
+	if (structure.is_under_construction) {
 		return (
 			<div className="space-y-4">
 				<div className="text-sm text-primary/70">Under Construction</div>
 				<Timer
-					startTime={structure.construction_start_time}
-					finishTime={structure.construction_finish_time}
+					startTime={structure.construction_start_time!}
+					finishTime={structure.construction_finish_time!}
 					variant="primary"
 				/>
 			</div>
 		);
 	}
 
-	return (
-		<div className="space-y-4">
-			<div className="text-sm text-primary/70">Level {structure.level}</div>
-
-			<div className="space-y-2">
-				<div className="text-sm font-medium">Upgrade Costs:</div>
-				<div className="grid grid-cols-2 gap-2 text-sm">
-					{upgradeCosts.metal > 0 && (
-						<div
-							className={`flex items-center gap-2 ${
-								currentResources.metal < upgradeCosts.metal ? 'text-red-500' : 'text-secondary'
-							}`}
-						>
-							<Hammer className="h-4 w-4" />
-							<span>{Math.floor(upgradeCosts.metal)}</span>
-						</div>
-					)}
-					{upgradeCosts.deuterium > 0 && (
-						<div
-							className={`flex items-center gap-2 ${
-								currentResources.deuterium < upgradeCosts.deuterium ? 'text-red-500' : 'text-primary'
-							}`}
-						>
-							<Flame className="h-4 w-4" />
-							<span>{Math.floor(upgradeCosts.deuterium)}</span>
-						</div>
-					)}
-					{upgradeCosts.microchips > 0 && (
-						<div
-							className={`flex items-center gap-2 ${
-								currentResources.microchips < upgradeCosts.microchips ? 'text-red-500' : 'text-accent'
-							}`}
-						>
-							<Microchip className="h-4 w-4" />
-							<span>{Math.floor(upgradeCosts.microchips)}</span>
-						</div>
-					)}
-					{upgradeCosts.science > 0 && (
-						<div
-							className={`flex items-center gap-2 ${
-								currentResources.science < upgradeCosts.science ? 'text-red-500' : 'text-blue-400'
-							}`}
-						>
-							<Beaker className="h-4 w-4" />
-							<span>{Math.floor(upgradeCosts.science)}</span>
-						</div>
-					)}
-				</div>
-			</div>
-
-			<div className="text-sm">Construction Time: {formatTimerTime(constructionTime)}</div>
-			{futureEnergyRatio < 1 ? (
-				<div className="text-sm text-amber-400">
-					Warning: This upgrade will result in an energy ratio of {futureEnergyRatio.toFixed(2)}, reducing
-					production efficiency
-				</div>
-			) : (
-				futureEnergyRatio > currentResources.energy_production / currentResources.energy_consumption && (
-					<div className="text-sm text-emerald-400">
-						This upgrade will improve energy ratio to {futureEnergyRatio.toFixed(2)}, increasing production
-						efficiency
-					</div>
-				)
-			)}
-
-			<Button
-				onClick={handleUpgrade}
-				disabled={structure.is_under_construction || !canAfford || isUpgrading}
-				className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
-					structure.is_under_construction || !canAfford || isUpgrading
-						? 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed'
-						: 'bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border'
-				}`}
-			>
-				{structure.is_under_construction
-					? 'Under Construction'
-					: isUpgrading
-					? 'Upgrading...'
-					: canAfford
-					? `Upgrade to Level ${structure.level + 1}`
-					: 'Not Enough Resources'}
-			</Button>
-		</div>
-	);
-}
-
-interface NewStructureContentProps {
-	constructionCost: {
-		metal: number;
-		deuterium: number;
-		microchips: number;
-		science: number;
-	};
-	constructionTime: number;
-	info: StructureInfo;
-	onConstruct: (type: StructureType) => void;
-	energyConsumption: number;
-	futureEnergyRatio: number;
-	config: StructureConfig;
-}
-
-function NewStructureContent({
-	constructionCost,
-	constructionTime,
-	info,
-	onConstruct,
-	energyConsumption,
-	futureEnergyRatio,
-	config,
-}: NewStructureContentProps) {
-	const { currentResources, state } = useGame();
-
-	const canAfford =
-		currentResources.metal >= constructionCost.metal &&
-		currentResources.deuterium >= constructionCost.deuterium &&
-		currentResources.microchips >= constructionCost.microchips &&
-		currentResources.science >= constructionCost.science;
-
-	// Check prerequisites
-	let prerequisitesMet = true;
-	for (const prereq of config.prerequisites.structures) {
-		const structure = state.planetStructures?.find((s) => s.type === prereq.type);
-		if (!structure || structure.level < prereq.level) {
-			prerequisitesMet = false;
-			break;
-		}
-	}
-
-	for (const prereq of config.prerequisites.technologies) {
-		const tech = state.userResearchs?.technologies[prereq.id];
-		if (!tech || tech.level < prereq.level) {
-			prerequisitesMet = false;
-			break;
-		}
-	}
-
-	// Add prerequisites warning message
 	const getPrerequisitesMessage = () => {
+		if (structure.level > 0) return '';
+
 		const missingStructures = config.prerequisites.structures
 			.filter((prereq) => {
-				const structure = state.planetStructures?.find((s) => s.type === prereq.type);
+				const structure = state.planetStructures?.structures.find((s) => s.type === prereq.type);
 				return !structure || structure.level < prereq.level;
 			})
 			.map((prereq) => `${STRUCTURE_INFO[prereq.type as StructureType].name} Level ${prereq.level}`);
@@ -523,91 +430,93 @@ function NewStructureContent({
 			.map((prereq) => `${TECHNOLOGIES[prereq.id].name} Level ${prereq.level}`);
 
 		const missing = [...missingStructures, ...missingTechnologies];
-
 		return missing.length > 0 ? `Required: ${missing.join(', ')}` : '';
 	};
 
 	return (
 		<div className="space-y-4">
-			<div className="text-sm text-primary/70">Level 0</div>
+			<div className="text-sm text-primary/70">Level {structure.level}</div>
 
 			<div className="space-y-2">
-				<div className="text-sm font-medium">Construction Costs:</div>
+				<div className="text-sm font-medium">{structure.level === 0 ? 'Construction' : 'Upgrade'} Costs:</div>
 				<div className="grid grid-cols-2 gap-2 text-sm">
-					{constructionCost.metal > 0 && (
+					{upgradeCosts.metal > 0 && (
 						<div
 							className={`flex items-center gap-2 ${
-								currentResources.metal < constructionCost.metal ? 'text-red-500' : 'text-secondary'
+								state.resources!.metal < upgradeCosts.metal ? 'text-red-500' : 'text-secondary'
 							}`}
 						>
 							<Hammer className="h-4 w-4" />
-							<span>{Math.floor(constructionCost.metal)}</span>
+							<span>{Math.floor(upgradeCosts.metal)}</span>
 						</div>
 					)}
-					{constructionCost.deuterium > 0 && (
+					{upgradeCosts.deuterium > 0 && (
 						<div
 							className={`flex items-center gap-2 ${
-								currentResources.deuterium < constructionCost.deuterium
-									? 'text-red-500'
-									: 'text-primary'
+								state.resources!.deuterium < upgradeCosts.deuterium ? 'text-red-500' : 'text-primary'
 							}`}
 						>
 							<Flame className="h-4 w-4" />
-							<span>{Math.floor(constructionCost.deuterium)}</span>
+							<span>{Math.floor(upgradeCosts.deuterium)}</span>
 						</div>
 					)}
-					{constructionCost.microchips > 0 && (
+					{upgradeCosts.microchips > 0 && (
 						<div
 							className={`flex items-center gap-2 ${
-								currentResources.microchips < constructionCost.microchips
-									? 'text-red-500'
-									: 'text-accent'
+								state.resources!.microchips < upgradeCosts.microchips ? 'text-red-500' : 'text-accent'
 							}`}
 						>
 							<Microchip className="h-4 w-4" />
-							<span>{Math.floor(constructionCost.microchips)}</span>
+							<span>{Math.floor(upgradeCosts.microchips)}</span>
 						</div>
 					)}
-					{constructionCost.science > 0 && (
+					{upgradeCosts.science > 0 && (
 						<div
 							className={`flex items-center gap-2 ${
-								currentResources.science < constructionCost.science ? 'text-red-500' : 'text-blue-400'
+								state.resources!.science < upgradeCosts.science ? 'text-red-500' : 'text-blue-400'
 							}`}
 						>
 							<Beaker className="h-4 w-4" />
-							<span>{Math.floor(constructionCost.science)}</span>
+							<span>{Math.floor(upgradeCosts.science)}</span>
 						</div>
 					)}
 				</div>
 			</div>
 
-			<div className="text-sm">Construction Time: {formatTimerTime(constructionTime)}</div>
+			<div className="text-sm">Construction Time: {formatTimerTime(upgradeTime / 1000)}</div>
 
-			<div className="text-sm text-violet-400/70">
-				Energy {info.type === 'energy_plant' ? 'Production' : 'Consumption'}:{' '}
-				{info.type === 'energy_plant' ? -energyConsumption : energyConsumption}
-			</div>
+			{structure.level === 0 && (
+				<div className="text-sm text-violet-400/70">
+					Energy {info.type === 'energy_plant' ? 'Production' : 'Consumption'}:{' '}
+					{info.type === 'energy_plant' ? -energyConsumption : energyConsumption}
+				</div>
+			)}
 
-			{/* Add prerequisites warning */}
 			{!prerequisitesMet && (
 				<div className="text-sm text-red-400 flex items-center gap-2">
 					<AlertTriangle className="h-4 w-4" />
-					<span>Requires: {getPrerequisitesMessage()}</span>
+					<span>{getPrerequisitesMessage()}</span>
 				</div>
 			)}
 
-			{futureEnergyRatio < 1 && info.type !== 'energy_plant' && (
+			{/* Energy ratio warnings */}
+			{futureEnergyRatio < currentEnergyRatio && futureEnergyRatio < 1 ? (
 				<div className="text-sm text-amber-400">
-					Warning: Building this will result in an energy ratio of {futureEnergyRatio.toFixed(2)}, reducing
-					production efficiency
+					Warning: This will result in an energy ratio of {futureEnergyRatio.toFixed(2)}, reducing production
+					efficiency
 				</div>
-			)}
+			) : futureEnergyRatio > currentEnergyRatio ? (
+				<div className="text-sm text-emerald-400">
+					This will improve energy ratio from {currentEnergyRatio.toFixed(2)} to{' '}
+					{futureEnergyRatio.toFixed(2)}, increasing production efficiency
+				</div>
+			) : null}
 
 			<Button
-				onClick={() => onConstruct(info.type)}
-				disabled={!canAfford || !prerequisitesMet}
+				onClick={handleUpgrade}
+				disabled={!canAfford || !prerequisitesMet || isUpgrading}
 				className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
-					!canAfford || !prerequisitesMet
+					!canAfford || !prerequisitesMet || isUpgrading
 						? 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed'
 						: 'bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border'
 				}`}
@@ -616,7 +525,9 @@ function NewStructureContent({
 					? 'Prerequisites Not Met'
 					: !canAfford
 					? 'Not Enough Resources'
-					: 'Upgrade to Level 1'}
+					: isUpgrading
+					? 'Upgrading...'
+					: `Upgrade to Level ${structure.level + 1}`}
 			</Button>
 		</div>
 	);
