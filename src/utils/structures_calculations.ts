@@ -1,8 +1,5 @@
-import { StructureType } from '@/models/planet_structures';
-import { GameConfig } from '@/models/game_config';
-import { ResourceType } from '@/models/planets_resources';
-import { UserResearchs } from '@/models/user_researchs';
-import { getTechnologyBonus } from './researchs_calculations';
+import { GameConfig, ResourceType, StructureType, UserResearchs } from '../models';
+import { calculateProductionBonus, getTechnologyBonus } from './researchs_calculations';
 
 interface HourlyProductionResult {
 	resource: ResourceType | null;
@@ -16,6 +13,7 @@ export type StorageCapacities = {
 
 export function calculateStructureHourlyProduction(
 	gameConfig: GameConfig,
+	userResearchs: UserResearchs,
 	structureType: StructureType,
 	level: number
 ): HourlyProductionResult {
@@ -31,15 +29,15 @@ export function calculateStructureHourlyProduction(
 
 	// Calculate base production per hour
 	let hourlyProduction = 0;
-	if (structure.production.base !== null && structure.production.percent_increase_per_level !== null) {
-		hourlyProduction =
-			structure.production.base * (1 + (structure.production.percent_increase_per_level * level) / 100) * 3600; // Convert per-second to per-hour
+	if (structure.production.resource && structure.production.base && structure.production.percent_increase_per_level) {
+		const productionBonus = calculateProductionBonus(gameConfig, userResearchs, structure.production.resource);
+		const levelCoef = 1 + (structure.production.percent_increase_per_level * level) / 100;
+		const production = structure.production.base * levelCoef * productionBonus * gameConfig.speed.resources;
+		hourlyProduction = production * 3600; // Convert per-second to per-hour
 	}
 
 	// Calculate energy consumption
-	const energyConsumption =
-		structure.energy_consumption.base *
-		(1 + (structure.energy_consumption.percent_increase_per_level * level) / 100);
+	const energyConsumption = calculateStructureEnergyConsumption(gameConfig, structureType, level);
 
 	return {
 		resource: structure.production.resource,
@@ -53,8 +51,8 @@ export function calculateStructureStorageCapacities(
 	structureType: StructureType,
 	level: number = 0
 ): StorageCapacities {
-	const structure = gameConfig.structures.find((s) => s.type === structureType);
-	if (!structure) {
+	const structureConfig = gameConfig.structures.find((s) => s.type === structureType);
+	if (!structureConfig) {
 		return { metal: 0, microchips: 0, deuterium: 0, science: 0, energy: 0 };
 	}
 
@@ -68,10 +66,9 @@ export function calculateStructureStorageCapacities(
 	};
 
 	// Calculate storage capacity if it's a storage structure
-	if (structure.type.includes('storage')) {
-		if (structure.storage.resource && structure.storage.increase_per_level) {
-			capacities[structure.storage.resource] = structure.storage.increase_per_level * level;
-		}
+
+	if (structureConfig.storage.resource && structureConfig.storage.increase_per_level) {
+		capacities[structureConfig.storage.resource] = structureConfig.storage.increase_per_level * level;
 	}
 
 	return capacities;
@@ -124,8 +121,10 @@ export function calculateConstructionTime(
 	// Scale time with level based on config percentage increase
 	const levelScaling = 1 + (structureConfig.time.percent_increase_per_level * currentLevel) / 100;
 
+	// Apply game speed multiplier
+
 	// Apply construction speed bonus (lower is faster)
-	let finalTimeMs = baseTimeMs * levelScaling * constructionSpeedCoef;
+	let finalTimeMs = (baseTimeMs * levelScaling * constructionSpeedCoef) / config.speed.construction;
 
 	// Cap at max time if configured
 	if (structureConfig.time.max_seconds) {
@@ -163,12 +162,17 @@ export function calculateStructureEnergyProduction(
 		throw new Error(`Structure ${structureType} does not exist`);
 	}
 
-	if (!structureConfig.production.base || !structureConfig.production.percent_increase_per_level) {
+	if (
+		!structureConfig.production.base ||
+		!structureConfig.production.percent_increase_per_level ||
+		structureConfig.production.resource !== 'energy'
+	) {
 		return 0;
 	}
 
-	return (
+	const result =
 		structureConfig.production.base *
-		(1 + (structureConfig.production.percent_increase_per_level * currentLevel) / 100)
-	);
+		(1 + (structureConfig.production.percent_increase_per_level * currentLevel) / 100);
+
+	return result;
 }

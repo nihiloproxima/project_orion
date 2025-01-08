@@ -71,8 +71,7 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
 	research_lab: {
 		type: 'research_lab',
 		name: 'Research Laboratory',
-		description:
-			'Conducts scientific research to unlock new technologies. Each level increases research speed and efficiency.',
+		description: 'Conducts scientific research to unlock new technologies. Each level increases research speed.',
 		productionType: 'science',
 		icon: <Building2 className="h-5 w-5" />,
 		hasStorage: false,
@@ -155,11 +154,13 @@ function StructureCard({ structure }: { structure: Structure }) {
 
 	const currentHourlyProduction = calculateStructureHourlyProduction(
 		state.gameConfig!,
+		state.userResearchs!,
 		structure.type,
 		structure.level
 	);
 	const futureHourlyProduction = calculateStructureHourlyProduction(
 		state.gameConfig!,
+		state.userResearchs!,
 		structure.type,
 		structure.level + 1
 	);
@@ -240,7 +241,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 									>
 										Production:{' '}
 										{info.type === 'energy_plant'
-											? structure.production_rate
+											? currentEnergyProduction
 											: millify(currentHourlyProduction.amount)}
 										{info.type === 'energy_plant' ? (
 											` ${info.productionType}`
@@ -248,7 +249,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 											<span className="text-muted-foreground">/h</span>
 										)}
 									</span>
-									{structure && !structure.is_under_construction && (
+									{structure && (
 										<>
 											<span className="text-muted-foreground">→</span>
 											<span
@@ -527,6 +528,8 @@ function StructureContent({
 					? 'Not Enough Resources'
 					: isUpgrading
 					? 'Upgrading...'
+					: structure.level === 0
+					? 'Construct'
 					: `Upgrade to Level ${structure.level + 1}`}
 			</Button>
 		</div>

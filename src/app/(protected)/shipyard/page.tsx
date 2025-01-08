@@ -39,6 +39,7 @@ import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
 import { formatTimerTime } from '../../../lib/utils';
 import { getPublicImageUrl } from '@/lib/images';
+import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
 
@@ -69,7 +70,7 @@ const SHIP_ASSETS: Record<ShipType, { name: string; image: string; description: 
 		description: 'Required for expanding to new planets. Carries necessary equipment and initial colonists.',
 	},
 	transport_ship: {
-		name: 'Transport Ship',
+		name: 'Transporter',
 		image: getPublicImageUrl('ships', 'transport_ship.webp'),
 		description: 'Moves resources between planets. Various sizes available for different cargo capacities.',
 	},
@@ -79,7 +80,7 @@ const SHIP_ASSETS: Record<ShipType, { name: string; image: string; description: 
 		description: 'Gathers intelligence on other planets. Can detect resource levels and structures.',
 	},
 	recycler_ship: {
-		name: 'Recycler Ship',
+		name: 'Recycler',
 		image: getPublicImageUrl('ships', 'recycler_ship.webp'),
 		description: 'Specialized for collecting debris after battles and mining asteroids.',
 	},
@@ -199,168 +200,186 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 	};
 
 	return (
-		<Card
-			className={`bg-card/50 backdrop-blur-sm transition-all duration-300 h-full flex flex-col ${
-				meetsShipyardLevel && meetsTechRequirements && canAfford && !isQueueFull
-					? 'neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)]'
-					: 'border-red-500/50'
-			}`}
-		>
-			<CardHeader className="flex flex-col md:flex-row items-start gap-6 pb-2 flex-1">
-				<div className="w-full md:w-2/5 aspect-square relative">
-					<Image
-						src={asset.image}
-						alt={asset.name}
-						className={`w-full h-full object-cover rounded-lg ${
-							(!meetsShipyardLevel || !meetsTechRequirements || !canAfford || isQueueFull) && 'opacity-50'
-						}`}
-						width={100}
-						height={100}
-						aria-description={`Ship ${asset.name}`}
-					/>
-				</div>
-				<div className="flex flex-col gap-2 w-full md:w-3/5">
-					<CardTitle className="text-xl font-bold neon-text tracking-wide uppercase">{asset.name}</CardTitle>
-					<p className="text-sm text-muted-foreground">{asset.description}</p>
+		<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+			<Card
+				className={`bg-card/50 backdrop-blur-sm transition-all duration-300 h-full flex flex-col ${
+					meetsShipyardLevel && meetsTechRequirements && canAfford && !isQueueFull
+						? 'neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)]'
+						: 'border-red-500/50'
+				}`}
+			>
+				<CardHeader className="flex flex-col md:flex-row items-start gap-6 pb-2 flex-1">
+					<motion.div
+						initial={{ opacity: 0, scale: 0.8 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{ duration: 0.5 }}
+						className="w-full md:w-2/5 aspect-square relative"
+					>
+						<Image
+							src={asset.image}
+							alt={asset.name}
+							className={`w-full h-full object-cover rounded-lg ${
+								(!meetsShipyardLevel || !meetsTechRequirements || !canAfford || isQueueFull) &&
+								'opacity-50'
+							}`}
+							width={100}
+							height={100}
+							aria-description={`Ship ${asset.name}`}
+						/>
+					</motion.div>
 
-					{isQueueFull && (
-						<div className="flex items-center gap-2 text-red-400 text-sm">
-							<AlertTriangle className="h-4 w-4" />
-							<span>Build queue is full ({QUEUE_CAPACITY} max)</span>
-						</div>
-					)}
+					<motion.div
+						initial={{ opacity: 0, x: 20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.5, delay: 0.2 }}
+						className="flex flex-col gap-2 w-full md:w-3/5"
+					>
+						<CardTitle className="text-xl font-bold neon-text tracking-wide uppercase">
+							{asset.name}
+						</CardTitle>
+						<p className="text-sm text-muted-foreground">{asset.description}</p>
 
-					{!meetsShipyardLevel && (
-						<div className="flex items-center gap-2 text-red-400 text-sm">
-							<Lock className="h-4 w-4" />
-							<span>Requires Shipyard Level {config.requirements.shipyard_level}</span>
-						</div>
-					)}
+						{isQueueFull && (
+							<div className="flex items-center gap-2 text-red-400 text-sm">
+								<AlertTriangle className="h-4 w-4" />
+								<span>Build queue is full ({QUEUE_CAPACITY} max)</span>
+							</div>
+						)}
 
-					{!meetsTechRequirements && (
-						<div className="flex flex-col gap-1">
+						{!meetsShipyardLevel && (
 							<div className="flex items-center gap-2 text-red-400 text-sm">
 								<Lock className="h-4 w-4" />
-								<span>Missing Technology Requirements:</span>
+								<span>Requires Shipyard Level {config.requirements.shipyard_level}</span>
 							</div>
-							{config.requirements.technologies.map((req: any) => (
-								<div key={req.id} className="flex items-center gap-2 text-red-400 text-xs ml-6">
-									<span>
-										• {req.id} Level {req.level}
-									</span>
+						)}
+
+						{!meetsTechRequirements && (
+							<div className="flex flex-col gap-1">
+								<div className="flex items-center gap-2 text-red-400 text-sm">
+									<Lock className="h-4 w-4" />
+									<span>Missing Technology Requirements:</span>
 								</div>
-							))}
-						</div>
-					)}
+								{config.requirements.technologies.map((req: any) => (
+									<div key={req.id} className="flex items-center gap-2 text-red-400 text-xs ml-6">
+										<span>
+											• {req.id} Level {req.level}
+										</span>
+									</div>
+								))}
+							</div>
+						)}
 
-					<div className="grid grid-cols-2 gap-2 text-sm">
-						<div className="flex items-center gap-2">
-							<Ship className="h-4 w-4 text-blue-400" />
-							<span>
-								Speed: {config.stats.speed.min}-{config.stats.speed.max}
-							</span>
-						</div>
-						<div className="flex items-center gap-2">
-							<Shield className="h-4 w-4 text-green-400" />
-							<span>
-								Defense: {config.stats.defense.min}-{config.stats.defense.max}
-							</span>
-						</div>
-						<div className="flex items-center gap-2">
-							<Rocket className="h-4 w-4 text-red-400" />
-							<span>
-								Attack: {config.stats.attack_power.min}-{config.stats.attack_power.max}
-							</span>
-						</div>
-						<div className="flex items-center gap-2">
-							<Anchor className="h-4 w-4 text-yellow-400" />
-							<span>
-								Cargo: {config.stats.cargo_capacity.min}-{config.stats.cargo_capacity.max}
-							</span>
-						</div>
-					</div>
-
-					<div className="grid grid-cols-2 gap-2 mt-2">
-						<div
-							className={`flex items-center gap-2 ${
-								state.resources.metal < config.cost.metal * buildAmount
-									? 'text-red-400'
-									: 'text-muted-foreground'
-							}`}
-						>
-							<Hammer className="h-4 w-4" />
-							<span>{config.cost.metal * buildAmount}</span>
-						</div>
-						<div
-							className={`flex items-center gap-2 ${
-								state.resources.deuterium < config.cost.deuterium * buildAmount
-									? 'text-red-400'
-									: 'text-muted-foreground'
-							}`}
-						>
-							<Flame className="h-4 w-4" />
-							<span>{config.cost.deuterium * buildAmount}</span>
-						</div>
-						<div
-							className={`flex items-center gap-2 ${
-								state.resources.microchips < config.cost.microchips * buildAmount
-									? 'text-red-400'
-									: 'text-muted-foreground'
-							}`}
-						>
-							<Microchip className="h-4 w-4" />
-							<span>{config.cost.microchips * buildAmount}</span>
-						</div>
-						<div
-							className={`flex items-center gap-2 ${
-								state.resources.science < config.cost.science * buildAmount
-									? 'text-red-400'
-									: 'text-muted-foreground'
-							}`}
-						>
-							<Beaker className="h-4 w-4" />
-							<span>{config.cost.science * buildAmount}</span>
-						</div>
-					</div>
-
-					<div className="flex flex-col gap-4 mt-4">
-						<div className="flex items-center gap-2 text-muted-foreground">
-							<Clock className="h-4 w-4" />
-							<span>Build Time: {formatTimerTime(buildTime)}</span>
+						<div className="grid grid-cols-2 gap-2 text-sm">
+							<div className="flex items-center gap-2">
+								<Ship className="h-4 w-4 text-blue-400" />
+								<span>
+									Speed: {config.stats.speed.min}-{config.stats.speed.max}
+								</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Shield className="h-4 w-4 text-green-400" />
+								<span>
+									Defense: {config.stats.defense.min}-{config.stats.defense.max}
+								</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Rocket className="h-4 w-4 text-red-400" />
+								<span>
+									Attack: {config.stats.attack_power.min}-{config.stats.attack_power.max}
+								</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<Anchor className="h-4 w-4 text-yellow-400" />
+								<span>
+									Cargo: {config.stats.cargo_capacity.min}-{config.stats.cargo_capacity.max}
+								</span>
+							</div>
 						</div>
 
-						<div className="flex flex-col items-center gap-4">
-							<div className="flex items-center gap-2 bg-black/30 rounded-lg p-2">
+						<div className="grid grid-cols-2 gap-2 mt-2">
+							<div
+								className={`flex items-center gap-2 ${
+									state.resources.metal < config.cost.metal * buildAmount
+										? 'text-red-400'
+										: 'text-muted-foreground'
+								}`}
+							>
+								<Hammer className="h-4 w-4" />
+								<span>{config.cost.metal * buildAmount}</span>
+							</div>
+							<div
+								className={`flex items-center gap-2 ${
+									state.resources.deuterium < config.cost.deuterium * buildAmount
+										? 'text-red-400'
+										: 'text-muted-foreground'
+								}`}
+							>
+								<Flame className="h-4 w-4" />
+								<span>{config.cost.deuterium * buildAmount}</span>
+							</div>
+							<div
+								className={`flex items-center gap-2 ${
+									state.resources.microchips < config.cost.microchips * buildAmount
+										? 'text-red-400'
+										: 'text-muted-foreground'
+								}`}
+							>
+								<Microchip className="h-4 w-4" />
+								<span>{config.cost.microchips * buildAmount}</span>
+							</div>
+							<div
+								className={`flex items-center gap-2 ${
+									state.resources.science < config.cost.science * buildAmount
+										? 'text-red-400'
+										: 'text-muted-foreground'
+								}`}
+							>
+								<Beaker className="h-4 w-4" />
+								<span>{config.cost.science * buildAmount}</span>
+							</div>
+						</div>
+
+						<div className="flex flex-col gap-4 mt-4">
+							<div className="flex items-center gap-2 text-muted-foreground">
+								<Clock className="h-4 w-4" />
+								<span>Build Time: {formatTimerTime(buildTime)}</span>
+							</div>
+
+							<div className="flex flex-col items-center gap-4">
+								<div className="flex items-center gap-2 bg-black/30 rounded-lg p-2">
+									<Button
+										size="icon"
+										variant="ghost"
+										onClick={() => adjustAmount(-1)}
+										disabled={buildAmount <= 1}
+									>
+										<Minus className="h-4 w-4" />
+									</Button>
+									<span className="w-12 text-center">{buildAmount}</span>
+									<Button
+										size="icon"
+										variant="ghost"
+										onClick={() => adjustAmount(1)}
+										disabled={buildAmount >= maxPossibleShips}
+									>
+										<Plus className="h-4 w-4" />
+									</Button>
+								</div>
 								<Button
-									size="icon"
-									variant="ghost"
-									onClick={() => adjustAmount(-1)}
-									disabled={buildAmount <= 1}
+									onClick={handleBuild}
+									disabled={
+										!meetsShipyardLevel || !meetsTechRequirements || !canAfford || isQueueFull
+									}
+									className="w-full max-w-[200px]"
 								>
-									<Minus className="h-4 w-4" />
-								</Button>
-								<span className="w-12 text-center">{buildAmount}</span>
-								<Button
-									size="icon"
-									variant="ghost"
-									onClick={() => adjustAmount(1)}
-									disabled={buildAmount >= maxPossibleShips}
-								>
-									<Plus className="h-4 w-4" />
+									Build Ships
 								</Button>
 							</div>
-							<Button
-								onClick={handleBuild}
-								disabled={!meetsShipyardLevel || !meetsTechRequirements || !canAfford || isQueueFull}
-								className="w-full max-w-[200px]"
-							>
-								Build Ships
-							</Button>
 						</div>
-					</div>
-				</div>
-			</CardHeader>
-		</Card>
+					</motion.div>
+				</CardHeader>
+			</Card>
+		</motion.div>
 	);
 }
 

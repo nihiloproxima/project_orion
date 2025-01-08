@@ -31,3 +31,5 @@ export const formatTimeString = (timeRemainingMs: number) => {
 		.filter(Boolean)
 		.join(' ');
 };
+
+export const secondsToMs = (seconds: number) => seconds * 1000;

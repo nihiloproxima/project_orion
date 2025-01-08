@@ -348,7 +348,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				{
 					event: '*',
 					schema: 'public',
-					table: 'planets_resources',
+					table: 'planet_resources',
 					filter: `planet_id=eq.${state.selectedPlanet?.id}`,
 				},
 				(payload: any) => {

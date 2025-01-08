@@ -1,8 +1,9 @@
-import { PlanetStructures, Structure } from '../models/planet_structures';
-import { GameConfig } from '../models/game_config';
-import { PlanetResources, ResourceType } from '../models/planets_resources';
-import { UserResearchs } from '../models/user_researchs';
-import { StorageCapacities } from './structures_calculations';
+import { GameConfig, PlanetResources, PlanetStructures, ResourceType, Structure, UserResearchs } from '../models';
+import {
+	StorageCapacities,
+	calculateStructureEnergyConsumption,
+	calculateStructureEnergyProduction,
+} from './structures_calculations';
 
 export interface ResourceGenerationRates {
 	metal: number;
@@ -24,12 +25,10 @@ export function calculateStorageCapacities(gameConfig: GameConfig, structures: S
 
 	// Add storage from buildings
 	structures.forEach((structure) => {
-		if (structure.type.includes('storage')) {
-			const config = gameConfig.structures.find((s) => s.type === structure.type);
-			if (!config || !config.storage.resource || !config.storage.increase_per_level) return;
+		const config = gameConfig.structures.find((s) => s.type === structure.type);
+		if (!config || !config.storage.resource || !config.storage.increase_per_level) return;
 
-			capacities[config.storage.resource] += config.storage.increase_per_level * structure.level;
-		}
+		capacities[config.storage.resource] += config.storage.increase_per_level * structure.level;
 	});
 
 	return capacities;
@@ -76,7 +75,7 @@ export function calculateBaseRates(
 		const structureConfig = gameConfig.structures.find((s) => s.type === structure.type);
 		if (!structureConfig) return;
 
-		if (!structure.is_under_construction && structureConfig?.production.resource) {
+		if (structureConfig?.production.resource) {
 			if (
 				structureConfig.production.base !== null &&
 				structureConfig.production.percent_increase_per_level !== null
@@ -92,7 +91,8 @@ export function calculateBaseRates(
 					structureConfig.production.resource
 				);
 
-				rates[structureConfig.production.resource] += baseProduction * productionBoost;
+				rates[structureConfig.production.resource] +=
+					baseProduction * productionBoost * gameConfig.speed.resources;
 			}
 		}
 	});
@@ -108,21 +108,8 @@ export function calculateEnergyBalance(
 	let consumption = 0;
 
 	structures.forEach((structure) => {
-		const structureConfig = gameConfig.structures.find((s) => s.type === structure.type);
-		if (!structureConfig) return;
-
-		if (!structure.is_under_construction) {
-			if (structureConfig.production.resource === 'energy') {
-				const base = structureConfig.production.base || 0;
-				const percentIncrease = structureConfig.production.percent_increase_per_level || 0;
-
-				production += base * (1 + (percentIncrease * structure.level) / 100);
-			}
-
-			consumption +=
-				structureConfig.energy_consumption.base *
-				(1 + (structureConfig.energy_consumption.percent_increase_per_level * structure.level) / 100);
-		}
+		production += calculateStructureEnergyProduction(gameConfig, structure.type, structure.level);
+		consumption += calculateStructureEnergyConsumption(gameConfig, structure.type, structure.level);
 	});
 
 	return { production, consumption };

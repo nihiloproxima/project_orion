@@ -2,14 +2,13 @@
 
 import { Activity, MessageSquare, Rocket, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { ChatMessage, Ship } from '../../../models';
 import { containerVariants, itemVariants } from '@/lib/animations';
 import { useEffect, useRef, useState } from 'react';
 
-import { ChatMessage } from '../../../models/chat_message';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollArea } from '../../../components/ui/scroll-area';
-import { Ship } from '../../../models/ship';
 import { api } from '../../../lib/api';
 import { getPublicImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';

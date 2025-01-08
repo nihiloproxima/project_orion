@@ -1,4 +1,4 @@
-import { GameConfig, UnlockableType, UserResearchs } from '../models';
+import { GameConfig, ResourceType, TechnologyId, UnlockableType, UserResearchs } from '../models';
 
 export function getTechnologyBonus(
 	gameConfig: GameConfig,
@@ -23,6 +23,47 @@ export function getTechnologyBonus(
 	}
 
 	return coef;
+}
+
+export function calculateProductionBonus(
+	gameConfig: GameConfig,
+	userResearchs: UserResearchs,
+	resourceType: ResourceType
+): number {
+	let bonus = 1;
+
+	for (const research of gameConfig.researchs) {
+		const techLevel = userResearchs.technologies[research.id]?.level || 0;
+		if (techLevel === 0) continue;
+
+		for (const effect of research.effects) {
+			if (effect.type === 'resource_boost' && effect.resource_type === resourceType) {
+				bonus += (techLevel * effect.value) / 100;
+			}
+		}
+	}
+
+	return bonus;
+}
+
+export function calculateResearchTime(
+	gameConfig: GameConfig,
+	userResearchs: UserResearchs,
+	technologyId: TechnologyId
+): number {
+	const config = gameConfig.researchs.find((tech) => tech.id === technologyId);
+	if (!config) {
+		throw new Error('Invalid technology ID');
+	}
+
+	const currentResearch = userResearchs.technologies[technologyId];
+
+	const timeMultiplier = 1 + (config.time.percent_increase_per_level * currentResearch.level) / 100;
+	const researchSpeedBonus = getTechnologyBonus(gameConfig, userResearchs, 'research_speed');
+
+	const researchTime = (config.time.base_seconds * timeMultiplier * researchSpeedBonus) / gameConfig.speed.researchs;
+
+	return researchTime;
 }
 
 // Research bonus is a multiplier that is applied to the production of a resource

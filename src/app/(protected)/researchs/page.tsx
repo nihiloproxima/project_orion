@@ -33,8 +33,9 @@ import { TECHNOLOGIES } from '../../../lib/constants';
 import { TechnologyId } from '../../../models';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
+import { calculateResearchTime } from '@/utils/researchs_calculations';
 import { getPublicImageUrl } from '@/lib/images';
-import { getTechnologyBonus } from '@/utils/researchs_calculations';
+import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
 import { useState } from 'react';
 
@@ -56,13 +57,9 @@ function ResearchCard({ id, config, tech, onStartResearch, isAnyResearchInProgre
 
 	if (!state.resources) return null;
 
-	const costMultiplier = Math.pow(1 + config.cost.percent_increase_per_level / 100, tech.level);
-
-	const timeMultiplier = 1 + (config.time.percent_increase_per_level * tech.level) / 100;
-	const researchSpeedBonus = getTechnologyBonus(state.gameConfig!, state.userResearchs!, 'research_speed');
-	const researchTime = config.time.base_seconds * timeMultiplier * researchSpeedBonus;
-
 	const assetConfig = TECHNOLOGIES[id as keyof typeof TECHNOLOGIES];
+	const costMultiplier = Math.pow(1 + config.cost.percent_increase_per_level / 100, tech.level);
+	const researchTime = calculateResearchTime(state.gameConfig!, state.userResearchs!, id);
 
 	const costs = {
 		metal: config.cost.base_metal * costMultiplier,
@@ -420,15 +417,21 @@ export default function Researchs() {
 					</DropdownMenu>
 				</div>
 
-				<div className={`grid ${gridColsClass} gap-6`}>
-					{Object.entries(state.userResearchs.technologies).map(([id, tech]) => {
-						const config = state.gameConfig?.researchs.find((r) => r.id === id);
-						if (!config) return null;
+				<motion.div
+					layout
+					className={`grid ${gridColsClass} gap-6`}
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ duration: 0.5 }}
+				>
+					{state.gameConfig.researchs.map((config) => {
+						const tech = state.userResearchs!.technologies[config.id];
+						if (!tech) return null;
 
 						return (
 							<ResearchCard
-								key={id}
-								id={id as TechnologyId}
+								key={config.id}
+								id={config.id}
 								config={config}
 								tech={tech}
 								onStartResearch={startResearch}
@@ -436,7 +439,7 @@ export default function Researchs() {
 							/>
 						);
 					})}
-				</div>
+				</motion.div>
 			</div>
 		</ErrorBoundary>
 	);

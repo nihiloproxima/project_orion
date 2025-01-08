@@ -10,8 +10,8 @@ export default function GalaxyObservation() {
 	const { state } = useGame();
 
 	return (
-		<div className="space-y-6">
-			<div className="flex justify-between items-center">
+		<div className="flex flex-col h-[calc(100vh-8rem)] overflow-hidden">
+			<div className="flex justify-between items-center mb-4 flex-shrink-0">
 				<div>
 					<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
 						<Eye className="h-8 w-8" />
@@ -21,12 +21,12 @@ export default function GalaxyObservation() {
 				</div>
 			</div>
 
-			<Card className="border-2 shadow-2xl shadow-primary/20">
-				<CardHeader className="border-b bg-gray-900">
+			<Card className="border-2 shadow-2xl shadow-primary/20 min-h-0 flex-1">
+				<CardHeader className="border-b bg-gray-900 flex-shrink-0">
 					<CardTitle className="text-xl">Known Systems: {state.planets?.length || 0}</CardTitle>
 				</CardHeader>
-				<CardContent className="p-6">
-					<div className="flex justify-center h-[500px] lg:h-[700px] xl:h-[800px]">
+				<CardContent className="p-6 h-[calc(100%-6rem)] overflow-hidden">
+					<div className="h-full w-full">
 						<GalaxyMap mode="view-only" />
 					</div>
 				</CardContent>

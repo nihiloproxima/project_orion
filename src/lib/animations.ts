@@ -32,7 +32,7 @@ export const containerVariants: Variants = {
 		opacity: 100,
 		y: 0,
 		transition: {
-			duration: 0.5,
+			duration: 0.1,
 			staggerChildren: 0.1,
 			when: 'beforeChildren',
 		},
