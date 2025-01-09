@@ -1,5 +1,5 @@
 import { BaseMail, CombatMail, MissionMail, SpyMail } from '@/models/mail';
-import { Beaker, Bell, Bot, Building, Eye, MessageSquare, Rocket, Shield, Ship, Sword } from 'lucide-react';
+import { Beaker, Bell, Building, Eye, MessageSquare, Rocket, Shield, Ship, Sword } from 'lucide-react';
 
 import { Button } from './ui/button';
 import Image from 'next/image';
@@ -304,27 +304,6 @@ export function MailContent({ mail }: MailContentProps) {
 							</Button>
 						</div>
 					)}
-				</div>
-			</div>
-		);
-	}
-
-	// AI Mail Handler
-	if (mail.type === 'ai_message') {
-		return (
-			<div className="space-y-6 animate-fade-in">
-				<div className="flex items-center gap-2 text-cyan-500">
-					<Bot className="h-5 w-5" />
-					<h2 className="text-xl font-bold">AI Assistant</h2>
-				</div>
-
-				<div className="prose prose-invert max-w-none">
-					{mail.data?.context && (
-						<div className="text-sm text-gray-400 mb-4 whitespace-pre-line">
-							Context: {mail.data.context}
-						</div>
-					)}
-					{mail.content && <p className="whitespace-pre-line">{mail.content}</p>}
 				</div>
 			</div>
 		);

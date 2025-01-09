@@ -4,7 +4,7 @@ import * as THREE from 'three';
 
 import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 
 import { FleetMovement } from '@/models';
 import { Planet } from '@/models';

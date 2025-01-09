@@ -1,7 +1,7 @@
 'use client';
 
 import { BaseMail, MailType } from '@/models/mail';
-import { Bell, Bot, Eye, Mail, MessageSquare, Rocket, Sword, Trash2 } from 'lucide-react';
+import { Bell, Eye, Mail, MessageSquare, Rocket, Sword, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 
@@ -21,7 +21,6 @@ const MAIL_CATEGORIES = [
 	{ type: 'mission', icon: Rocket, label: 'Mission Reports' },
 	{ type: 'private_message', icon: MessageSquare, label: 'Private Messages' },
 	{ type: 'game_message', icon: Bell, label: 'Game Messages' },
-	{ type: 'ai_message', icon: Bot, label: 'AI Messages' },
 ] as const;
 
 export default function Reports() {

@@ -27,7 +27,6 @@ import { Checkbox } from '../../../components/ui/checkbox';
 import GalaxyMap from '@/components/ThreeMap/GalaxyMap';
 import Image from 'next/image';
 import { Input } from '../../../components/ui/input';
-import { LoadingScreen } from '../../../components/LoadingScreen';
 import { Planet } from '../../../models/planet';
 import { ResourcePayload } from '@/models/fleet_movement';
 import { api } from '../../../lib/api';
