@@ -37,6 +37,8 @@ import { useFleetMissions } from '@/hooks/useFleetMissions';
 import { useGame } from '../../../contexts/GameContext';
 import { usePlanets } from '../../../hooks/usePlanets';
 import { useToast } from '@/hooks/use-toast';
+import { motion } from 'framer-motion';
+import { containerVariants, itemVariants } from '../../../lib/animations';
 
 const getShipImageUrl = (type: ShipType) => {
 	return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
@@ -429,7 +431,7 @@ export default function Fleet() {
 
 		if (selectedShipTypes.has('cruiser')) missionTypes.push('attack');
 		if (selectedShipTypes.has('transport_ship')) missionTypes.push('transport');
-		if (selectedShipTypes.has('colony_ship')) missionTypes.push('colonize');
+		if (selectedShipTypes.has('colony_ship')) missionTypes.push('colonize', 'transport');
 		if (selectedShipTypes.has('spy_probe')) missionTypes.push('spy');
 		if (selectedShipTypes.has('recycler_ship')) missionTypes.push('recycle');
 
@@ -440,9 +442,10 @@ export default function Fleet() {
 		if (!targetPlanet || !missionType) return;
 
 		const success = await sendMission({
+			from_planet_id: state.selectedPlanet?.id || '',
+			to_planet_id: targetPlanet.id,
 			ships_ids: Array.from(selectedShips),
 			mission_type: missionType,
-			target_planet: targetPlanet,
 			resources,
 		});
 
@@ -465,7 +468,7 @@ export default function Fleet() {
 	};
 
 	if (loading || planetsLoading) {
-		return <LoadingScreen message="LOADING FLEET DATA..." />;
+		return null;
 	}
 
 	if (showMissionSetup) {
@@ -632,8 +635,8 @@ export default function Fleet() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex justify-between items-center">
+		<motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
+			<motion.div variants={itemVariants} className="flex justify-between items-center">
 				<div>
 					<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
 						<ShipIcon className="h-8 w-8" />
@@ -642,7 +645,7 @@ export default function Fleet() {
 					<p className="text-muted-foreground">Manage and deploy your stationed ships</p>
 				</div>
 
-				<div className="flex gap-2">
+				<motion.div variants={itemVariants} className="flex gap-2">
 					<Button
 						variant="outline"
 						size="sm"
@@ -705,76 +708,88 @@ export default function Fleet() {
 					>
 						<span className="uppercase">Send Mission</span>
 					</Button>
-				</div>
-			</div>
+				</motion.div>
+			</motion.div>
 
-			<div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}>
-				{stationedShips.map((ship) => (
-					<Card
+			<motion.div
+				variants={itemVariants}
+				className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'}
+			>
+				{stationedShips.map((ship, index) => (
+					<motion.div
 						key={ship.id}
-						className={`bg-card/50 backdrop-blur-sm transition-all duration-300 ${
-							selectedShips.has(ship.id) ? 'neon-border-primary' : 'hover:neon-border'
-						}`}
+						variants={itemVariants}
+						initial="hidden"
+						animate="show"
+						transition={{ delay: index * 0.1 }}
 					>
-						<CardHeader className="flex flex-row items-center space-y-0 pb-2">
-							<CardTitle className="flex-1 flex items-center gap-2">
-								<Checkbox
-									checked={selectedShips.has(ship.id)}
-									onCheckedChange={() => handleShipSelect(ship.id)}
-								/>
-								<Image
-									src={SHIP_ASSETS[ship.type].image}
-									width={100}
-									height={100}
-									aria-description={`Ship ${ship.name}`}
-									alt={ship.name}
-									className="w-8 h-8"
-								/>
-								<div className="flex flex-col">
-									<span>{ship.name}</span>
-									<span className="text-xs text-muted-foreground">{SHIP_ASSETS[ship.type].name}</span>
+						<Card
+							className={`bg-card/50 backdrop-blur-sm transition-all duration-300 ${
+								selectedShips.has(ship.id) ? 'neon-border-primary' : 'hover:neon-border'
+							}`}
+						>
+							<CardHeader className="flex flex-row items-center space-y-0 pb-2">
+								<CardTitle className="flex-1 flex items-center gap-2">
+									<Checkbox
+										checked={selectedShips.has(ship.id)}
+										onCheckedChange={() => handleShipSelect(ship.id)}
+									/>
+									<Image
+										src={SHIP_ASSETS[ship.type].image}
+										width={100}
+										height={100}
+										aria-description={`Ship ${ship.name}`}
+										alt={ship.name}
+										className="w-8 h-8"
+									/>
+									<div className="flex flex-col">
+										<span>{ship.name}</span>
+										<span className="text-xs text-muted-foreground">
+											{SHIP_ASSETS[ship.type].name}
+										</span>
+									</div>
+								</CardTitle>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => {
+										setSelectedShipToRename(ship);
+										setNewShipName(ship.name);
+										setRenameDialogOpen(true);
+									}}
+								>
+									<Pencil className="h-4 w-4" />
+								</Button>
+							</CardHeader>
+							<CardContent>
+								<div className="grid grid-cols-2 gap-2 text-sm">
+									<div className="flex items-center gap-2">
+										<Rocket className="h-4 w-4 text-blue-400" />
+										<span>Speed: {ship.speed}</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Box className="h-4 w-4 text-yellow-400" />
+										<span>Cargo: {ship.cargo_capacity}</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Anchor className="h-4 w-4 text-red-400" />
+										<span>Attack: {ship.attack_power}</span>
+									</div>
+									<div className="flex items-center gap-2">
+										<Shield className="h-4 w-4 text-green-400" />
+										<span>Defense: {ship.defense}</span>
+									</div>
 								</div>
-							</CardTitle>
-							<Button
-								variant="ghost"
-								size="sm"
-								onClick={() => {
-									setSelectedShipToRename(ship);
-									setNewShipName(ship.name);
-									setRenameDialogOpen(true);
-								}}
-							>
-								<Pencil className="h-4 w-4" />
-							</Button>
-						</CardHeader>
-						<CardContent>
-							<div className="grid grid-cols-2 gap-2 text-sm">
-								<div className="flex items-center gap-2">
-									<Rocket className="h-4 w-4 text-blue-400" />
-									<span>Speed: {ship.speed}</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Box className="h-4 w-4 text-yellow-400" />
-									<span>Cargo: {ship.cargo_capacity}</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Anchor className="h-4 w-4 text-red-400" />
-									<span>Attack: {ship.attack_power}</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<Shield className="h-4 w-4 text-green-400" />
-									<span>Defense: {ship.defense}</span>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
+							</CardContent>
+						</Card>
+					</motion.div>
 				))}
-			</div>
+			</motion.div>
 
 			{stationedShips.length === 0 && (
-				<div className="text-center text-muted-foreground py-12">
+				<motion.div variants={itemVariants} className="text-center text-muted-foreground py-12">
 					No ships currently stationed at this planet.
-				</div>
+				</motion.div>
 			)}
 
 			<Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
@@ -795,6 +810,6 @@ export default function Fleet() {
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</div>
+		</motion.div>
 	);
 }

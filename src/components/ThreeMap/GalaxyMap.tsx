@@ -4,7 +4,7 @@ import * as THREE from 'three';
 
 import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 
 import { FleetMovement } from '@/models';
 import { Planet } from '@/models';
@@ -474,25 +474,25 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 };
 
 const StarryBackground = () => {
-	const generateStars = useCallback(() => {
-		const stars = [];
+	// Memoize the stars array so it doesn't regenerate on every render
+	const stars = useMemo(() => {
+		const starsArray = [];
 		const numStars = 2000;
 
 		for (let i = 0; i < numStars; i++) {
-			// Create a wider distribution of stars
 			const x = (Math.random() - 0.5) * 12000;
 			const y = (Math.random() - 0.5) * 12000;
-			const size = Math.random() * 1.5 + 0.5; // Random size between 0.5 and 2
-			const opacity = Math.random() * 0.5 + 0.2; // Random opacity between 0.2 and 0.7
+			const size = Math.random() * 2 + 1; // Increased size range: 1 to 3
+			const opacity = Math.random() * 0.6 + 0.4; // Increased opacity range: 0.4 to 1.0
 
-			stars.push({ position: [x, y, -100], size, opacity });
+			starsArray.push({ position: [x, y, -100], size, opacity });
 		}
-		return stars;
-	}, []);
+		return starsArray;
+	}, []); // Empty dependency array ensures stars are generated only once
 
 	return (
 		<group>
-			{generateStars().map((star, i) => (
+			{stars.map((star, i) => (
 				<mesh key={i} position={star.position as [number, number, number]}>
 					<circleGeometry args={[star.size, 32]} />
 					<meshBasicMaterial color={0xffffff} transparent opacity={star.opacity} depthWrite={false} />

@@ -509,7 +509,10 @@ function StructureContent({
 			) : futureEnergyRatio > currentEnergyRatio ? (
 				<div className="text-sm text-emerald-400">
 					This will improve energy ratio from {currentEnergyRatio.toFixed(2)} to{' '}
-					{futureEnergyRatio.toFixed(2)}, increasing production efficiency
+					{futureEnergyRatio.toFixed(2)}
+					{futureEnergyRatio >= 1 && currentEnergyRatio < 1
+						? ', restoring full production efficiency'
+						: ', which have no effect on production efficiency'}
 				</div>
 			) : null}
 

@@ -2,6 +2,7 @@ import { ResourcePayload } from '@/models/fleet_movement';
 import { MissionType, ShipType } from '../models/ship';
 import { supabase } from './supabase';
 import { StructureType } from '@/models/planet_structures';
+import { DefenseType } from '@/models/defense';
 
 function getAuthToken() {
 	return supabase.auth.getSession().then(({ data: { session } }) => {
@@ -70,6 +71,15 @@ export const api = {
 			});
 		},
 	},
+	defenses: {
+		buildDefense: async (type: DefenseType, planetId: string, amount: number) => {
+			return post('defenses', 'buildDefense', {
+				defense_type: type,
+				planet_id: planetId,
+				amount,
+			});
+		},
+	},
 	fleet: {
 		buildShip: async (shipType: ShipType, planetId: string, amount: number) => {
 			return post('fleet', 'buildShip', {
@@ -85,9 +95,10 @@ export const api = {
 			});
 		},
 		sendMission: async (params: {
+			from_planet_id: string;
+			to_planet_id: string;
 			ships_ids: string[];
 			mission_type: MissionType;
-			planet_id: string;
 			resources?: ResourcePayload;
 		}) => {
 			return post('fleet', 'sendMission', params);

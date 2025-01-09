@@ -13,6 +13,7 @@ export interface PlanetResources {
     science: number;
     energy: number;
     updated_at: number;
+    created_at: number;
 }
 
 export const DEFAULT_PLANET_RESOURCES: PlanetResources = {
@@ -21,6 +22,7 @@ export const DEFAULT_PLANET_RESOURCES: PlanetResources = {
     microchips: 0,
     deuterium: 500,
     science: 0,
-    energy: 0,
+    energy: 30,
     updated_at: Date.now(),
+    created_at: Date.now(),
 };

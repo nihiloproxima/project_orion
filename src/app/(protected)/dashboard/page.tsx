@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, MessageSquare, Rocket, Users } from 'lucide-react';
+import { MessageSquare, Rocket, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { ChatMessage, Ship } from '../../../models';
 import { containerVariants, itemVariants } from '@/lib/animations';
@@ -24,6 +24,7 @@ export default function Dashboard() {
 	const scrollAreaRef = useRef<HTMLDivElement>(null);
 	const [stationedShips, setStationedShips] = useState<number>(0);
 	const [allShips, setAllShips] = useState<Ship[]>([]);
+	const [unreadMails, setUnreadMails] = useState<number>(0);
 
 	useEffect(() => {
 		// Initial fetch of messages
@@ -175,6 +176,48 @@ export default function Dashboard() {
 		};
 	}, [state.currentUser?.id]);
 
+	useEffect(() => {
+		const fetchUnreadMails = async () => {
+			if (!state.currentUser?.id) return;
+
+			const { data, error } = await supabase
+				.from('mails')
+				.select('id', { count: 'exact' })
+				.eq('owner_id', state.currentUser.id)
+				.eq('read', false);
+
+			if (error) {
+				console.error('Error fetching unread mails:', error);
+				return;
+			}
+
+			setUnreadMails(data?.length || 0);
+		};
+
+		fetchUnreadMails();
+
+		// Subscribe to mail changes
+		const subscription = supabase
+			.channel('user_mails')
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'mails',
+					filter: `owner_id=eq.${state.currentUser?.id}`,
+				},
+				() => {
+					fetchUnreadMails();
+				}
+			)
+			.subscribe();
+
+		return () => {
+			subscription.unsubscribe();
+		};
+	}, [state.currentUser?.id]);
+
 	const calculateFleetStats = () => {
 		const stats = {
 			total: allShips.length,
@@ -212,10 +255,10 @@ export default function Dashboard() {
 						subtext: `${fleetStats.inCombat} in combat, ${fleetStats.inOrbit} in orbit, ${fleetStats.stationed} stationed`,
 					},
 					{
-						title: 'SYSTEM STATUS',
-						icon: <Activity className="h-4 w-4 text-primary" />,
-						value: 'OPTIMAL',
-						subtext: 'All systems green',
+						title: 'UNREAD MESSAGES',
+						icon: <MessageSquare className="h-4 w-4 text-primary" />,
+						value: `${unreadMails} Messages`,
+						subtext: 'Unread communications',
 					},
 					{
 						title: 'ACTIVE COMMANDERS',

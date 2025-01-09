@@ -1,7 +1,7 @@
-import { ShipType } from "./ship";
+import { DefenseType } from "./defense";
 
-export interface ShipyardQueueCommand {
-    ship_type: ShipType;
+export interface DefenseQueueCommand {
+    type: DefenseType;
     remaining_amount: number;
     total_amount: number;
     construction_start_time: number;
@@ -14,11 +14,11 @@ export interface ShipyardQueueCommand {
     total_science_cost: number;
 }
 
-export interface ShipyardQueue {
+export interface DefenseQueue {
     planet_id: string;
-    commands: Array<ShipyardQueueCommand>;
+    queue: DefenseQueueCommand[];
     capacity: number;
     is_processing_command: boolean;
-    created_at: number;
     updated_at: number;
+    created_at: number;
 }
