@@ -403,7 +403,7 @@ function StructureContent({
 	if (structure.is_under_construction) {
 		return (
 			<div className="space-y-4">
-				<div className="text-sm text-primary/70">Under Construction</div>
+				<div className="text-sm text-primary/70">Level {structure.level} - Under Construction</div>
 				<Timer
 					startTime={structure.construction_start_time!}
 					finishTime={structure.construction_finish_time!}
