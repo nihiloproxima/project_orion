@@ -317,7 +317,7 @@ export default function Fleet() {
 			if (convoySpeed === Infinity) return null;
 
 			// Calculate travel time in seconds (matching server logic exactly)
-			const travelTimeSeconds = Math.ceil(distance / convoySpeed);
+			const travelTimeSeconds = Math.ceil(distance / convoySpeed / state.gameConfig!.speed.ships);
 
 			return travelTimeSeconds;
 		},
