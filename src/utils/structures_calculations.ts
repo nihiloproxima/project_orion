@@ -139,6 +139,8 @@ export function calculateStructureEnergyConsumption(
 	structureType: StructureType,
 	currentLevel: number
 ) {
+	if (currentLevel === 0) return 0;
+
 	const structureConfig = gameConfig.structures.find((s) => s.type === structureType);
 
 	if (!structureConfig) {
