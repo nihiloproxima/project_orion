@@ -128,6 +128,26 @@ function ResearchCard({ id, config, tech, onStartResearch, isAnyResearchInProgre
 		return description;
 	};
 
+	// Check if user has a research lab
+	const hasResearchLab = state.planetStructures?.structures.some(
+		(structure) => structure.type === 'research_lab' && structure.level >= 1
+	);
+	if (!hasResearchLab) {
+		return (
+			<div className="flex flex-col items-center justify-center h-[80vh] space-y-6 text-center">
+				<AlertTriangle className="w-16 h-16 text-red-500 animate-pulse" />
+				<div className="space-y-2">
+					<h2 className="text-2xl font-bold text-red-500">ACCESS DENIED</h2>
+					<div className="font-mono text-sm text-muted-foreground max-w-md">
+						<p className="mb-2">[ERROR CODE: NO_SHIPYARD_DETECTED]</p>
+						<p>Shipyard structure required for spacecraft construction.</p>
+						<p>Please construct a shipyard to access ship building capabilities.</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
 			<Card
