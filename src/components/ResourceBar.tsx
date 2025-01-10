@@ -127,7 +127,8 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 											: config.textColor
 									}`}
 								>
-									{millify(Math.floor(state.resources![resource as ResourceType]))}
+									{millify(Math.floor(state.resources![resource as ResourceType]))}/
+									{millify(storageCapacities[resource as ResourceType])}
 								</span>
 								<config.icon className={`h-4 w-4 ${config.iconColor}`} />
 							</div>
@@ -185,7 +186,8 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 												: config.textColor
 										}`}
 									>
-										{millify(Math.floor(state.resources![resource as ResourceType]))}
+										{millify(Math.floor(state.resources![resource as ResourceType]))}/
+										{millify(storageCapacities[resource as ResourceType])}
 									</span>
 								</div>
 								{isExpanded && (
