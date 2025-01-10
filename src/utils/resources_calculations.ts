@@ -48,11 +48,16 @@ function calculateResearchProductionBoost(
 
 	for (const tech of techs) {
 		const techLevel = userResearchs.technologies[tech.id].level;
+		if (techLevel === 0) continue;
 		const effect = tech.effects.find((e) => e.resource_type === resource);
 		if (!effect) continue;
 
-		const techBonus = effect.value + (effect.per_level ? effect.value * techLevel : 0);
-		bonus += techBonus;
+		if (!effect.per_level) {
+			bonus += effect.value;
+			continue;
+		}
+
+		bonus += (effect.value * techLevel) / 100;
 	}
 
 	return bonus;
@@ -93,6 +98,13 @@ export function calculateBaseRates(
 
 				rates[structureConfig.production.resource] +=
 					baseProduction * productionBoost * gameConfig.speed.resources;
+
+				console.log(`${structureConfig.production.resource} production:`, {
+					baseProduction,
+					productionBoost,
+					speedMultiplier: gameConfig.speed.resources,
+					total: baseProduction * productionBoost * gameConfig.speed.resources,
+				});
 			}
 		}
 	});
