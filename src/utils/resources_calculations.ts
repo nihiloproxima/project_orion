@@ -192,7 +192,7 @@ export function calculatePlanetResources(
 	planetResources: PlanetResources,
 	userResearchs: UserResearchs
 ) {
-	const now = Date.now();
+	const now = Date.now() + 1000;
 	const lastUpdate = planetResources.updated_at;
 	const elapsedSeconds = (now - lastUpdate) / 1000;
 
