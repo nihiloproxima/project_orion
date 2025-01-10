@@ -98,13 +98,6 @@ export function calculateBaseRates(
 
 				rates[structureConfig.production.resource] +=
 					baseProduction * productionBoost * gameConfig.speed.resources;
-
-				console.log(`${structureConfig.production.resource} production:`, {
-					baseProduction,
-					productionBoost,
-					speedMultiplier: gameConfig.speed.resources,
-					total: baseProduction * productionBoost * gameConfig.speed.resources,
-				});
 			}
 		}
 	});

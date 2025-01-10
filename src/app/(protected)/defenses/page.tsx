@@ -40,6 +40,7 @@ import { getPublicImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
+import { calculateDefenseConstructionTimeSeconds } from '@/utils/defenses_calculations';
 
 const QUEUE_CAPACITY = 5;
 
@@ -106,17 +107,17 @@ const DEFENSE_ASSETS: Record<DefenseType, { name: string; image: string; descrip
 };
 
 function QueueDisplay({ queue }: { queue: DefenseQueue | null }) {
-	if (!queue?.queue || queue.queue.length === 0) {
+	if (!queue?.commands || queue.commands.length === 0) {
 		return <div className="text-muted-foreground text-sm mb-6">No defenses currently in production</div>;
 	}
 
 	return (
 		<div className="mb-6">
 			<h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-				Production Queue ({queue.queue.length}/{queue.capacity})
+				Production Queue ({queue.commands.length}/{queue.capacity})
 			</h2>
 			<div className="grid gap-3">
-				{queue.queue.map((command, index) => {
+				{queue.commands.map((command, index) => {
 					const asset = DEFENSE_ASSETS[command.type];
 					const isInProgress = index === 0;
 
@@ -150,7 +151,7 @@ function QueueDisplay({ queue }: { queue: DefenseQueue | null }) {
 										<div className="text-sm">
 											Starts in:{' '}
 											{formatTimerTime(
-												(queue.queue[0].construction_finish_time - Date.now()) / 1000
+												(queue.commands[0].construction_finish_time - Date.now()) / 1000
 											)}
 										</div>
 									)}
@@ -202,9 +203,14 @@ function DefenseCard({ type, queue }: { type: DefenseType; queue: DefenseQueue |
 	const canAfford = buildAmount <= maxPossibleDefenses;
 
 	// Calculate build time
-	const buildTime = config.construction_time * buildAmount;
+	const buildTime = calculateDefenseConstructionTimeSeconds(
+		state.gameConfig!,
+		config,
+		defenseFactory!.level,
+		buildAmount
+	);
 
-	const isQueueFull = (queue?.queue?.length || 0) >= (queue?.capacity || 0);
+	const isQueueFull = (queue?.commands?.length || 0) >= (queue?.capacity || 0);
 
 	const handleBuild = async () => {
 		if (!state.selectedPlanet?.id || isQueueFull) return;
@@ -394,7 +400,6 @@ export default function Defenses() {
 	const { state } = useGame();
 	const [selectedCategory, setSelectedCategory] = useState<string>('basic');
 	const [queue, setQueue] = useState<DefenseQueue | null>(null);
-	const [loading, setLoading] = useState(true);
 	const [gridCols, setGridCols] = useState(() => {
 		const saved = localStorage.getItem('defensesGridCols');
 		return saved ? parseInt(saved) : 1;
@@ -417,7 +422,6 @@ export default function Defenses() {
 
 		// Initial fetch
 		const fetchQueue = async () => {
-			setLoading(true);
 			const { data } = await supabase
 				.from('defense_queues')
 				.select('*')
@@ -427,7 +431,6 @@ export default function Defenses() {
 			if (data) {
 				setQueue(data as DefenseQueue);
 			}
-			setLoading(false);
 		};
 
 		fetchQueue();
@@ -547,11 +550,7 @@ export default function Defenses() {
 						<ScrollArea className="h-full pr-4">
 							<QueueDisplay queue={queue} />
 
-							{loading ? (
-								<div className="text-center text-muted-foreground font-mono">
-									<p>{'>'} LOADING DEFENSE SYSTEMS DATA...</p>
-								</div>
-							) : selectedCategory ? (
+							{selectedCategory ? (
 								<div className={`grid ${gridColsClass} gap-6`}>
 									{DEFENSE_CATEGORIES[selectedCategory]!.types.map((type: DefenseType) => (
 										<DefenseCard key={type} type={type} queue={queue} />
