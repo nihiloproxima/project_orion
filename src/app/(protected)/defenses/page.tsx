@@ -7,9 +7,6 @@ import {
 	Clock,
 	Flame,
 	FolderOpen,
-	Grid,
-	Grid2x2,
-	Grid3x3,
 	Hammer,
 	Lock,
 	Microchip,
@@ -19,12 +16,7 @@ import {
 	Swords,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../../../components/ui/card';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '../../../components/ui/dropdown-menu';
+
 import { useEffect, useState } from 'react';
 
 import { Button } from '../../../components/ui/button';
@@ -41,6 +33,8 @@ import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
 import { calculateDefenseConstructionTimeSeconds } from '@/utils/defenses_calculations';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 
 const QUEUE_CAPACITY = 5;
 
@@ -123,38 +117,43 @@ function QueueDisplay({ queue }: { queue: DefenseQueue | null }) {
 
 					return (
 						<Card key={index} className="bg-black/30">
-							<CardHeader className="flex flex-row items-center p-4">
-								<Image
-									src={asset.image}
-									alt={asset.name}
-									width={100}
-									height={100}
-									className="w-12 h-12 rounded mr-4"
-								/>
-								<div className="flex-1">
-									<div className="font-bold">{asset.name}</div>
-									<div className="text-sm text-muted-foreground">
-										Remaining units: {command.remaining_amount}
-									</div>
-									<div className="text-sm text-muted-foreground">
-										Total units: {command.total_amount}
-									</div>
-								</div>
-								<div className="flex items-center gap-2 text-primary">
-									{isInProgress ? (
-										<Timer
-											startTime={command.current_item_start_time}
-											finishTime={command.current_item_finish_time}
-											showProgressBar={true}
+							<CardHeader className="p-4">
+								<div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4">
+									<div className="flex items-center gap-4">
+										<Image
+											src={asset.image}
+											alt={asset.name}
+											width={100}
+											height={100}
+											className="w-12 h-12 rounded flex-shrink-0"
 										/>
-									) : (
-										<div className="text-sm">
-											Starts in:{' '}
-											{formatTimerTime(
-												(queue.commands[0].construction_finish_time - Date.now()) / 1000
-											)}
+										<div className="flex-1 min-w-0">
+											<div className="font-bold">{asset.name}</div>
+											<div className="text-sm text-muted-foreground">
+												Remaining units: {command.remaining_amount}
+											</div>
+											<div className="text-sm text-muted-foreground">
+												Total units: {command.total_amount}
+											</div>
 										</div>
-									)}
+									</div>
+
+									<div className="w-full md:w-auto text-primary">
+										{isInProgress ? (
+											<Timer
+												startTime={command.current_item_start_time}
+												finishTime={command.current_item_finish_time}
+												showProgressBar={true}
+											/>
+										) : (
+											<div className="text-sm">
+												Starts in:{' '}
+												{formatTimerTime(
+													(queue.commands[0].construction_finish_time - Date.now()) / 1000
+												)}
+											</div>
+										)}
+									</div>
 								</div>
 							</CardHeader>
 						</Card>
@@ -396,26 +395,55 @@ function DefenseCard({ type, queue }: { type: DefenseType; queue: DefenseQueue |
 	);
 }
 
+function MobileCategories({ selectedCategory, setSelectedCategory }: any) {
+	return (
+		<div className="mb-6">
+			<Select value={selectedCategory} onValueChange={setSelectedCategory}>
+				<SelectTrigger className="w-full">
+					<SelectValue placeholder="Select category" />
+				</SelectTrigger>
+				<SelectContent>
+					{Object.entries(DEFENSE_CATEGORIES).map(([key, category]) => (
+						<SelectItem key={key} value={key}>
+							<div className="flex items-center gap-2">
+								<FolderOpen className="h-4 w-4" />
+								<span className="font-mono">{category.name}</span>
+							</div>
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		</div>
+	);
+}
+
+function DesktopCategories({ selectedCategory, setSelectedCategory }: any) {
+	return (
+		<div className="col-span-1 bg-black/50 p-4 rounded-lg border border-primary/30 h-[calc(100vh-12rem)]">
+			<div className="font-mono text-sm space-y-2">
+				<div className="text-primary/70 mb-4">{'>'} SELECT_CATEGORY:</div>
+				{Object.entries(DEFENSE_CATEGORIES).map(([key, category]) => (
+					<Button
+						key={key}
+						variant="ghost"
+						className={`w-full justify-start ${selectedCategory === key ? 'bg-primary/20' : ''}`}
+						onClick={() => setSelectedCategory(key)}
+					>
+						<FolderOpen className="mr-2 h-4 w-4" />
+						<span className="font-mono">{category.name}</span>
+						<ChevronRight className="ml-auto h-4 w-4" />
+					</Button>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export default function Defenses() {
 	const { state } = useGame();
 	const [selectedCategory, setSelectedCategory] = useState<string>('basic');
 	const [queue, setQueue] = useState<DefenseQueue | null>(null);
-	const [gridCols, setGridCols] = useState(() => {
-		const saved = localStorage.getItem('defensesGridCols');
-		return saved ? parseInt(saved) : 1;
-	});
-
-	const gridColsClass = {
-		1: 'grid-cols-1',
-		2: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2',
-		3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3',
-		4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-	}[gridCols];
-
-	const updateGridCols = (cols: number) => {
-		setGridCols(cols);
-		localStorage.setItem('defensesGridCols', cols.toString());
-	};
+	const isMobile = useMediaQuery('(max-width: 768px)');
 
 	useEffect(() => {
 		if (!state.selectedPlanet?.id) return;
@@ -499,59 +527,28 @@ export default function Defenses() {
 						</h1>
 						<p className="text-muted-foreground">Construct and manage your planetary defense systems</p>
 					</div>
-
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" size="icon">
-								<Grid className="h-4 w-4" />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => updateGridCols(1)}>
-								<Grid className="mr-2 h-4 w-4" /> Single Column
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => updateGridCols(2)}>
-								<Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => updateGridCols(3)}>
-								<Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => updateGridCols(4)}>
-								<Grid className="mr-2 h-4 w-4" /> Four Columns
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
 				</div>
 
-				<div className="grid grid-cols-4 gap-6">
-					{/* File Explorer Side Panel */}
-					<div className="col-span-1 bg-black/50 p-4 rounded-lg border border-primary/30 h-[calc(100vh-12rem)]">
-						<div className="font-mono text-sm space-y-2">
-							<div className="text-primary/70 mb-4">{'>'} SELECT_CATEGORY:</div>
-							{Object.entries(DEFENSE_CATEGORIES).map(([key, category]) => (
-								<Button
-									key={key}
-									variant="ghost"
-									className={`w-full justify-start ${
-										selectedCategory === key ? 'bg-primary/20' : ''
-									}`}
-									onClick={() => setSelectedCategory(key)}
-								>
-									<FolderOpen className="mr-2 h-4 w-4" />
-									<span className="font-mono">{category.name}</span>
-									<ChevronRight className="ml-auto h-4 w-4" />
-								</Button>
-							))}
-						</div>
-					</div>
+				{/* Mobile Categories */}
+				{isMobile && (
+					<MobileCategories selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
+				)}
+
+				<div className={`${isMobile ? '' : 'grid grid-cols-4 gap-6'}`}>
+					{/* Desktop Categories */}
+					{!isMobile && (
+						<DesktopCategories
+							selectedCategory={selectedCategory}
+							setSelectedCategory={setSelectedCategory}
+						/>
+					)}
 
 					{/* Defense Cards Display */}
-					<div className="col-span-3 h-[calc(100vh-12rem)]">
+					<div className={`${isMobile ? 'w-full' : 'col-span-3'} h-[calc(100vh-12rem)]`}>
 						<ScrollArea className="h-full pr-4">
 							<QueueDisplay queue={queue} />
-
 							{selectedCategory ? (
-								<div className={`grid ${gridColsClass} gap-6`}>
+								<div className="grid grid-cols-1 gap-6">
 									{DEFENSE_CATEGORIES[selectedCategory]!.types.map((type: DefenseType) => (
 										<DefenseCard key={type} type={type} queue={queue} />
 									))}

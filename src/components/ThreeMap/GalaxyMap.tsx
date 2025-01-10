@@ -459,7 +459,7 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 							</span>
 							{fleetMovement.mission_type && (
 								<span className="text-neutral-400 text-[10px] capitalize">
-									{fleetMovement.mission_type}
+									{fleetMovement.status === 'returning' ? 'Returning' : fleetMovement.mission_type}
 								</span>
 							)}
 							{(isAllyMovement || isHostileMovement) && (
@@ -531,7 +531,7 @@ const GalaxyMap = ({
 				.from('fleet_movements')
 				.select('*')
 				.eq('owner_id', state.currentUser?.id)
-				.eq('status', 'traveling');
+				.in('status', ['traveling', 'returning']);
 
 			// Fetch ally movements (transports coming to our planets)
 			const { data: allyMovements } = await supabase

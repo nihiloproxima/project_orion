@@ -42,6 +42,8 @@ import { getPublicImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 const QUEUE_CAPACITY = 5;
 
@@ -383,11 +385,55 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 	);
 }
 
+function MobileCategories({ selectedCategory, setSelectedCategory }: any) {
+	return (
+		<div className="mb-6">
+			<Select value={selectedCategory} onValueChange={setSelectedCategory}>
+				<SelectTrigger className="w-full">
+					<SelectValue placeholder="Select category" />
+				</SelectTrigger>
+				<SelectContent>
+					{Object.entries(SHIP_CATEGORIES).map(([key, category]) => (
+						<SelectItem key={key} value={key}>
+							<div className="flex items-center gap-2">
+								<FolderOpen className="h-4 w-4" />
+								<span className="font-mono">{category.name}</span>
+							</div>
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+		</div>
+	);
+}
+
+function DesktopCategories({ selectedCategory, setSelectedCategory }: any) {
+	return (
+		<div className="col-span-1 bg-black/50 p-4 rounded-lg border border-primary/30 h-[calc(100vh-12rem)]">
+			<div className="font-mono text-sm space-y-2">
+				<div className="text-primary/70 mb-4">{'>'} SELECT_CATEGORY:</div>
+				{Object.entries(SHIP_CATEGORIES).map(([key, category]) => (
+					<Button
+						key={key}
+						variant="ghost"
+						className={`w-full justify-start ${selectedCategory === key ? 'bg-primary/20' : ''}`}
+						onClick={() => setSelectedCategory(key)}
+					>
+						<FolderOpen className="mr-2 h-4 w-4" />
+						<span className="font-mono">{category.name}</span>
+						<ChevronRight className="ml-auto h-4 w-4" />
+					</Button>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export default function Shipyard() {
 	const { state } = useGame();
 	const [selectedCategory, setSelectedCategory] = useState<string>('civilian');
 	const [queue, setQueue] = useState<ShipyardQueue | null>(null);
-	const [loading, setLoading] = useState(true);
+	const isMobile = useMediaQuery('(max-width: 768px)');
 	const [gridCols, setGridCols] = useState(() => {
 		const saved = localStorage.getItem('shipyardGridCols');
 		return saved ? parseInt(saved) : 1;
@@ -410,7 +456,6 @@ export default function Shipyard() {
 
 		// Initial fetch
 		const fetchQueue = async () => {
-			setLoading(true);
 			const { data } = await supabase
 				.from('shipyard_queues')
 				.select('*')
@@ -420,7 +465,6 @@ export default function Shipyard() {
 			if (data) {
 				setQueue(data as ShipyardQueue);
 			}
-			setLoading(false);
 		};
 
 		fetchQueue();
@@ -503,38 +547,25 @@ export default function Shipyard() {
 					</DropdownMenu>
 				</div>
 
-				<div className="grid grid-cols-4 gap-6">
-					{/* File Explorer Side Panel */}
-					<div className="col-span-1 bg-black/50 p-4 rounded-lg border border-primary/30 h-[calc(100vh-12rem)]">
-						<div className="font-mono text-sm space-y-2">
-							<div className="text-primary/70 mb-4">{'>'} SELECT_CATEGORY:</div>
-							{Object.entries(SHIP_CATEGORIES).map(([key, category]) => (
-								<Button
-									key={key}
-									variant="ghost"
-									className={`w-full justify-start ${
-										selectedCategory === key ? 'bg-primary/20' : ''
-									}`}
-									onClick={() => setSelectedCategory(key)}
-								>
-									<FolderOpen className="mr-2 h-4 w-4" />
-									<span className="font-mono">{category.name}</span>
-									<ChevronRight className="ml-auto h-4 w-4" />
-								</Button>
-							))}
-						</div>
-					</div>
+				{/* Mobile Categories */}
+				{isMobile && (
+					<MobileCategories selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
+				)}
+
+				<div className={`${isMobile ? '' : 'grid grid-cols-4 gap-6'}`}>
+					{/* Desktop Categories */}
+					{!isMobile && (
+						<DesktopCategories
+							selectedCategory={selectedCategory}
+							setSelectedCategory={setSelectedCategory}
+						/>
+					)}
 
 					{/* Ship Cards Display */}
-					<div className="col-span-3 h-[calc(100vh-12rem)]">
+					<div className={`${isMobile ? 'w-full' : 'col-span-3'} h-[calc(100vh-12rem)]`}>
 						<ScrollArea className="h-full pr-4">
 							<QueueDisplay queue={queue} />
-
-							{loading ? (
-								<div className="text-center text-muted-foreground font-mono">
-									<p>{'>'} LOADING SHIPYARD DATA...</p>
-								</div>
-							) : selectedCategory ? (
+							{selectedCategory ? (
 								<div className={`grid ${gridColsClass} gap-6`}>
 									{SHIP_CATEGORIES[selectedCategory]!.types.map((type: ShipType) => (
 										<ShipCard key={type} type={type} queue={queue} />
