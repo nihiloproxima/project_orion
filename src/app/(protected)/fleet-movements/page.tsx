@@ -11,7 +11,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { AlertTriangle, ArrowRight, Beaker, Flame, Gift, Hammer, Microchip, Rocket, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Flame, Gift, Hammer, Microchip, Rocket, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { useEffect, useState } from 'react';
@@ -378,10 +378,6 @@ const FleetMovements = () => {
 													deuterium: {
 														icon: <Flame className="h-6 w-6 text-primary" />,
 														color: 'text-primary',
-													},
-													science: {
-														icon: <Beaker className="h-6 w-6 text-blue-400" />,
-														color: 'text-blue-400',
 													},
 												}[resource.toLowerCase()];
 

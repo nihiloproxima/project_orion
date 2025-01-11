@@ -70,7 +70,7 @@ export function calculateResearchTime(
 export function calculateResearchBonus(
 	gameConfig: GameConfig,
 	userResearchs: UserResearchs,
-	resourceType: 'metal' | 'deuterium' | 'microchips' | 'science' | 'energy'
+	resourceType: 'metal' | 'deuterium' | 'microchips' | 'energy'
 ): number {
 	let bonus = 1;
 

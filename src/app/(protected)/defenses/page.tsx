@@ -213,7 +213,6 @@ function DefenseCard({
 		metal: Math.floor(state.resources.metal / config.cost.metal),
 		deuterium: Math.floor(state.resources.deuterium / config.cost.deuterium),
 		microchips: Math.floor(state.resources.microchips / config.cost.microchips),
-		science: Math.floor(state.resources.science / config.cost.science),
 	};
 	const maxPossibleDefenses = Math.min(...Object.values(maxDefensesPerResource));
 
@@ -356,16 +355,6 @@ function DefenseCard({
 							>
 								<Microchip className="h-4 w-4" />
 								<span>{config.cost.microchips * buildAmount}</span>
-							</div>
-							<div
-								className={`flex items-center gap-2 ${
-									state.resources.science < config.cost.science * buildAmount
-										? 'text-red-400'
-										: 'text-muted-foreground'
-								}`}
-							>
-								<Beaker className="h-4 w-4" />
-								<span>{config.cost.science * buildAmount}</span>
 							</div>
 						</div>
 						<div className="flex flex-col gap-4 mt-4">

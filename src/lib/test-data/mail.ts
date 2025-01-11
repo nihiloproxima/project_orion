@@ -24,7 +24,6 @@ const generateSpyReport = (ownerId: string): SpyMail => ({
 				metal: Math.floor(Math.random() * 100000),
 				deuterium: Math.floor(Math.random() * 50000),
 				microchips: Math.floor(Math.random() * 25000),
-				science: Math.floor(Math.random() * 10000),
 			},
 		},
 		structures: [

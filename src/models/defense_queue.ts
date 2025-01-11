@@ -11,7 +11,6 @@ export interface DefenseQueueCommand {
 	total_metal_cost: number;
 	total_deuterium_cost: number;
 	total_microchips_cost: number;
-	total_science_cost: number;
 }
 
 export interface DefenseQueue {

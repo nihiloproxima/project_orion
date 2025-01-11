@@ -85,11 +85,4 @@ export const TECHNOLOGIES: Record<
 		description: 'Improves resource extraction efficiency.',
 		category: 'resource',
 	},
-	science_production_boost: {
-		name: 'Neural Network',
-		image: 'neural_network.png',
-		description:
-			'Advanced neural networks that enhance computational processing and machine learning capabilities.',
-		category: 'infrastructure',
-	},
 };

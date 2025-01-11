@@ -87,7 +87,6 @@ const ResourceSelectionUI = ({
 		metal: 0,
 		deuterium: 0,
 		microchips: 0,
-		science: 0,
 	});
 
 	const { state } = useGame();
@@ -187,29 +186,6 @@ const ResourceSelectionUI = ({
 						) / 100}
 					</span>
 				</div>
-
-				<div className="flex items-center gap-2">
-					<label className="w-24">Science:</label>
-					<Input
-						type="number"
-						min={0}
-						max={Math.min(
-							currentResources?.science || 0,
-							maxCargo - (totalResourcesSelected - (resources.science || 0))
-						)}
-						value={Math.floor(resources.science * 100) / 100}
-						onChange={(e) => handleChange('science', parseInt(e.target.value) || 0)}
-					/>
-					<span className="text-sm text-muted-foreground">
-						Max:{' '}
-						{Math.floor(
-							Math.min(
-								currentResources?.science || 0,
-								maxCargo - (totalResourcesSelected - (resources.science || 0))
-							) * 100
-						) / 100}
-					</span>
-				</div>
 			</div>
 		</div>
 	);
@@ -251,7 +227,6 @@ export default function Fleet() {
 		metal: 0,
 		deuterium: 0,
 		microchips: 0,
-		science: 0,
 	});
 	const { sendMission } = useFleetMissions();
 

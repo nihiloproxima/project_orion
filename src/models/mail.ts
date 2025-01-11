@@ -1,4 +1,5 @@
 import { PlanetDefenses } from './defense';
+import { ResourceType } from './planets_resources';
 import { ResearchInfo, ResourcesInfo, ShipInfo, StructureInfo } from './report';
 
 export type MailCategory = 'reports' | 'messages' | 'missions';
@@ -63,7 +64,6 @@ export interface CombatMail extends BaseMail {
 			metal: number;
 			deuterium: number;
 			microchips: number;
-			science: number;
 		};
 	};
 }
@@ -77,10 +77,7 @@ export interface MissionMail extends BaseMail {
 		objectives: string[];
 		rewards?: {
 			resources?: {
-				metal?: number;
-				deuterium?: number;
-				microchips?: number;
-				science?: number;
+				[resource in ResourceType]: number;
 			};
 			ships?: ShipInfo[];
 			experience?: number;

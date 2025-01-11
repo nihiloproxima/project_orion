@@ -1,6 +1,6 @@
 import { useGame } from '../contexts/GameContext';
 import millify from 'millify';
-import { Beaker, Flame, Hammer, Microchip, Zap, Menu } from 'lucide-react';
+import { Flame, Hammer, Microchip, Zap, Menu } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import {
 	calculateBaseRates,
@@ -41,12 +41,6 @@ const RESOURCE_CONFIG: ResourceConfig = {
 		textColor: 'text-accent',
 		iconColor: 'text-accent',
 	},
-	science: {
-		label: 'SCIENCE',
-		icon: Beaker,
-		textColor: 'text-blue-400',
-		iconColor: 'text-blue-400',
-	},
 } as const;
 
 interface ResourceBarProps {
@@ -72,7 +66,6 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 		metal: baseRates.metal * 3600,
 		deuterium: baseRates.deuterium * 3600,
 		microchips: baseRates.microchips * 3600,
-		science: baseRates.science * 3600,
 	};
 
 	const storageCapacities = calculateStorageCapacities(state.gameConfig, state.planetStructures.structures);

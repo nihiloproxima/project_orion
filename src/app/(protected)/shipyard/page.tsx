@@ -3,7 +3,6 @@
 import {
 	AlertTriangle,
 	Anchor,
-	Beaker,
 	ChevronRight,
 	Clock,
 	Flame,
@@ -181,7 +180,6 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 		metal: Math.floor(state.resources.metal / config.cost.metal),
 		deuterium: Math.floor(state.resources.deuterium / config.cost.deuterium),
 		microchips: Math.floor(state.resources.microchips / config.cost.microchips),
-		science: Math.floor(state.resources.science / config.cost.science),
 	};
 
 	const maxPossibleShips = Math.min(...Object.values(maxShipsPerResource));
@@ -335,16 +333,6 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 							>
 								<Microchip className="h-4 w-4" />
 								<span>{config.cost.microchips * buildAmount}</span>
-							</div>
-							<div
-								className={`flex items-center gap-2 ${
-									state.resources.science < config.cost.science * buildAmount
-										? 'text-red-400'
-										: 'text-muted-foreground'
-								}`}
-							>
-								<Beaker className="h-4 w-4" />
-								<span>{config.cost.science * buildAmount}</span>
 							</div>
 						</div>
 

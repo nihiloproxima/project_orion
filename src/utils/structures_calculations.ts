@@ -53,7 +53,7 @@ export function calculateStructureStorageCapacities(
 ): StorageCapacities {
 	const structureConfig = gameConfig.structures.find((s) => s.type === structureType);
 	if (!structureConfig) {
-		return { metal: 0, microchips: 0, deuterium: 0, science: 0, energy: 0 };
+		return { metal: 0, microchips: 0, deuterium: 0, energy: 0 };
 	}
 
 	// Default storage values
@@ -61,7 +61,6 @@ export function calculateStructureStorageCapacities(
 		metal: 0,
 		microchips: 0,
 		deuterium: 0,
-		science: 0,
 		energy: 0,
 	};
 
@@ -82,7 +81,6 @@ export function calculateUpgradeCost(
 	metal: number;
 	deuterium: number;
 	microchips: number;
-	science: number;
 } {
 	const structureConfig = config.structures.find((s) => s.type === structureType);
 
@@ -95,7 +93,6 @@ export function calculateUpgradeCost(
 		metal: structureConfig.cost.resources.metal * levelScaling,
 		deuterium: structureConfig.cost.resources.deuterium * levelScaling,
 		microchips: structureConfig.cost.resources.microchips * levelScaling,
-		science: structureConfig.cost.resources.science * levelScaling,
 	};
 
 	return result;

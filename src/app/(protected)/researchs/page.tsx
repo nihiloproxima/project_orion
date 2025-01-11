@@ -77,14 +77,12 @@ function ResearchCard({
 	const costs = {
 		metal: config.cost.base_metal * costMultiplier,
 		deuterium: config.cost.base_deuterium * costMultiplier,
-		science: config.cost.base_science * costMultiplier,
 		microchips: config.cost.base_microchips * costMultiplier,
 	};
 
 	const hasEnoughResources =
 		state.resources.metal >= costs.metal &&
 		state.resources.deuterium >= costs.deuterium &&
-		state.resources.science >= costs.science &&
 		state.resources.microchips >= costs.microchips;
 
 	const prerequisitesMet =
@@ -286,20 +284,6 @@ function ResearchCard({
 													}`}
 												>
 													{Math.floor(costs.deuterium).toLocaleString()}
-												</span>
-											</div>
-										)}
-										{config.cost.base_science > 0 && (
-											<div className="flex items-center gap-2">
-												<Beaker className="h-4 w-4 text-blue-400" />
-												<span
-													className={`text-sm truncate ${
-														state.resources.science < costs.science
-															? 'text-red-400'
-															: 'text-gray-200'
-													}`}
-												>
-													{Math.floor(costs.science).toLocaleString()}
 												</span>
 											</div>
 										)}

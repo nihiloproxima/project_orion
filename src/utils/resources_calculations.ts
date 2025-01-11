@@ -5,13 +5,9 @@ import {
 	calculateStructureEnergyProduction,
 } from './structures_calculations';
 
-export interface ResourceGenerationRates {
-	metal: number;
-	microchips: number;
-	deuterium: number;
-	science: number;
-	energy?: number;
-}
+export type ResourceGenerationRates = {
+	[resource in ResourceType]: number;
+};
 
 export function calculateStorageCapacities(gameConfig: GameConfig, structures: Structure[]): StorageCapacities {
 	// Default storage values
@@ -19,7 +15,6 @@ export function calculateStorageCapacities(gameConfig: GameConfig, structures: S
 		metal: 1000,
 		microchips: 500,
 		deuterium: 500,
-		science: 500,
 		energy: 0,
 	};
 
@@ -72,7 +67,6 @@ export function calculateBaseRates(
 		metal: 0,
 		microchips: 0,
 		deuterium: 0,
-		science: 0,
 		energy: 0,
 	};
 
@@ -187,7 +181,7 @@ export function calculateCurrentResources(
 		metal: planetResources.metal + generatedResources.metal,
 		microchips: planetResources.microchips + generatedResources.microchips,
 		deuterium: planetResources.deuterium + generatedResources.deuterium,
-		science: planetResources.science + generatedResources.science,
+		energy: 0,
 	};
 }
 
@@ -223,7 +217,6 @@ export function calculatePlanetResources(
 		metal: planetResources.metal + resourceGeneration.metal * elapsedSeconds * productionMalus,
 		microchips: planetResources.microchips + resourceGeneration.microchips * elapsedSeconds * productionMalus,
 		deuterium: planetResources.deuterium + resourceGeneration.deuterium * elapsedSeconds * productionMalus,
-		science: planetResources.science + resourceGeneration.science * elapsedSeconds * productionMalus,
 		energy: resourceGeneration.energy_balance.production,
 		updated_at: now,
 	};

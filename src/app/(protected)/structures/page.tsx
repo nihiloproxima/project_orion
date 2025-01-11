@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Beaker, Building2, Flame, Grid, Grid2x2, Grid3x3, Hammer, Microchip } from 'lucide-react';
+import { AlertTriangle, Building2, Flame, Grid, Grid2x2, Grid3x3, Hammer, Microchip } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import {
 	DropdownMenu,
@@ -72,7 +72,7 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
 		type: 'research_lab',
 		name: 'Research Laboratory',
 		description: 'Conducts scientific research to unlock new technologies. Each level increases research speed.',
-		productionType: 'science',
+		productionType: 'none',
 		icon: <Building2 className="h-5 w-5" />,
 		hasStorage: false,
 	},
@@ -124,15 +124,6 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
 		description:
 			'Secure storage facility for sensitive microelectronics. Each level increases microchip storage capacity.',
 		productionType: 'microchips',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: true,
-	},
-	data_center: {
-		type: 'data_center',
-		name: 'Data Center',
-		description:
-			'Advanced facility for processing and storing scientific data. Each level increases research data storage and processing speed.',
-		productionType: 'science',
 		icon: <Building2 className="h-5 w-5" />,
 		hasStorage: true,
 	},
@@ -341,7 +332,6 @@ interface StructureContentProps {
 		metal: number;
 		deuterium: number;
 		microchips: number;
-		science: number;
 	};
 	upgradeTime: number;
 	onUpgrade: (structure: Structure) => void;
@@ -368,8 +358,7 @@ function StructureContent({
 	const canAfford =
 		state.resources!.metal >= upgradeCosts.metal &&
 		state.resources!.deuterium >= upgradeCosts.deuterium &&
-		state.resources!.microchips >= upgradeCosts.microchips &&
-		state.resources!.science >= upgradeCosts.science;
+		state.resources!.microchips >= upgradeCosts.microchips;
 
 	// Only check prerequisites if structure is level 0
 	let prerequisitesMet = true;
@@ -469,16 +458,6 @@ function StructureContent({
 						>
 							<Microchip className="h-4 w-4" />
 							<span>{Math.floor(upgradeCosts.microchips)}</span>
-						</div>
-					)}
-					{upgradeCosts.science > 0 && (
-						<div
-							className={`flex items-center gap-2 ${
-								state.resources!.science < upgradeCosts.science ? 'text-red-500' : 'text-blue-400'
-							}`}
-						>
-							<Beaker className="h-4 w-4" />
-							<span>{Math.floor(upgradeCosts.science)}</span>
 						</div>
 					)}
 				</div>

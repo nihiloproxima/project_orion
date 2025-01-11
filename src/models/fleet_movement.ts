@@ -4,7 +4,6 @@ export interface ResourcePayload {
 	metal: number;
 	deuterium: number;
 	microchips: number;
-	science: number;
 }
 
 export interface FleetMovement {
