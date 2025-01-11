@@ -677,9 +677,6 @@ export default function Defenses() {
 					<CurrentDefensesOverview planetDefenses={planetDefenses} />
 				</div>
 
-				{/* Queue Display */}
-				<QueueDisplay queue={queue} />
-
 				{/* Categories and Defense Cards */}
 				{isMobile && (
 					<MobileCategories selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
