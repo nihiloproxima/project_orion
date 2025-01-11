@@ -266,7 +266,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 										{millify(
 											storageCapacities[
 												structureConfig?.storage.resource as keyof StorageCapacities
-											]
+											] || 0
 										)}
 									</span>
 									{!structure.is_under_construction && (
@@ -278,7 +278,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 														state.gameConfig!,
 														structure.type,
 														structure.level + 1
-													)[info.productionType as keyof StorageCapacities]
+													)[info.productionType as keyof StorageCapacities] || 0
 												)}
 											</span>
 										</>

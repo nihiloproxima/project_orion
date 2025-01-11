@@ -63,9 +63,9 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 
 	const baseRates = calculateBaseRates(state.gameConfig, state.planetStructures.structures, state.userResearchs);
 	const hourlyRates: ResourceGenerationRates = {
-		metal: baseRates.metal * 3600,
-		deuterium: baseRates.deuterium * 3600,
-		microchips: baseRates.microchips * 3600,
+		metal: (baseRates.metal || 0) * 3600,
+		deuterium: (baseRates.deuterium || 0) * 3600,
+		microchips: (baseRates.microchips || 0) * 3600,
 	};
 
 	const storageCapacities = calculateStorageCapacities(state.gameConfig, state.planetStructures.structures);
@@ -115,13 +115,13 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 								<span
 									className={`font-mono font-bold text-base ${
 										state.resources![resource as ResourceType] >=
-										storageCapacities[resource as ResourceType]
+										storageCapacities[resource as ResourceType]!
 											? 'text-red-400'
 											: config.textColor
 									}`}
 								>
 									{millify(Math.floor(state.resources![resource as ResourceType]))}/
-									{millify(storageCapacities[resource as ResourceType])}
+									{millify(storageCapacities[resource as ResourceType]!)}
 								</span>
 								<config.icon className={`h-4 w-4 ${config.iconColor}`} />
 							</div>
@@ -174,13 +174,13 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 									<span
 										className={`font-mono font-bold text-xs truncate ${
 											state.resources![resource as ResourceType] >=
-											storageCapacities[resource as ResourceType]
+											storageCapacities[resource as ResourceType]!
 												? 'text-red-400'
 												: config.textColor
 										}`}
 									>
 										{millify(Math.floor(state.resources![resource as ResourceType]))}/
-										{millify(storageCapacities[resource as ResourceType])}
+										{millify(storageCapacities[resource as ResourceType]!)}
 									</span>
 								</div>
 								{isExpanded && (

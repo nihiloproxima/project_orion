@@ -2,7 +2,6 @@
 import _ from 'lodash';
 import {
 	AlertTriangle,
-	Beaker,
 	ChevronRight,
 	Clock,
 	Flame,

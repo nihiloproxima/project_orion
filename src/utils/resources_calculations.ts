@@ -6,7 +6,7 @@ import {
 } from './structures_calculations';
 
 export type ResourceGenerationRates = {
-	[resource in ResourceType]: number;
+	[resource in ResourceType]?: number;
 };
 
 export function calculateStorageCapacities(gameConfig: GameConfig, structures: Structure[]): StorageCapacities {
@@ -15,7 +15,6 @@ export function calculateStorageCapacities(gameConfig: GameConfig, structures: S
 		metal: 1000,
 		microchips: 500,
 		deuterium: 500,
-		energy: 0,
 	};
 
 	// Add storage from buildings
@@ -23,7 +22,7 @@ export function calculateStorageCapacities(gameConfig: GameConfig, structures: S
 		const config = gameConfig.structures.find((s) => s.type === structure.type);
 		if (!config || !config.storage.resource || !config.storage.increase_per_level) return;
 
-		capacities[config.storage.resource] += config.storage.increase_per_level * structure.level;
+		capacities[config.storage.resource]! += config.storage.increase_per_level * structure.level;
 	});
 
 	return capacities;
@@ -90,7 +89,11 @@ export function calculateBaseRates(
 					structureConfig.production.resource
 				);
 
-				rates[structureConfig.production.resource] +=
+				if (!rates[structureConfig.production.resource]) {
+					rates[structureConfig.production.resource] = 0;
+				}
+
+				rates[structureConfig.production.resource]! +=
 					baseProduction * productionBoost * gameConfig.speed.resources;
 			}
 		}
@@ -132,13 +135,14 @@ export function calculateResourceGeneration(
 		if (resourceKey === 'energy') return; // Energy isn't stored
 
 		const currentAmount = currentResources[resourceKey];
-		const maxAmount = storageCapacities[resourceKey];
+		const maxAmount = storageCapacities[resourceKey] || 0;
 
 		if (currentAmount >= maxAmount) {
 			rates[resourceKey] = 0; // Stop production if storage is full
 		} else {
 			// Calculate how much can be produced before hitting cap
 			const remainingSpace = maxAmount - currentAmount;
+			if (!rates[resourceKey]) rates[resourceKey] = 0;
 			const wouldProduce = rates[resourceKey] * elapsedTimeSeconds;
 			if (wouldProduce > remainingSpace) {
 				rates[resourceKey] = remainingSpace / elapsedTimeSeconds;
@@ -178,9 +182,9 @@ export function calculateCurrentResources(
 	);
 
 	return {
-		metal: planetResources.metal + generatedResources.metal,
-		microchips: planetResources.microchips + generatedResources.microchips,
-		deuterium: planetResources.deuterium + generatedResources.deuterium,
+		metal: planetResources.metal + (generatedResources.metal || 0),
+		microchips: planetResources.microchips + (generatedResources.microchips || 0),
+		deuterium: planetResources.deuterium + (generatedResources.deuterium || 0),
 		energy: 0,
 	};
 }
@@ -214,9 +218,10 @@ export function calculatePlanetResources(
 	// Calculate current resources with energy malus applied
 	const updatedResources: PlanetResources = {
 		...planetResources,
-		metal: planetResources.metal + resourceGeneration.metal * elapsedSeconds * productionMalus,
-		microchips: planetResources.microchips + resourceGeneration.microchips * elapsedSeconds * productionMalus,
-		deuterium: planetResources.deuterium + resourceGeneration.deuterium * elapsedSeconds * productionMalus,
+		metal: planetResources.metal + (resourceGeneration.metal || 0) * elapsedSeconds * productionMalus,
+		microchips:
+			planetResources.microchips + (resourceGeneration.microchips || 0) * elapsedSeconds * productionMalus,
+		deuterium: planetResources.deuterium + (resourceGeneration.deuterium || 0) * elapsedSeconds * productionMalus,
 		energy: resourceGeneration.energy_balance.production,
 		updated_at: now,
 	};

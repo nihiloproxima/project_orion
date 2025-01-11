@@ -8,7 +8,7 @@ interface HourlyProductionResult {
 }
 
 export type StorageCapacities = {
-	[key in ResourceType]: number;
+	[key in ResourceType]?: number;
 };
 
 export function calculateStructureHourlyProduction(
