@@ -38,6 +38,8 @@ import { usePlanets } from '../../../hooks/usePlanets';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { containerVariants, itemVariants } from '../../../lib/animations';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { UserResearchs } from '@/models';
 
 const getShipImageUrl = (type: ShipType) => {
 	return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
@@ -205,6 +207,15 @@ const calculateDistance = (p1: Planet, p2: Planet) => {
 	const dx = p1.coordinate_x - p2.coordinate_x;
 	const dy = p1.coordinate_y - p2.coordinate_y;
 	return Math.sqrt(dx * dx + dy * dy);
+};
+
+const getColonyLimit = (userResearchs: UserResearchs): number => {
+	const colonyTech = userResearchs.technologies['colonization_tech'];
+	return colonyTech?.level || 0;
+};
+
+const getCurrentColonyCount = (planets: Planet[], userId: string): number => {
+	return planets?.filter((p) => p.owner_id === userId).length || 0;
 };
 
 export default function Fleet() {
@@ -502,11 +513,51 @@ export default function Fleet() {
 									<SelectValue placeholder="Choose mission type" />
 								</SelectTrigger>
 								<SelectContent>
-									{getAvailableMissionTypes().map((type) => (
-										<SelectItem key={type} value={type}>
-											{type.charAt(0).toUpperCase() + type.slice(1)}
-										</SelectItem>
-									))}
+									{getAvailableMissionTypes().map((type) => {
+										if (type === 'colonize') {
+											const colonyLimit = getColonyLimit(state.userResearchs!);
+											const currentColonies = getCurrentColonyCount(
+												planets || [],
+												state.currentUser?.id || ''
+											);
+											const disabled = currentColonies >= colonyLimit;
+
+											return (
+												<TooltipProvider key={type}>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<div>
+																<SelectItem
+																	value={type}
+																	disabled={disabled}
+																	className={
+																		disabled ? 'opacity-50 cursor-not-allowed' : ''
+																	}
+																>
+																	{type.charAt(0).toUpperCase() + type.slice(1)}
+																</SelectItem>
+															</div>
+														</TooltipTrigger>
+														{disabled && (
+															<TooltipContent>
+																<p>
+																	Colony limit reached ({currentColonies}/
+																	{colonyLimit}). Research colonization technology to
+																	increase limit.
+																</p>
+															</TooltipContent>
+														)}
+													</Tooltip>
+												</TooltipProvider>
+											);
+										}
+
+										return (
+											<SelectItem key={type} value={type}>
+												{type.charAt(0).toUpperCase() + type.slice(1)}
+											</SelectItem>
+										);
+									})}
 								</SelectContent>
 							</Select>
 						</div>
@@ -572,8 +623,15 @@ export default function Fleet() {
 												case 'attack':
 												case 'spy':
 													return p.owner_id && p.owner_id !== state.currentUser?.id;
-												case 'colonize':
-													return !p.owner_id;
+												case 'colonize': {
+													const colonyLimit = getColonyLimit(state.userResearchs!);
+													const currentColonies = getCurrentColonyCount(
+														planets || [],
+														state.currentUser?.id || ''
+													);
+													// Only show unowned planets if user hasn't reached colony limit
+													return !p.owner_id && currentColonies < colonyLimit;
+												}
 												case 'recycle':
 													return false;
 												default:

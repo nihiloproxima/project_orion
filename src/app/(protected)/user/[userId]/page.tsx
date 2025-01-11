@@ -11,6 +11,8 @@ import {
 	Swords,
 	Trophy,
 	User as UserIcon,
+	Eye,
+	Loader2,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../../components/ui/dialog';
 import { cardVariants, containerVariants, itemVariants } from '@/lib/animations';
@@ -27,6 +29,80 @@ import { motion } from 'framer-motion';
 import { supabase } from '../../../../lib/supabase';
 import { useGame } from '../../../../contexts/GameContext';
 import { useParams } from 'next/navigation';
+import { useFleetMissions } from '@/hooks/useFleetMissions';
+import { useToast } from '@/hooks/use-toast';
+
+interface QuickSpyButtonProps {
+	targetPlanetId: string;
+	fromPlanetId: string;
+}
+
+function QuickSpyButton({ targetPlanetId, fromPlanetId }: QuickSpyButtonProps) {
+	const { sendMission } = useFleetMissions();
+	const [loading, setLoading] = useState(false);
+	const { toast } = useToast();
+
+	const handleSpyMission = async () => {
+		setLoading(true);
+		try {
+			// Get stationed spy probes
+			const { data: spyProbes } = await supabase
+				.from('ships')
+				.select('id')
+				.eq('current_planet_id', fromPlanetId)
+				.eq('type', 'spy_probe')
+				.eq('status', 'stationed')
+				.is('mission_type', null)
+				.limit(1);
+
+			if (!spyProbes?.length) {
+				toast({
+					title: 'No Spy Probes Available',
+					description: 'Build spy probes in your shipyard first.',
+					variant: 'destructive',
+				});
+				return;
+			}
+
+			await sendMission({
+				from_planet_id: fromPlanetId,
+				to_planet_id: targetPlanetId,
+				ships_ids: [spyProbes[0].id],
+				mission_type: 'spy',
+			});
+
+			toast({
+				title: 'Spy Mission Launched',
+				description: 'Your spy probe is on its way.',
+			});
+		} catch (error) {
+			console.error('Error sending spy mission:', error);
+			toast({
+				title: 'Error',
+				description: 'Failed to launch spy mission.',
+				variant: 'destructive',
+			});
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return (
+		<Button variant="secondary" size="sm" className="w-full mt-2" onClick={handleSpyMission} disabled={loading}>
+			{loading ? (
+				<span className="flex items-center gap-2">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Launching...
+				</span>
+			) : (
+				<span className="flex items-center gap-2">
+					<Eye className="h-4 w-4" />
+					Quick Spy
+				</span>
+			)}
+		</Button>
+	);
+}
 
 export default function UserProfilePage() {
 	const params = useParams();
@@ -291,6 +367,12 @@ export default function UserProfilePage() {
 											<div className="text-sm capitalize">
 												Biome: {planet.biome.replace('_', ' ')}
 											</div>
+											{!isCurrentUser && state.selectedPlanet && (
+												<QuickSpyButton
+													targetPlanetId={planet.id}
+													fromPlanetId={state.selectedPlanet.id}
+												/>
+											)}
 										</CardContent>
 									</Card>
 								</motion.div>
