@@ -15,6 +15,9 @@ import {
 	Shield,
 	Swords,
 	ChevronDown,
+	Grid,
+	Grid2x2,
+	Grid3x3,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../../../components/ui/card';
 
@@ -37,6 +40,12 @@ import { calculateDefenseConstructionTimeSeconds } from '@/utils/defenses_calcul
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '../../../components/ui/dropdown-menu';
 
 const QUEUE_CAPACITY = 5;
 
@@ -510,6 +519,22 @@ export default function Defenses() {
 	const [queue, setQueue] = useState<DefenseQueue | null>(null);
 	const [planetDefenses, setPlanetDefenses] = useState<Defense[]>([]);
 	const isMobile = useMediaQuery('(max-width: 768px)');
+	const [gridCols, setGridCols] = useState(() => {
+		const saved = localStorage.getItem('defensesGridCols');
+		return saved ? parseInt(saved) : 1;
+	});
+
+	const gridColsClass = {
+		1: 'grid-cols-1',
+		2: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2',
+		3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3',
+		4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+	}[gridCols];
+
+	const updateGridCols = (cols: number) => {
+		setGridCols(cols);
+		localStorage.setItem('defensesGridCols', cols.toString());
+	};
 
 	useEffect(() => {
 		if (!state.selectedPlanet) return;
@@ -624,6 +649,28 @@ export default function Defenses() {
 						</h1>
 						<p className="text-muted-foreground">Construct and manage your planetary defense systems</p>
 					</div>
+
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="outline" size="icon">
+								<Grid className="h-4 w-4" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem onClick={() => updateGridCols(1)}>
+								<Grid className="mr-2 h-4 w-4" /> Single Column
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => updateGridCols(2)}>
+								<Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => updateGridCols(3)}>
+								<Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => updateGridCols(4)}>
+								<Grid className="mr-2 h-4 w-4" /> Four Columns
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 
 				{/* Current Defenses Overview */}
@@ -635,7 +682,7 @@ export default function Defenses() {
 				{/* Queue Display */}
 				<QueueDisplay queue={queue} />
 
-				{/* Categories and Defense Cards (existing code) */}
+				{/* Categories and Defense Cards */}
 				{isMobile && (
 					<MobileCategories selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
 				)}
@@ -650,8 +697,11 @@ export default function Defenses() {
 
 					<div className={`${isMobile ? 'w-full' : 'col-span-3'} h-[calc(100vh-12rem)]`}>
 						<ScrollArea className="h-full pr-4">
+							{/* Queue Display */}
+							<QueueDisplay queue={queue} />
+
 							{selectedCategory ? (
-								<div className="grid grid-cols-1 gap-6">
+								<div className={`grid ${gridColsClass} gap-6`}>
 									{DEFENSE_CATEGORIES[selectedCategory]!.types.map((type: DefenseType) => (
 										<DefenseCard
 											key={type}
