@@ -11,6 +11,7 @@ import { ResourceType } from '@/models';
 import { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { setBasisTranscoderPath } from 'pixi.js';
 
 // First, define a resource config object
 type ResourceConfig = {
@@ -100,7 +101,7 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 						<SelectTrigger className="w-full h-8 sm:h-10 text-sm sm:text-base bg-black border-primary/30 text-primary hover:border-primary/60 transition-colors">
 							<SelectValue placeholder="Select Planet" />
 						</SelectTrigger>
-						<SelectContent className="bg-black/95 border-primary/30">
+						<SelectContent className="bg-black/95 border-primary/30 z-[60]">
 							{state.userPlanets.map((planet) => (
 								<SelectItem
 									key={planet.id}
