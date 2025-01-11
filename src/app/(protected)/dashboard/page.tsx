@@ -263,7 +263,7 @@ export default function Dashboard() {
 					{
 						title: 'ACTIVE COMMANDERS',
 						icon: <Users className="h-4 w-4 text-primary" />,
-						value: state.activePlayers,
+						value: state.activePlayers.length,
 						subtext: 'Currently online',
 					},
 				].map((stat) => (

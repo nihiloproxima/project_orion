@@ -173,13 +173,13 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 		(req: any) => state.userResearchs!.technologies[req.id]?.level >= req.level
 	);
 
-	if (!state.resources) return null;
+	if (!state.planetResources) return null;
 
 	// Calculate max ships possible with current resources
 	const maxShipsPerResource = {
-		metal: Math.floor(state.resources.metal / config.cost.metal),
-		deuterium: Math.floor(state.resources.deuterium / config.cost.deuterium),
-		microchips: Math.floor(state.resources.microchips / config.cost.microchips),
+		metal: Math.floor(state.planetResources.metal / config.cost.metal),
+		deuterium: Math.floor(state.planetResources.deuterium / config.cost.deuterium),
+		microchips: Math.floor(state.planetResources.microchips / config.cost.microchips),
 	};
 
 	const maxPossibleShips = Math.min(...Object.values(maxShipsPerResource));
@@ -306,7 +306,7 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 						<div className="grid grid-cols-2 gap-2 mt-2">
 							<div
 								className={`flex items-center gap-2 ${
-									state.resources.metal < config.cost.metal * buildAmount
+									state.planetResources.metal < config.cost.metal * buildAmount
 										? 'text-red-400'
 										: 'text-muted-foreground'
 								}`}
@@ -316,7 +316,7 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 							</div>
 							<div
 								className={`flex items-center gap-2 ${
-									state.resources.deuterium < config.cost.deuterium * buildAmount
+									state.planetResources.deuterium < config.cost.deuterium * buildAmount
 										? 'text-red-400'
 										: 'text-muted-foreground'
 								}`}
@@ -326,7 +326,7 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 							</div>
 							<div
 								className={`flex items-center gap-2 ${
-									state.resources.microchips < config.cost.microchips * buildAmount
+									state.planetResources.microchips < config.cost.microchips * buildAmount
 										? 'text-red-400'
 										: 'text-muted-foreground'
 								}`}

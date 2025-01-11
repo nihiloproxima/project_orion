@@ -151,7 +151,7 @@ export default function Home() {
 						whileHover={{ scale: 1.05 }}
 					>
 						<Users className="w-5 h-5 text-primary animate-pulse" />
-						<span className="neon-text font-mono">{state.activePlayers}</span>
+						<span className="neon-text font-mono">{state.activePlayers.length}</span>
 						<span className="typing-text">commanders online</span>
 					</motion.div>
 

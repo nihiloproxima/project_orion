@@ -8,7 +8,7 @@ import {
 	ResourceGenerationRates,
 } from '@/utils/resources_calculations';
 import { ResourceType } from '@/models';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
@@ -48,18 +48,37 @@ interface ResourceBarProps {
 	setShowMobileSidebar: (show: boolean) => void;
 }
 
+type Resources = {
+	[key in ResourceType]: number;
+};
+
 export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: ResourceBarProps) {
 	const { state, selectPlanet } = useGame();
 	const [isExpanded, setIsExpanded] = useState(false);
+	const [resources, setResources] = useState<Resources>({
+		metal: 0,
+		microchips: 0,
+		deuterium: 0,
+		energy: 0,
+	});
 
-	if (state.selectedPlanet === null || !state.resources) {
+	useEffect(() => {
+		if (state.selectedPlanet === null || !state.planetResources) {
+			return;
+		}
+
+		setResources(state.planetResources);
+	}, [state.selectedPlanet, state.planetResources]);
+
+	if (
+		state.selectedPlanet === null ||
+		!state.planetResources ||
+		!state.gameConfig ||
+		!state.planetStructures ||
+		!state.userResearchs
+	) {
 		return null;
 	}
-
-	if (!state.gameConfig) return null;
-	if (!state.planetStructures) return null;
-	if (!state.userResearchs) return null;
-	if (!state.resources) return null;
 
 	const baseRates = calculateBaseRates(state.gameConfig, state.planetStructures.structures, state.userResearchs);
 	const hourlyRates: ResourceGenerationRates = {
@@ -114,13 +133,13 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 							<div className="flex items-center gap-2">
 								<span
 									className={`font-mono font-bold text-base ${
-										state.resources![resource as ResourceType] >=
+										resources[resource as ResourceType] >=
 										storageCapacities[resource as ResourceType]!
 											? 'text-red-400'
 											: config.textColor
 									}`}
 								>
-									{millify(Math.floor(state.resources![resource as ResourceType]))}/
+									{millify(Math.floor(resources[resource as ResourceType]))}/
 									{millify(storageCapacities[resource as ResourceType]!)}
 								</span>
 								<config.icon className={`h-4 w-4 ${config.iconColor}`} />
@@ -140,23 +159,27 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 						<div className="flex items-center gap-2">
 							<span
 								className={`font-mono font-bold text-base ${
-									state.resources.energy_production >= state.resources.energy_consumption
+									state.planetResources.energy_production >= state.planetResources.energy_consumption
 										? 'text-violet-400'
 										: 'text-red-400'
 								}`}
 							>
-								{millify(state.resources.energy_production - state.resources.energy_consumption)}
+								{millify(
+									state.planetResources.energy_production - state.planetResources.energy_consumption
+								)}
 							</span>
 							<Zap
 								className={`h-4 w-4 ${
-									state.resources.energy_production >= state.resources.energy_consumption
+									state.planetResources.energy_production >= state.planetResources.energy_consumption
 										? 'text-violet-400'
 										: 'text-red-400'
 								}`}
 							/>
 						</div>
 						<span className="text-xs font-medium">
-							{Number(state.resources.energy_production / state.resources.energy_consumption).toFixed(2)}
+							{Number(
+								state.planetResources.energy_production / state.planetResources.energy_consumption
+							).toFixed(2)}
 						</span>
 					</div>
 				</div>
@@ -173,13 +196,13 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 									<config.icon className={`h-3 w-3 ${config.iconColor}`} />
 									<span
 										className={`font-mono font-bold text-xs truncate ${
-											state.resources![resource as ResourceType] >=
+											resources[resource as ResourceType] >=
 											storageCapacities[resource as ResourceType]!
 												? 'text-red-400'
 												: config.textColor
 										}`}
 									>
-										{millify(Math.floor(state.resources![resource as ResourceType]))}/
+										{millify(Math.floor(resources[resource as ResourceType]))}/
 										{millify(storageCapacities[resource as ResourceType]!)}
 									</span>
 								</div>
@@ -202,25 +225,31 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 							<div className="flex items-center gap-1">
 								<Zap
 									className={`h-3 w-3 ${
-										state.resources.energy_production >= state.resources.energy_consumption
+										state.planetResources.energy_production >=
+										state.planetResources.energy_consumption
 											? 'text-violet-400'
 											: 'text-red-400'
 									}`}
 								/>
 								<span
 									className={`font-mono font-bold text-xs truncate ${
-										state.resources.energy_production >= state.resources.energy_consumption
+										state.planetResources.energy_production >=
+										state.planetResources.energy_consumption
 											? 'text-violet-400'
 											: 'text-red-400'
 									}`}
 								>
-									{millify(state.resources.energy_production - state.resources.energy_consumption)}
+									{millify(
+										state.planetResources.energy_production -
+											state.planetResources.energy_consumption
+									)}
 								</span>
 							</div>
 							{isExpanded && (
 								<span className="text-[10px] font-medium">
 									{Number(
-										state.resources.energy_production / state.resources.energy_consumption
+										state.planetResources.energy_production /
+											state.planetResources.energy_consumption
 									).toFixed(2)}
 								</span>
 							)}

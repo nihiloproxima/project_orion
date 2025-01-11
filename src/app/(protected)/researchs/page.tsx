@@ -68,7 +68,7 @@ function ResearchCard({
 }: ResearchCardProps) {
 	const { state } = useGame();
 
-	if (!state.resources) return null;
+	if (!state.planetResources) return null;
 
 	const assetConfig = TECHNOLOGIES[id as keyof typeof TECHNOLOGIES];
 	const costMultiplier = Math.pow(1 + config.cost.percent_increase_per_level / 100, tech.level);
@@ -81,9 +81,9 @@ function ResearchCard({
 	};
 
 	const hasEnoughResources =
-		state.resources.metal >= costs.metal &&
-		state.resources.deuterium >= costs.deuterium &&
-		state.resources.microchips >= costs.microchips;
+		state.planetResources.metal >= costs.metal &&
+		state.planetResources.deuterium >= costs.deuterium &&
+		state.planetResources.microchips >= costs.microchips;
 
 	const prerequisitesMet =
 		!config.prerequisites ||
@@ -264,7 +264,7 @@ function ResearchCard({
 												<Hammer className="h-4 w-4 text-secondary" />
 												<span
 													className={`text-sm truncate ${
-														state.resources.metal < costs.metal
+														state.planetResources.metal < costs.metal
 															? 'text-red-400'
 															: 'text-gray-200'
 													}`}
@@ -278,7 +278,7 @@ function ResearchCard({
 												<Flame className="h-4 w-4 text-primary" />
 												<span
 													className={`text-sm truncate ${
-														state.resources.deuterium < costs.deuterium
+														state.planetResources.deuterium < costs.deuterium
 															? 'text-red-400'
 															: 'text-gray-200'
 													}`}
@@ -292,7 +292,7 @@ function ResearchCard({
 												<Microchip className="h-4 w-4 text-accent" />
 												<span
 													className={`text-sm truncate ${
-														state.resources.microchips < costs.microchips
+														state.planetResources.microchips < costs.microchips
 															? 'text-red-400'
 															: 'text-gray-200'
 													}`}
