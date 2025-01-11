@@ -44,6 +44,7 @@ import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { TECHNOLOGIES } from '@/lib/constants';
 
 const QUEUE_CAPACITY = 5;
 
@@ -56,7 +57,7 @@ const SHIP_CATEGORIES: Record<string, { name: string; description: string; types
 	military: {
 		name: 'MILITARY_SHIPS',
 		description: 'Combat vessels for warfare and defense',
-		types: ['cruiser'] as ShipType[],
+		types: ['cruiser', 'destroyer'] as ShipType[],
 	},
 	special: {
 		name: 'SPECIAL_SHIPS',
@@ -90,6 +91,12 @@ const SHIP_ASSETS: Record<ShipType, { name: string; image: string; description: 
 		name: 'Cruiser',
 		image: getPublicImageUrl('ships', 'cruiser.webp'),
 		description: 'Fast and powerful combat vessels. Excellent for both attack and defense.',
+	},
+	destroyer: {
+		name: 'Destroyer',
+		image: getPublicImageUrl('ships', 'destroyer.webp'),
+		description:
+			'Heavy combat vessel with massive firepower. Slower than cruisers but with superior armor and weapons.',
 	},
 };
 
@@ -261,10 +268,10 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 									<Lock className="h-4 w-4" />
 									<span>Missing Technology Requirements:</span>
 								</div>
-								{config.requirements.technologies.map((req: any) => (
+								{config.requirements.technologies.map((req) => (
 									<div key={req.id} className="flex items-center gap-2 text-red-400 text-xs ml-6">
 										<span>
-											• {req.id} Level {req.level}
+											• {TECHNOLOGIES[req.id]?.name || req.id} Level {req.level}
 										</span>
 									</div>
 								))}

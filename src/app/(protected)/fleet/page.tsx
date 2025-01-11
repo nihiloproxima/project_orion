@@ -66,6 +66,10 @@ const SHIP_ASSETS: Record<ShipType, { name: string; image: string }> = {
 		name: 'Cruiser',
 		image: getShipImageUrl('cruiser'),
 	},
+	destroyer: {
+		name: 'Destroyer',
+		image: getShipImageUrl('destroyer'),
+	},
 };
 
 type SortField = 'speed' | 'cargo_capacity' | 'attack_power' | 'defense';
@@ -111,7 +115,7 @@ const ResourceSelectionUI = ({
 		<div className="space-y-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
 			<h3 className="font-bold">Select Resources to Transport</h3>
 			<div className="text-sm text-muted-foreground mb-2">
-				Cargo Capacity: {totalResourcesSelected}/{maxCargo}
+				Cargo Capacity: {Math.floor(totalResourcesSelected * 100) / 100}/{Math.floor(maxCargo * 100) / 100}
 			</div>
 
 			<div className="grid gap-4">
@@ -124,15 +128,17 @@ const ResourceSelectionUI = ({
 							currentResources?.metal || 0,
 							maxCargo - (totalResourcesSelected - (resources.metal || 0))
 						)}
-						value={resources.metal}
+						value={Math.floor(resources.metal * 100) / 100}
 						onChange={(e) => handleChange('metal', parseInt(e.target.value) || 0)}
 					/>
 					<span className="text-sm text-muted-foreground">
 						Max:{' '}
-						{Math.min(
-							currentResources?.metal || 0,
-							maxCargo - (totalResourcesSelected - (resources.metal || 0))
-						)}
+						{Math.floor(
+							Math.min(
+								currentResources?.metal || 0,
+								maxCargo - (totalResourcesSelected - (resources.metal || 0))
+							) * 100
+						) / 100}
 					</span>
 				</div>
 
@@ -145,15 +151,17 @@ const ResourceSelectionUI = ({
 							currentResources?.deuterium || 0,
 							maxCargo - (totalResourcesSelected - (resources.deuterium || 0))
 						)}
-						value={resources.deuterium}
+						value={Math.floor(resources.deuterium * 100) / 100}
 						onChange={(e) => handleChange('deuterium', parseInt(e.target.value) || 0)}
 					/>
 					<span className="text-sm text-muted-foreground">
 						Max:{' '}
-						{Math.min(
-							currentResources?.deuterium || 0,
-							maxCargo - (totalResourcesSelected - (resources.deuterium || 0))
-						)}
+						{Math.floor(
+							Math.min(
+								currentResources?.deuterium || 0,
+								maxCargo - (totalResourcesSelected - (resources.deuterium || 0))
+							) * 100
+						) / 100}
 					</span>
 				</div>
 
@@ -166,15 +174,17 @@ const ResourceSelectionUI = ({
 							currentResources?.microchips || 0,
 							maxCargo - (totalResourcesSelected - (resources.microchips || 0))
 						)}
-						value={resources.microchips}
+						value={Math.floor(resources.microchips * 100) / 100}
 						onChange={(e) => handleChange('microchips', parseInt(e.target.value) || 0)}
 					/>
 					<span className="text-sm text-muted-foreground">
 						Max:{' '}
-						{Math.min(
-							currentResources?.microchips || 0,
-							maxCargo - (totalResourcesSelected - (resources.microchips || 0))
-						)}
+						{Math.floor(
+							Math.min(
+								currentResources?.microchips || 0,
+								maxCargo - (totalResourcesSelected - (resources.microchips || 0))
+							) * 100
+						) / 100}
 					</span>
 				</div>
 
@@ -187,15 +197,17 @@ const ResourceSelectionUI = ({
 							currentResources?.science || 0,
 							maxCargo - (totalResourcesSelected - (resources.science || 0))
 						)}
-						value={resources.science}
+						value={Math.floor(resources.science * 100) / 100}
 						onChange={(e) => handleChange('science', parseInt(e.target.value) || 0)}
 					/>
 					<span className="text-sm text-muted-foreground">
 						Max:{' '}
-						{Math.min(
-							currentResources?.science || 0,
-							maxCargo - (totalResourcesSelected - (resources.science || 0))
-						)}
+						{Math.floor(
+							Math.min(
+								currentResources?.science || 0,
+								maxCargo - (totalResourcesSelected - (resources.science || 0))
+							) * 100
+						) / 100}
 					</span>
 				</div>
 			</div>

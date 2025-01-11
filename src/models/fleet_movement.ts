@@ -1,10 +1,10 @@
 import { MissionType } from './ship';
 
 export interface ResourcePayload {
-	metal?: number;
-	deuterium?: number;
-	microchips?: number;
-	science?: number;
+	metal: number;
+	deuterium: number;
+	microchips: number;
+	science: number;
 }
 
 export interface FleetMovement {
