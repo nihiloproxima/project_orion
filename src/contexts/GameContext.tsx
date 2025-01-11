@@ -47,7 +47,28 @@ const setupPlanetSubscriptions = (
 	planetId: string,
 	setState: React.Dispatch<React.SetStateAction<GameState>>
 ) => {
+	console.log(`Setting up subscriptions for planet ${planetId}`);
+
 	const subscriptions = [
+		supabase
+			.channel(`user_researchs-${state.currentUser?.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'user_researchs',
+					filter: `user_id=eq.${state.currentUser?.id}`,
+				},
+				(payload: any) => {
+					console.log(`User researchs updated: ${payload.new.research_points}`);
+					setState((prev) => ({
+						...prev,
+						userResearchs: payload.new as UserResearchs,
+					}));
+				}
+			)
+			.subscribe(),
 		// Gameconfig
 		supabase
 			.channel('gameconfig-changes')
@@ -83,6 +104,10 @@ const setupPlanetSubscriptions = (
 						clearInterval(state.resourcesIntervalId);
 					}
 
+					console.log(
+						`Resorces updated: metal:${payload.new.metal}, deuterium:${payload.new.deuterium}, microchips:${payload.new.microchips}, energy:${payload.new.energy}`
+					);
+
 					setState((prev) => ({
 						...prev,
 						planetResources: {
@@ -108,6 +133,7 @@ const setupPlanetSubscriptions = (
 					filter: `planet_id=eq.${planetId}`,
 				},
 				(payload: any) => {
+					console.log(`Structures updated`);
 					setState((prev) => ({
 						...prev,
 						planetStructures: payload.eventType === 'DELETE' ? null : (payload.new as PlanetStructures),
@@ -148,38 +174,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				const userPlanets = planets.data.filter((planet) => planet.owner_id === authedUser.id);
 				const homeWorld = userPlanets.find((planet) => planet.is_homeworld);
 
-				let planetStructures: PlanetStructures | null = null;
-				let planetResources:
-					| (PlanetResources & { energy_production: number; energy_consumption: number })
-					| null = null;
-				if (homeWorld) {
-					const { data: planetStructuresData } = await supabase
-						.from('planet_structures')
-						.select('*')
-						.eq('planet_id', homeWorld.id)
-						.single();
-
-					console.log(planetStructuresData);
-
-					if (planetStructuresData) {
-						planetStructures = planetStructuresData;
-					}
-
-					const { data: planetResourcesData } = await supabase
-						.from('planet_resources')
-						.select('*')
-						.eq('planet_id', homeWorld.id)
-						.single();
-
-					if (planetResourcesData) {
-						planetResources = {
-							...planetResourcesData,
-							energy_production: 0,
-							energy_consumption: 0,
-						};
-					}
-				}
-
 				setState((prev) => ({
 					...prev,
 					currentUser: currentUser.data,
@@ -187,8 +181,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					userResearchs: userResearchs.data,
 					userPlanets,
 					selectedPlanet: homeWorld || null,
-					planetStructures: planetStructures || null,
-					planetResources: planetResources || null,
 					planets: planets.data,
 					loading: false,
 				}));
@@ -226,6 +218,52 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			channel.unsubscribe();
 		};
 	}, [authedUser]);
+
+	useEffect(() => {
+		const fetchPlanetData = async () => {
+			if (state.selectedPlanet) {
+				let planetStructures: PlanetStructures | null = null;
+				let planetResources:
+					| (PlanetResources & { energy_production: number; energy_consumption: number })
+					| null = null;
+				const { data: planetStructuresData } = await supabase
+					.from('planet_structures')
+					.select('*')
+					.eq('planet_id', state.selectedPlanet.id)
+					.single();
+
+				console.log(planetStructuresData);
+
+				if (planetStructuresData) {
+					planetStructures = planetStructuresData;
+				}
+
+				const { data: planetResourcesData } = await supabase
+					.from('planet_resources')
+					.select('*')
+					.eq('planet_id', state.selectedPlanet.id)
+					.single();
+
+				if (planetResourcesData) {
+					planetResources = {
+						...planetResourcesData,
+						energy_production: 0,
+						energy_consumption: 0,
+					};
+				}
+
+				setState((prev) => ({
+					...prev,
+					planetStructures,
+					planetResources,
+				}));
+			}
+		};
+
+		console.log(`Selected planet change: ${state.selectedPlanet?.name}`);
+
+		fetchPlanetData();
+	}, [state.selectedPlanet]);
 
 	// Setup subscriptions and resource calculation interval for selected planet
 	useEffect(() => {
