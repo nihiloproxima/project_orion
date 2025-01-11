@@ -33,51 +33,58 @@ export function MailContent({ mail }: MailContentProps) {
 					</div>
 				</div>
 
-				<div className="space-y-4">
-					<h3 className="font-semibold text-primary flex items-center gap-2">
-						<Building className="h-4 w-4" />
-						Resources
-					</h3>
-					<div className="grid grid-cols-2 gap-4 text-sm">
-						{Object.entries(spyData.resources.current).map(([key, value]) => (
-							<div key={key} className="flex items-center justify-between">
-								<span className="capitalize">{key}:</span>
-								<span>{(value as number).toLocaleString()}</span>
-							</div>
-						))}
-					</div>
-				</div>
-				<div className="space-y-4">
-					<h3 className="font-semibold text-primary flex items-center gap-2">
-						<Building className="h-4 w-4" />
-						Structures
-					</h3>
-					<div className="grid grid-cols-2 gap-4 text-sm">
-						{spyData.structures.map(
-							(structure: { type: string; level: number; is_under_construction: boolean }) => (
-								<div key={structure.type} className="flex items-center justify-between">
-									<span className="capitalize">{structure.type.replace(/_/g, ' ')}:</span>
-									<span>Level {structure.level}</span>
+				{Object.values(spyData.resources.current).some((value) => value > 0) && (
+					<div className="space-y-4">
+						<h3 className="font-semibold text-primary flex items-center gap-2">
+							<Building className="h-4 w-4" />
+							Resources
+						</h3>
+						<div className="grid grid-cols-2 gap-4 text-sm">
+							{Object.entries(spyData.resources.current).map(([key, value]) => (
+								<div key={key} className="flex items-center justify-between">
+									<span className="capitalize">{key}:</span>
+									<span>{(value as number).toLocaleString()}</span>
 								</div>
-							)
-						)}
+							))}
+						</div>
 					</div>
-				</div>
+				)}
 
-				<div className="space-y-4">
-					<h3 className="font-semibold text-primary flex items-center gap-2">
-						<Beaker className="h-4 w-4" />
-						Research
-					</h3>
-					<div className="grid grid-cols-2 gap-4 text-sm">
-						{spyData.research.map((tech: { id: string; level: number; is_researching: boolean }) => (
-							<div key={tech.id} className="flex items-center justify-between">
-								<span className="capitalize">{tech.id.replace(/_/g, ' ')}:</span>
-								<span>Level {tech.level}</span>
-							</div>
-						))}
+				{spyData.structures.length > 0 && (
+					<div className="space-y-4">
+						<h3 className="font-semibold text-primary flex items-center gap-2">
+							<Building className="h-4 w-4" />
+							Structures
+						</h3>
+						<div className="grid grid-cols-2 gap-4 text-sm">
+							{spyData.structures.map(
+								(structure: { type: string; level: number; is_under_construction: boolean }) => (
+									<div key={structure.type} className="flex items-center justify-between">
+										<span className="capitalize">{structure.type.replace(/_/g, ' ')}:</span>
+										<span>Level {structure.level}</span>
+									</div>
+								)
+							)}
+						</div>
 					</div>
-				</div>
+				)}
+
+				{spyData.research.length > 0 && (
+					<div className="space-y-4">
+						<h3 className="font-semibold text-primary flex items-center gap-2">
+							<Beaker className="h-4 w-4" />
+							Research
+						</h3>
+						<div className="grid grid-cols-2 gap-4 text-sm">
+							{spyData.research.map((tech: { id: string; level: number; is_researching: boolean }) => (
+								<div key={tech.id} className="flex items-center justify-between">
+									<span className="capitalize">{tech.id.replace(/_/g, ' ')}:</span>
+									<span>Level {tech.level}</span>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
 				{spyData.ships.length > 0 && (
 					<div className="space-y-4">
 						<h3 className="font-semibold text-primary flex items-center gap-2">
