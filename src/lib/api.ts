@@ -70,6 +70,12 @@ export const api = {
 				structure_type: type,
 			});
 		},
+
+		resolvePendingConstructions: async (planetId: string) => {
+			return post('structures', 'resolvePendingConstructions', {
+				planet_id: planetId,
+			});
+		},
 	},
 	defenses: {
 		buildDefense: async (type: DefenseType, planetId: string, amount: number) => {

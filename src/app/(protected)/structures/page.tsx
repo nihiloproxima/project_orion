@@ -32,7 +32,7 @@ import { getPublicImageUrl } from '@/lib/images';
 import millify from 'millify';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface StructureInfo {
 	type: StructureType;
@@ -131,6 +131,17 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
 
 function StructureCard({ structure }: { structure: Structure }) {
 	const { state } = useGame();
+
+	useEffect(() => {
+		if (structure.is_under_construction && structure.construction_finish_time) {
+			const finishTime = new Date(structure.construction_finish_time).getTime();
+			const now = Date.now();
+
+			if (finishTime < now - 5000) {
+				api.structures.resolvePendingConstructions(state.selectedPlanet!.id).catch(console.error);
+			}
+		}
+	}, [structure, state.selectedPlanet]);
 
 	if (!state.resources || !state.gameConfig || !state.planetStructures || !state.userResearchs) {
 		return <LoadingScreen message="Loading structures..." />;

@@ -612,6 +612,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					filter: `planet_id=eq.${state.selectedPlanet?.id}`,
 				},
 				(payload: any) => {
+					console.log(`resource update`);
 					setState((prev) => ({
 						...prev,
 						resources: {
