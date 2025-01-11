@@ -14,6 +14,7 @@ import {
 	Plus,
 	Shield,
 	Swords,
+	ChevronDown,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../../../components/ui/card';
 
@@ -21,7 +22,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '../../../components/ui/button';
 import { DefenseQueue } from '../../../models/defense_queue';
-import { DefenseType } from '../../../models/defense';
+import { Defense, DefenseType, PlanetDefenses } from '../../../models/defense';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import Image from 'next/image';
 import { ScrollArea } from '../../../components/ui/scroll-area';
@@ -35,6 +36,7 @@ import { useGame } from '../../../contexts/GameContext';
 import { calculateDefenseConstructionTimeSeconds } from '@/utils/defenses_calculations';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../components/ui/collapsible';
 
 const QUEUE_CAPACITY = 5;
 
@@ -164,7 +166,15 @@ function QueueDisplay({ queue }: { queue: DefenseQueue | null }) {
 	);
 }
 
-function DefenseCard({ type, queue }: { type: DefenseType; queue: DefenseQueue | null }) {
+function DefenseCard({
+	type,
+	queue,
+	currentCount,
+}: {
+	type: DefenseType;
+	queue: DefenseQueue | null;
+	currentCount: number;
+}) {
 	const { state } = useGame();
 	const [buildAmount, setBuildAmount] = useState(1);
 
@@ -196,7 +206,6 @@ function DefenseCard({ type, queue }: { type: DefenseType; queue: DefenseQueue |
 		microchips: Math.floor(state.resources.microchips / config.cost.microchips),
 		science: Math.floor(state.resources.science / config.cost.science),
 	};
-
 	const maxPossibleDefenses = Math.min(...Object.values(maxDefensesPerResource));
 
 	const canAfford = buildAmount <= maxPossibleDefenses;
@@ -278,7 +287,6 @@ function DefenseCard({ type, queue }: { type: DefenseType; queue: DefenseQueue |
 								<span>Requires Defense Factory Level {config.requirements.defense_factory_level}</span>
 							</div>
 						)}
-
 						{!meetsTechRequirements && (
 							<div className="flex flex-col gap-1">
 								<div className="flex items-center gap-2 text-red-400 text-sm">
@@ -309,7 +317,6 @@ function DefenseCard({ type, queue }: { type: DefenseType; queue: DefenseQueue |
 								<span>Defense: {config.stats.defense}</span>
 							</div>
 						</div>
-
 						<div className="grid grid-cols-2 gap-2 mt-2">
 							<div
 								className={`flex items-center gap-2 ${
@@ -352,7 +359,6 @@ function DefenseCard({ type, queue }: { type: DefenseType; queue: DefenseQueue |
 								<span>{config.cost.science * buildAmount}</span>
 							</div>
 						</div>
-
 						<div className="flex flex-col gap-4 mt-4">
 							<div className="flex items-center gap-2 text-muted-foreground">
 								<Clock className="h-4 w-4" />
@@ -387,6 +393,11 @@ function DefenseCard({ type, queue }: { type: DefenseType; queue: DefenseQueue |
 									Build Defense
 								</Button>
 							</div>
+						</div>
+
+						<div className="flex items-center gap-2 text-primary mb-2">
+							<Shield className="h-4 w-4" />
+							<span>Current Count: {currentCount}</span>
 						</div>
 					</motion.div>
 				</CardHeader>
@@ -439,16 +450,84 @@ function DesktopCategories({ selectedCategory, setSelectedCategory }: any) {
 	);
 }
 
+function CurrentDefensesOverview({ planetDefenses }: { planetDefenses: Defense[] }) {
+	const defensesByType = planetDefenses.reduce((acc, defense) => {
+		acc[defense.type] = (acc[defense.type] || 0) + 1;
+		return acc;
+	}, {} as Record<DefenseType, number>);
+
+	// Calculate total defenses
+	const totalDefenses = Object.values(defensesByType).reduce((sum, count) => sum + count, 0);
+
+	return (
+		<Collapsible className="mb-6">
+			<Card className="bg-black/30">
+				<CardHeader className="p-4">
+					<CollapsibleTrigger className="flex items-center justify-between w-full">
+						<div>
+							<h2 className="text-xl font-bold">Current Defenses</h2>
+							<p className="text-sm text-muted-foreground">Total Defense Units: {totalDefenses}</p>
+						</div>
+						<ChevronDown className="h-5 w-5 transition-transform duration-200 collapsible-chevron" />
+					</CollapsibleTrigger>
+				</CardHeader>
+			</Card>
+
+			<CollapsibleContent>
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+					{Object.entries(DEFENSE_ASSETS).map(([type, asset]) => {
+						const count = defensesByType[type as DefenseType] || 0;
+						if (count === 0) return null; // Only show defenses that exist
+						return (
+							<Card key={type} className="bg-black/30">
+								<CardHeader className="p-4">
+									<div className="flex items-center gap-4">
+										<Image
+											src={asset.image}
+											alt={asset.name}
+											width={64}
+											height={64}
+											className="rounded"
+										/>
+										<div>
+											<h3 className="font-bold">{asset.name}</h3>
+											<p className="text-sm text-muted-foreground">Count: {count}</p>
+										</div>
+									</div>
+								</CardHeader>
+							</Card>
+						);
+					})}
+				</div>
+			</CollapsibleContent>
+		</Collapsible>
+	);
+}
+
 export default function Defenses() {
 	const { state } = useGame();
 	const [selectedCategory, setSelectedCategory] = useState<string>('basic');
 	const [queue, setQueue] = useState<DefenseQueue | null>(null);
+	const [planetDefenses, setPlanetDefenses] = useState<Defense[]>([]);
 	const isMobile = useMediaQuery('(max-width: 768px)');
 
 	useEffect(() => {
-		if (!state.selectedPlanet?.id) return;
+		if (!state.selectedPlanet) return;
 
-		// Initial fetch
+		// Fetch current defenses
+		const fetchDefenses = async () => {
+			const { data } = await supabase
+				.from('planet_defenses')
+				.select('*')
+				.eq('planet_id', state.selectedPlanet!.id)
+				.single();
+
+			if (data) {
+				setPlanetDefenses(data.defenses);
+			}
+		};
+
+		// Fetch queue (existing code)
 		const fetchQueue = async () => {
 			const { data } = await supabase
 				.from('defense_queues')
@@ -461,10 +540,27 @@ export default function Defenses() {
 			}
 		};
 
+		fetchDefenses();
 		fetchQueue();
 
-		// Subscribe to changes
-		const subscription = supabase
+		// Subscribe to both defenses and queue changes
+		const defenseSubscription = supabase
+			.channel(`planet_defenses_${state.selectedPlanet.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'planet_defenses',
+					filter: `planet_id=eq.${state.selectedPlanet.id}`,
+				},
+				(payload) => {
+					setPlanetDefenses((payload.new as PlanetDefenses).defenses);
+				}
+			)
+			.subscribe();
+
+		const queueSubscription = supabase
 			.channel(`defense_queue_${state.selectedPlanet.id}`)
 			.on(
 				'postgres_changes',
@@ -481,7 +577,8 @@ export default function Defenses() {
 			.subscribe();
 
 		return () => {
-			subscription.unsubscribe();
+			defenseSubscription.unsubscribe();
+			queueSubscription.unsubscribe();
 		};
 	}, [state.selectedPlanet]);
 
@@ -529,13 +626,21 @@ export default function Defenses() {
 					</div>
 				</div>
 
-				{/* Mobile Categories */}
+				{/* Current Defenses Overview */}
+				<div className="mb-8">
+					<h2 className="text-xl font-bold mb-4">Current Defenses</h2>
+					<CurrentDefensesOverview planetDefenses={planetDefenses} />
+				</div>
+
+				{/* Queue Display */}
+				<QueueDisplay queue={queue} />
+
+				{/* Categories and Defense Cards (existing code) */}
 				{isMobile && (
 					<MobileCategories selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />
 				)}
 
 				<div className={`${isMobile ? '' : 'grid grid-cols-4 gap-6'}`}>
-					{/* Desktop Categories */}
 					{!isMobile && (
 						<DesktopCategories
 							selectedCategory={selectedCategory}
@@ -543,14 +648,17 @@ export default function Defenses() {
 						/>
 					)}
 
-					{/* Defense Cards Display */}
 					<div className={`${isMobile ? 'w-full' : 'col-span-3'} h-[calc(100vh-12rem)]`}>
 						<ScrollArea className="h-full pr-4">
-							<QueueDisplay queue={queue} />
 							{selectedCategory ? (
 								<div className="grid grid-cols-1 gap-6">
 									{DEFENSE_CATEGORIES[selectedCategory]!.types.map((type: DefenseType) => (
-										<DefenseCard key={type} type={type} queue={queue} />
+										<DefenseCard
+											key={type}
+											type={type}
+											queue={queue}
+											currentCount={planetDefenses.filter((d) => d.type === type).length}
+										/>
 									))}
 								</div>
 							) : (

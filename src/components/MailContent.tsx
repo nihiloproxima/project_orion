@@ -101,13 +101,29 @@ export function MailContent({ mail }: MailContentProps) {
 						</div>
 					</div>
 				)}
-
-				<div className="mt-4 p-4 bg-gray-800 rounded-md">
-					<div className="flex items-center gap-2">
-						<Shield className="h-4 w-4 text-blue-400" />
-						<span className="text-sm">Defense Score: {spyData.defense_score}</span>
+				{spyData.defenses.length > 0 && (
+					<div className="space-y-4">
+						<h3 className="font-semibold text-primary flex items-center gap-2">
+							<Shield className="h-4 w-4" />
+							Defenses Detected
+						</h3>
+						<div className="grid grid-cols-2 gap-4 text-sm">
+							{spyData.defenses.map((defense: { type: string; amount: number }) => (
+								<div key={defense.type} className="flex items-center gap-2">
+									<Image
+										src={getPublicImageUrl('defenses', `${defense.type}.webp`)}
+										width={24}
+										height={24}
+										alt={defense.type}
+										className="w-6 h-6"
+									/>
+									<span className="capitalize">{defense.type.replace(/_/g, ' ')}:</span>
+									<span>{defense.amount}</span>
+								</div>
+							))}
+						</div>
 					</div>
-				</div>
+				)}
 			</div>
 		);
 	}

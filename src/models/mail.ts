@@ -1,3 +1,4 @@
+import { PlanetDefenses } from './defense';
 import { ResearchInfo, ResourcesInfo, ShipInfo, StructureInfo } from './report';
 
 export type MailCategory = 'reports' | 'messages' | 'missions';
@@ -13,8 +14,8 @@ export interface BaseMail {
 	sender_name: string;
 	title: string;
 	content?: string;
-	read: boolean;
 	data: any;
+	read: boolean;
 	archived: boolean;
 }
 
@@ -31,7 +32,7 @@ export interface SpyMail extends BaseMail {
 		resources: ResourcesInfo;
 		structures: StructureInfo[];
 		research: ResearchInfo[];
-		defense_score: number;
+		defenses: PlanetDefenses['defenses'];
 		ships: ShipInfo[];
 	};
 }

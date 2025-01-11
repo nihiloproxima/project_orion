@@ -52,7 +52,7 @@ const generateSpyReport = (ownerId: string): SpyMail => ({
 			{ type: 'cruiser', count: Math.floor(Math.random() * 5) },
 			{ type: 'transport_ship', count: Math.floor(Math.random() * 10) },
 		],
-		defense_score: Math.floor(Math.random() * 1000),
+		defenses: [],
 	},
 });
 

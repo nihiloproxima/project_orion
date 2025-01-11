@@ -1,7 +1,7 @@
 'use client';
 
 import { GameConfig, Planet, PlanetResources, PlanetStructures, User, UserResearchs } from '../models/';
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { ReactNode, createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { calculateEnergyBalance, calculatePlanetResources } from '../utils/resources_calculations';
 
 import { supabase } from '../lib/supabase';
@@ -51,10 +51,57 @@ const initialState: GameState = {
 	gameConfig: null,
 };
 
+const usePageVisibility = (callback: () => void) => {
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === 'visible') {
+				callback();
+			}
+		};
+
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		window.addEventListener('focus', callback);
+
+		return () => {
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			window.removeEventListener('focus', callback);
+		};
+	}, [callback]);
+};
+
 export function GameProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<GameState>(initialState);
 
 	const { authedUser } = useAuth();
+
+	// Create a function to handle resubscription of all channels
+	const resubscribeAll = useCallback(() => {
+		console.log('Resubscribing to all channels...');
+		setState((prev) => ({
+			...prev,
+			loadedResources: false,
+			loadedStructures: false,
+			loadedUserResearchs: false,
+		}));
+
+		// Force refetch current planet data
+		if (state.selectedPlanet?.id) {
+			const planet = state.selectedPlanet;
+			setState((prev) => ({
+				...prev,
+				selectedPlanet: null,
+			}));
+			setTimeout(() => {
+				setState((prev) => ({
+					...prev,
+					selectedPlanet: planet,
+				}));
+			}, 100);
+		}
+	}, [state.selectedPlanet]);
+
+	// Use the visibility hook
+	usePageVisibility(resubscribeAll);
 
 	// Reset state when user logs out
 	useEffect(() => {
@@ -520,26 +567,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			return;
 		}
 
-		// Update resources every second based on generation rates
-		const interval = setInterval(() => {
-			if (
-				!state.resources ||
-				!state.selectedPlanet ||
-				!state.gameConfig ||
-				!state.planetStructures ||
-				!state.userResearchs
-			) {
-				console.log('not ready');
-				return;
-			}
+		let intervalId: NodeJS.Timeout;
 
+		const startInterval = () => {
+			// Clear any existing interval
+			if (intervalId) clearInterval(intervalId);
+
+			// Immediately calculate resources once
 			const planetResources = calculatePlanetResources(
-				state.gameConfig,
-				state.planetStructures,
-				state.resources,
-				state.userResearchs
+				state.gameConfig!,
+				state.planetStructures!,
+				state.resources!,
+				state.userResearchs!
 			);
-			const energyBalance = calculateEnergyBalance(state.gameConfig, state.planetStructures.structures);
+			const energyBalance = calculateEnergyBalance(state.gameConfig!, state.planetStructures!.structures);
 
 			setState((prev) => ({
 				...prev,
@@ -549,10 +590,66 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					energy_consumption: energyBalance.consumption,
 				},
 			}));
-		}, 1000);
 
-		return () => clearInterval(interval);
-	}, [state.resources, state.selectedPlanet, state.gameConfig, state.planetStructures, state.userResearchs]);
+			// Start new interval
+			intervalId = setInterval(() => {
+				if (
+					!state.resources ||
+					!state.selectedPlanet ||
+					!state.gameConfig ||
+					!state.planetStructures ||
+					!state.userResearchs
+				) {
+					console.log('not ready');
+					return;
+				}
+
+				const planetResources = calculatePlanetResources(
+					state.gameConfig,
+					state.planetStructures,
+					state.resources,
+					state.userResearchs
+				);
+				const energyBalance = calculateEnergyBalance(state.gameConfig, state.planetStructures.structures);
+
+				setState((prev) => ({
+					...prev,
+					resources: {
+						...planetResources,
+						energy_production: energyBalance.production,
+						energy_consumption: energyBalance.consumption,
+					},
+				}));
+			}, 1000);
+		};
+
+		// Start the interval initially
+		startInterval();
+
+		// Handle visibility changes
+		const handleVisibilityChange = () => {
+			if (document.visibilityState === 'visible') {
+				startInterval();
+			} else {
+				if (intervalId) clearInterval(intervalId);
+			}
+		};
+
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		window.addEventListener('focus', startInterval);
+		window.addEventListener('blur', () => {
+			if (intervalId) clearInterval(intervalId);
+		});
+
+		return () => {
+			if (intervalId) clearInterval(intervalId);
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			window.removeEventListener('focus', startInterval);
+			window.removeEventListener('blur', () => {
+				if (intervalId) clearInterval(intervalId);
+			});
+		};
+	}, [state.selectedPlanet, state.gameConfig, state.planetStructures, state.userResearchs]);
 
 	// Add presence tracking
 	useEffect(() => {
