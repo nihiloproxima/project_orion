@@ -314,16 +314,41 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	}, [authedUser, state.selectedPlanet?.id, state.selectedPlanet]);
 
 	useEffect(() => {
-		if (!state.selectedPlanet?.id) return;
+		if (!state.selectedPlanet?.id || !authedUser) return;
 
-		const fetchPlanetResources = async () => {
-			const { data: resources, error } = await supabase
+		const fetchPlanetData = async () => {
+			// Fetch resources
+			const { data: resources, error: resourcesError } = await supabase
 				.from('planet_resources')
 				.select('*')
 				.eq('planet_id', state.selectedPlanet?.id);
 
-			if (error) {
-				console.error('Error fetching planet resources:', error);
+			if (resourcesError) {
+				console.error('Error fetching planet resources:', resourcesError);
+				return;
+			}
+
+			// Fetch structures
+			const { data: planetStructures, error: structuresError } = await supabase
+				.from('planet_structures')
+				.select()
+				.eq('planet_id', state.selectedPlanet?.id)
+				.single();
+
+			if (structuresError) {
+				console.error('Error fetching structures:', structuresError);
+				return;
+			}
+
+			// Fetch research
+			const { data: research, error: researchError } = await supabase
+				.from('user_researchs')
+				.select('*')
+				.eq('user_id', authedUser?.id)
+				.single();
+
+			if (researchError) {
+				console.error('Error fetching planet research:', researchError);
 				return;
 			}
 
@@ -334,13 +359,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					energy_production: 0,
 					energy_consumption: 0,
 				},
+				planetStructures,
+				userResearchs: research || [],
 				loadedResources: true,
+				loadedStructures: true,
+				loadedUserResearchs: true,
 			}));
 		};
 
-		fetchPlanetResources();
+		fetchPlanetData();
 
-		// Subscribe to changes in resources
+		// Set up all subscriptions
 		const resourcesSubscription = supabase
 			.channel('resources-channel')
 			.on(
@@ -352,7 +381,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					filter: `planet_id=eq.${state.selectedPlanet?.id}`,
 				},
 				(payload: any) => {
-					console.log('resources update');
 					setState((prev) => ({
 						...prev,
 						resources: {
@@ -361,35 +389,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
 							energy_production: 0,
 							energy_consumption: 0,
 						},
-						loadedResources: true,
 					}));
 				}
 			)
 			.subscribe();
 
-		// Fetch planet research
-		const fetchUserResearchs = async () => {
-			const { data: research, error } = await supabase
-				.from('user_researchs')
-				.select('*')
-				.eq('user_id', authedUser?.id)
-				.single();
+		const structuresSubscription = supabase
+			.channel(`structures-${state.selectedPlanet.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'planet_structures',
+					filter: `planet_id=eq.${state.selectedPlanet.id}`,
+				},
+				(payload: any) => {
+					setState((prev) => {
+						switch (payload.eventType) {
+							case 'DELETE':
+								return { ...prev, planetStructures: null };
+							case 'INSERT':
+							case 'UPDATE':
+								return { ...prev, planetStructures: payload.new as PlanetStructures };
+							default:
+								return prev;
+						}
+					});
+				}
+			)
+			.subscribe();
 
-			if (error) {
-				console.error('Error fetching planet research:', error);
-				return;
-			}
-
-			setState((prev) => ({
-				...prev,
-				userResearchs: research || [],
-				loadedUserResearchs: true,
-			}));
-		};
-
-		fetchUserResearchs();
-
-		// Subscribe to changes in planet research
 		const researchSubscription = supabase
 			.channel(`research-${state.selectedPlanet.id}`)
 			.on(
@@ -401,21 +431,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					filter: `user_id=eq.${authedUser?.id}`,
 				},
 				(payload: any) => {
-					setState((prev) => {
-						return {
-							...prev,
-							userResearchs: payload.new as UserResearchs,
-						};
-					});
+					setState((prev) => ({
+						...prev,
+						userResearchs: payload.new as UserResearchs,
+					}));
 				}
 			)
 			.subscribe();
 
 		return () => {
 			resourcesSubscription.unsubscribe();
+			structuresSubscription.unsubscribe();
 			researchSubscription.unsubscribe();
 		};
-	}, [state.selectedPlanet, authedUser]);
+	}, [state.selectedPlanet?.id, authedUser]);
 
 	useEffect(() => {
 		const fetchConfigs = async () => {
@@ -461,72 +490,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			subscription.unsubscribe();
 		};
 	}, []);
-
-	useEffect(() => {
-		if (!state.selectedPlanet) return;
-
-		const fetchStructures = async () => {
-			const { data: planetStructures, error } = await supabase
-				.from('planet_structures')
-				.select()
-				.eq('planet_id', state.selectedPlanet?.id)
-				.single();
-
-			if (error) {
-				console.error('Error fetching structures:', error);
-				return;
-			}
-
-			setState((prev) => ({
-				...prev,
-				planetStructures: planetStructures,
-				loadedStructures: true,
-			}));
-		};
-
-		fetchStructures();
-		// Subscribe to changes in structures
-		const structuresSubscription = supabase
-			.channel(`structures-${state.selectedPlanet.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'planet_structures',
-					filter: `planet_id=eq.${state.selectedPlanet.id}`,
-				},
-				(payload: any) => {
-					console.log('struct updated');
-					setState((prev) => {
-						switch (payload.eventType) {
-							case 'DELETE':
-								return {
-									...prev,
-									planetStructures: null,
-								};
-							case 'INSERT':
-								return {
-									...prev,
-									planetStructures: payload.new as PlanetStructures,
-								};
-							case 'UPDATE':
-								return {
-									...prev,
-									planetStructures: payload.new as PlanetStructures,
-								};
-							default:
-								return prev;
-						}
-					});
-				}
-			)
-			.subscribe();
-
-		return () => {
-			structuresSubscription.unsubscribe();
-		};
-	}, [state.selectedPlanet]);
 
 	useEffect(() => {
 		if (
@@ -605,12 +568,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 		channel
 			.on('presence', { event: 'sync' }, () => {
-				const presenceState = channel.presenceState();
-				const totalUsers = Object.keys(presenceState).length;
-
 				setState((prev) => ({
 					...prev,
-					activePlayers: totalUsers,
+					activePlayers: Object.keys(channel.presenceState()).length,
 				}));
 			})
 			.on('presence', { event: 'join' }, () => {

@@ -51,7 +51,7 @@ export default function UserProfilePage() {
 			setUser(state.currentUser);
 			setNewName(state.currentUser.name);
 		}
-	}, [state.currentUser]);
+	}, [state.currentUser, userId]);
 
 	useEffect(() => {
 		const fetchUser = async () => {

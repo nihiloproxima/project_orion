@@ -254,18 +254,8 @@ export default function Fleet() {
 	// Get allowed target planets based on mission type
 	const getAllowedTargetPlanets = useCallback(() => {
 		if (!missionType || !state.selectedPlanet || !planets) {
-			console.log('Missing required data:', {
-				missionType,
-				selectedPlanet: !!state.selectedPlanet,
-				planetsLoaded: !!planets,
-			});
 			return [];
 		}
-
-		console.log('Calculating target planets:', {
-			missionType,
-			totalPlanets: planets.length,
-		});
 
 		const allowedPlanets = planets
 			.filter((planet) => {
@@ -292,7 +282,6 @@ export default function Fleet() {
 			})
 			.map((p) => p.id);
 
-		console.log(`Found ${allowedPlanets.length} allowed planets for mission type ${missionType}`);
 		return allowedPlanets;
 	}, [missionType, state.selectedPlanet, state.currentUser?.id, planets]);
 
@@ -321,7 +310,7 @@ export default function Fleet() {
 
 			return travelTimeSeconds;
 		},
-		[state.selectedPlanet, selectedShips, stationedShips]
+		[state.gameConfig, state.selectedPlanet, selectedShips, stationedShips]
 	);
 
 	useEffect(() => {
@@ -434,6 +423,11 @@ export default function Fleet() {
 		if (selectedShipTypes.has('spy_probe')) missionTypes.push('spy');
 		if (selectedShipTypes.has('recycler_ship')) missionTypes.push('recycle');
 
+		// Select first available mission type by default
+		if (missionTypes.length > 0 && !missionType) {
+			setMissionType(missionTypes[0]);
+		}
+
 		return missionTypes;
 	};
 
@@ -480,7 +474,7 @@ export default function Fleet() {
 						className="flex items-center gap-2"
 					>
 						<ArrowLeft className="h-4 w-4" />
-						Back to Ship Selection
+						Back
 					</Button>
 					<Button
 						variant="ghost"
@@ -493,8 +487,7 @@ export default function Fleet() {
 						<X className="h-4 w-4" />
 					</Button>
 				</div>
-				<div className="grid grid-cols-2 gap-6">
-					{/* Left Column - Mission Details */}
+				<div className="flex flex-col md:grid md:grid-cols-2 gap-6">
 					<div className="space-y-6">
 						<div>
 							<h3 className="text-lg font-semibold mb-4">Select Mission Type</h3>
@@ -502,6 +495,7 @@ export default function Fleet() {
 								value={missionType || ''}
 								onValueChange={(value) => {
 									setMissionType(value as MissionType);
+									setTargetPlanet(null);
 								}}
 							>
 								<SelectTrigger className="w-full">
@@ -529,39 +523,33 @@ export default function Fleet() {
 									</p>
 								)}
 
-								{missionType === 'transport' || missionType === 'colonize' ? (
-									<div className="space-y-4">
+								{(missionType === 'transport' || missionType === 'colonize') && (
+									<div className="space-y-4 mt-4">
 										<ResourceSelectionUI
-											onResourcesSelect={(resources) => {
-												// Store selected resources in state
-												setSelectedResources(resources);
-											}}
+											onResourcesSelect={setSelectedResources}
 											maxCargo={getTotalCargoCapacity()}
 										/>
-										<Button
-											className="w-full"
-											disabled={!targetPlanet || !missionType}
-											onClick={() => handleConfirmMission(selectedResources)}
-										>
-											<Target className="h-4 w-4 mr-2" />
-											Confirm Mission
-										</Button>
 									</div>
-								) : (
-									<Button
-										className="w-full mt-4"
-										disabled={!targetPlanet || !missionType}
-										onClick={() => handleConfirmMission()}
-									>
-										<Target className="h-4 w-4 mr-2" />
-										Confirm Mission
-									</Button>
 								)}
+
+								<Button
+									className="w-full mt-4"
+									disabled={!targetPlanet || !missionType}
+									onClick={() =>
+										handleConfirmMission(
+											missionType === 'transport' || missionType === 'colonize'
+												? selectedResources
+												: undefined
+										)
+									}
+								>
+									<Target className="h-4 w-4 mr-2" />
+									Confirm Mission
+								</Button>
 							</div>
 						)}
 					</div>
 
-					{/* Right Column - Galaxy Map */}
 					<div>
 						<h3 className="text-lg font-semibold mb-4">Select Target Planet</h3>
 						<div className="space-y-4">
@@ -569,9 +557,7 @@ export default function Fleet() {
 								value={targetPlanet?.id || ''}
 								onValueChange={(value) => {
 									const planet = planets?.find((p) => p.id === value);
-									if (planet) {
-										setTargetPlanet(planet);
-									}
+									if (planet) setTargetPlanet(planet);
 								}}
 							>
 								<SelectTrigger className="w-full">
@@ -618,7 +604,7 @@ export default function Fleet() {
 								</SelectContent>
 							</Select>
 
-							<div className="border rounded-lg p-4 w-full h-[calc(100vh-380px)] flex">
+							<div className="border rounded-lg p-4 w-full h-[350px] md:h-[calc(100vh-380px)] flex">
 								<GalaxyMap
 									mode="mission-target"
 									onPlanetSelect={setTargetPlanet}
@@ -635,16 +621,16 @@ export default function Fleet() {
 
 	return (
 		<motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
-			<motion.div variants={itemVariants} className="flex justify-between items-center">
-				<div>
-					<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
-						<ShipIcon className="h-8 w-8" />
-						FLEET CONTROL
-					</h1>
-					<p className="text-muted-foreground">Manage and deploy your stationed ships</p>
-				</div>
+			<motion.div variants={itemVariants}>
+				<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
+					<ShipIcon className="h-8 w-8" />
+					FLEET CONTROL
+				</h1>
+				<p className="text-muted-foreground">Manage and deploy your stationed ships</p>
+			</motion.div>
 
-				<motion.div variants={itemVariants} className="flex gap-2">
+			<motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-2 w-full">
+				<div className="flex gap-2 w-full sm:w-auto">
 					<Button
 						variant="outline"
 						size="sm"
@@ -654,60 +640,75 @@ export default function Fleet() {
 						{viewMode === 'grid' ? <LayoutList className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
 					</Button>
 
-					<Select value={selectedType} onValueChange={(value) => setSelectedType(value as ShipType | 'all')}>
-						<SelectTrigger className="w-[180px]">
-							<Filter className="w-4 h-4 mr-2" />
-							<SelectValue placeholder="Filter by type" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All Ships</SelectItem>
-							{Object.entries(SHIP_ASSETS).map(([type, { name }]) => (
-								<SelectItem key={type} value={type}>
-									{name}
+					<div className="w-full sm:w-[180px]">
+						<Select
+							value={selectedType}
+							onValueChange={(value) => setSelectedType(value as ShipType | 'all')}
+						>
+							<SelectTrigger>
+								<Filter className="w-4 h-4 mr-2" />
+								<SelectValue placeholder="Filter by type" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All Ships</SelectItem>
+								{Object.entries(SHIP_ASSETS).map(([type, { name }]) => (
+									<SelectItem key={type} value={type}>
+										{name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
+
+				<div className="flex gap-2 w-full sm:w-auto">
+					<div className="w-full sm:w-[180px]">
+						<Select value={sortField} onValueChange={(value) => handleSort(value as SortField)}>
+							<SelectTrigger>
+								<ArrowUpDown className="w-4 h-4 mr-2" />
+								<SelectValue placeholder="Sort by" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="speed">
+									Speed {sortField === 'speed' && (sortOrder === 'asc' ? '↑' : '↓')}
 								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+								<SelectItem value="cargo_capacity">
+									Cargo {sortField === 'cargo_capacity' && (sortOrder === 'asc' ? '↑' : '↓')}
+								</SelectItem>
+								<SelectItem value="attack_power">
+									Attack {sortField === 'attack_power' && (sortOrder === 'asc' ? '↑' : '↓')}
+								</SelectItem>
+								<SelectItem value="defense">
+									Defense {sortField === 'defense' && (sortOrder === 'asc' ? '↑' : '↓')}
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
 
-					<Select value={sortField} onValueChange={(value) => handleSort(value as SortField)}>
-						<SelectTrigger className="w-[180px]">
-							<ArrowUpDown className="w-4 h-4 mr-2" />
-							<SelectValue placeholder="Sort by" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="speed">
-								Speed {sortField === 'speed' && (sortOrder === 'asc' ? '↑' : '↓')}
-							</SelectItem>
-							<SelectItem value="cargo_capacity">
-								Cargo {sortField === 'cargo_capacity' && (sortOrder === 'asc' ? '↑' : '↓')}
-							</SelectItem>
-							<SelectItem value="attack_power">
-								Attack {sortField === 'attack_power' && (sortOrder === 'asc' ? '↑' : '↓')}
-							</SelectItem>
-							<SelectItem value="defense">
-								Defense {sortField === 'defense' && (sortOrder === 'asc' ? '↑' : '↓')}
-							</SelectItem>
-						</SelectContent>
-					</Select>
-
-					<Button variant="outline" size="sm" onClick={handleSelectAll} className="flex items-center gap-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={handleSelectAll}
+						className="flex items-center gap-2 whitespace-nowrap"
+					>
 						<CheckSquare className="h-4 w-4" />
 						{selectedShips.size === stationedShips.length ? 'Deselect All' : 'Select All'}
 					</Button>
-					<Button
-						variant="default"
-						size="lg"
-						disabled={selectedShips.size === 0}
-						onClick={() => setShowMissionSetup(true)}
-						className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
-							!selectedShips.size
-								? 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed'
-								: 'bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border'
-						}`}
-					>
-						<span className="uppercase">Send Mission</span>
-					</Button>
-				</motion.div>
+				</div>
+
+				<Button
+					variant="default"
+					size="lg"
+					disabled={selectedShips.size === 0}
+					onClick={() => setShowMissionSetup(true)}
+					className={`w-full sm:w-auto px-4 py-2 rounded-lg font-medium transition-colors border ${
+						!selectedShips.size
+							? 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed'
+							: 'bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border'
+					}`}
+				>
+					<span className="uppercase">Send Mission</span>
+				</Button>
 			</motion.div>
 
 			<motion.div

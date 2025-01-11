@@ -21,7 +21,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 
 	useEffect(() => {
 		setShowMobileSidebar(false);
-	}, [location.pathname]);
+	}, []);
 
 	if (state.loading || showLoading) {
 		return <LoadingScreen />;

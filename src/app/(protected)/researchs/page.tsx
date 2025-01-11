@@ -49,10 +49,23 @@ interface ResearchCardProps {
 		research_finish_time: number | null;
 	};
 	onStartResearch: (id: TechnologyId) => void;
-	isAnyResearchInProgress: boolean;
+	canStartNewResearch: boolean;
+	isPlanetResearching: boolean;
+	researchCapacityInfo: {
+		current: number;
+		max: number;
+	};
 }
 
-function ResearchCard({ id, config, tech, onStartResearch, isAnyResearchInProgress }: ResearchCardProps) {
+function ResearchCard({
+	id,
+	config,
+	tech,
+	onStartResearch,
+	canStartNewResearch,
+	isPlanetResearching,
+	researchCapacityInfo,
+}: ResearchCardProps) {
 	const { state } = useGame();
 
 	if (!state.resources) return null;
@@ -99,11 +112,10 @@ function ResearchCard({ id, config, tech, onStartResearch, isAnyResearchInProgre
 
 	const getButtonText = () => {
 		if (tech.level >= config.max_level) return 'MAX LEVEL';
-		if (tech.is_researching) {
-			return 'RESEARCHING';
-		}
-		if (isAnyResearchInProgress && !tech.is_researching) {
-			return 'RESEARCH IN PROGRESS';
+		if (tech.is_researching) return 'RESEARCHING';
+		if (isPlanetResearching) return 'PLANET ALREADY RESEARCHING';
+		if (!canStartNewResearch && researchCapacityInfo.current >= researchCapacityInfo.max) {
+			return `RESEARCH CAPACITY REACHED (${researchCapacityInfo.current}/${researchCapacityInfo.max})`;
 		}
 		if (!prerequisitesMet) return 'PREREQUISITES NOT MET';
 		if (!hasEnoughResources) return 'NOT ENOUGH RESOURCES';
@@ -132,9 +144,9 @@ function ResearchCard({ id, config, tech, onStartResearch, isAnyResearchInProgre
 		<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
 			<Card
 				className={`bg-card/50 backdrop-blur-sm transition-all duration-300 ${
-					prerequisitesMet && hasEnoughResources && !isAnyResearchInProgress
+					prerequisitesMet && hasEnoughResources && !isPlanetResearching
 						? 'neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)]'
-						: isAnyResearchInProgress && !tech.is_researching
+						: isPlanetResearching && !tech.is_researching
 						? 'border-amber-500/50 opacity-50'
 						: 'border-red-500/50'
 				}`}
@@ -154,7 +166,7 @@ function ResearchCard({ id, config, tech, onStartResearch, isAnyResearchInProgre
 							className={`w-full h-full object-cover rounded-lg ${
 								(!prerequisitesMet ||
 									!hasEnoughResources ||
-									(isAnyResearchInProgress && !tech.is_researching)) &&
+									(isPlanetResearching && !tech.is_researching)) &&
 								'opacity-50'
 							}`}
 						/>
@@ -220,7 +232,7 @@ function ResearchCard({ id, config, tech, onStartResearch, isAnyResearchInProgre
 							</div>
 						)}
 
-						{isAnyResearchInProgress && !tech.is_researching && (
+						{isPlanetResearching && !tech.is_researching && (
 							<div className="flex items-center gap-2 text-amber-400 text-sm">
 								<Clock className="h-4 w-4" />
 								<div>Another technology is currently being researched</div>
@@ -318,14 +330,14 @@ function ResearchCard({ id, config, tech, onStartResearch, isAnyResearchInProgre
 							tech.level >= config.max_level ||
 							!prerequisitesMet ||
 							!hasEnoughResources ||
-							(isAnyResearchInProgress && !tech.is_researching)
+							(isPlanetResearching && !tech.is_researching)
 						}
 						className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
 							tech.is_researching ||
 							tech.level >= config.max_level ||
 							!prerequisitesMet ||
 							!hasEnoughResources ||
-							(isAnyResearchInProgress && !tech.is_researching)
+							(isPlanetResearching && !tech.is_researching)
 								? 'bg-gray-800/50 text-gray-400 border-gray-600 cursor-not-allowed'
 								: 'bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border'
 						}`}
@@ -390,7 +402,29 @@ export default function Researchs() {
 		}
 	};
 
-	const isAnyResearchInProgress = Object.values(state.userResearchs.technologies).some((tech) => tech.is_researching);
+	const getResearchStatus = () => {
+		if (!state.userResearchs)
+			return { canStartNewResearch: false, activeResearchCount: 0, isPlanetResearching: false };
+
+		const activeResearches = Object.values(state.userResearchs.technologies).filter((tech) => tech.is_researching);
+
+		// Count active researches
+		const activeResearchCount = activeResearches.length;
+
+		// Check if current planet is already researching
+		const isPlanetResearching = activeResearches.some(
+			(tech) => tech.researching_planet_id === state.selectedPlanet?.id
+		);
+
+		// Can start new research if:
+		// 1. We haven't reached capacity limit
+		// 2. Current planet isn't already researching
+		const canStartNewResearch = activeResearchCount < state.userResearchs.capacity && !isPlanetResearching;
+
+		return { canStartNewResearch, activeResearchCount, isPlanetResearching };
+	};
+
+	const { canStartNewResearch, activeResearchCount, isPlanetResearching } = getResearchStatus();
 
 	return (
 		<ErrorBoundary>
@@ -407,27 +441,33 @@ export default function Researchs() {
 						</div>
 					</div>
 
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" size="icon">
-								<Grid className="h-4 w-4" />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => updateGridCols(1)}>
-								<Grid className="mr-2 h-4 w-4" /> Single Column
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => updateGridCols(2)}>
-								<Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => updateGridCols(3)}>
-								<Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
-							</DropdownMenuItem>
-							<DropdownMenuItem onClick={() => updateGridCols(4)}>
-								<Grid className="mr-2 h-4 w-4" /> Four Columns
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<div className="flex items-center gap-4">
+						<div className="text-sm text-primary">
+							Research Capacity: {activeResearchCount}/{state.userResearchs.capacity}
+						</div>
+
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="outline" size="icon">
+									<Grid className="h-4 w-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem onClick={() => updateGridCols(1)}>
+									<Grid className="mr-2 h-4 w-4" /> Single Column
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => updateGridCols(2)}>
+									<Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => updateGridCols(3)}>
+									<Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={() => updateGridCols(4)}>
+									<Grid className="mr-2 h-4 w-4" /> Four Columns
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
 				</div>
 
 				<motion.div
@@ -448,7 +488,12 @@ export default function Researchs() {
 								config={config}
 								tech={tech}
 								onStartResearch={startResearch}
-								isAnyResearchInProgress={isAnyResearchInProgress}
+								canStartNewResearch={canStartNewResearch}
+								isPlanetResearching={isPlanetResearching}
+								researchCapacityInfo={{
+									current: activeResearchCount,
+									max: state.userResearchs!.capacity,
+								}}
 							/>
 						);
 					})}

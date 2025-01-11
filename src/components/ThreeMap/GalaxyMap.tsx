@@ -430,7 +430,7 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 					<meshBasicMaterial color={movementColor} transparent opacity={0.8} />
 				</mesh>
 
-				<Html position={[20, 0, 0]}>
+				<Html position={[20, 0, 0]} style={{ zIndex: 40 }}>
 					<div
 						className={`bg-neutral-900/95 border ${
 							isHostileMovement
@@ -441,6 +441,7 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 						} px-2 py-1 
                         text-neutral-100 font-sans text-xs 
                         pointer-events-none whitespace-nowrap rounded-sm`}
+						style={{ zIndex: 40 }}
 					>
 						<div className="flex flex-col gap-0.5">
 							<span
@@ -699,6 +700,10 @@ const GalaxyMap = ({
 						LEFT: THREE.MOUSE.PAN,
 						MIDDLE: THREE.MOUSE.DOLLY,
 						RIGHT: THREE.MOUSE.ROTATE,
+					}}
+					touches={{
+						ONE: THREE.TOUCH.PAN,
+						TWO: THREE.TOUCH.DOLLY_PAN,
 					}}
 					zoomSpeed={0.5}
 				/>

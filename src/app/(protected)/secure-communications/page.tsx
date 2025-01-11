@@ -1,7 +1,7 @@
 'use client';
 
 import { BaseMail, MailType } from '@/models/mail';
-import { Bell, Eye, Mail, MessageSquare, Rocket, Sword, Trash2 } from 'lucide-react';
+import { Bell, Eye, Mail, MessageSquare, Rocket, Sword, Trash2, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 
@@ -33,6 +33,7 @@ export default function Reports() {
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
 	const ITEMS_PER_PAGE = 20;
+	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
 	useEffect(() => {
 		const fetchMails = async () => {
@@ -136,13 +137,21 @@ export default function Reports() {
 		<div className="space-y-6">
 			<Card className="border border-primary h-[calc(100vh-12rem)] shadow-2xl shadow-primary/20 overflow-hidden">
 				<CardHeader className="border-b bg-gray-900 sticky top-0 z-10">
-					<CardTitle className="text-xl flex items-center gap-2">
+					<CardTitle className="text-xl flex items-center justify-between gap-2">
 						<span className="text-primary font-mono">Secure Communications Terminal</span>
+						<Button variant="ghost" className="lg:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+							<Menu className="h-5 w-5" />
+						</Button>
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="p-0 h-[calc(100%-4rem)] bg-gray-900/95 relative">
-					<div className="grid grid-cols-[250px_1fr] absolute inset-0">
-						<div className="border-r border-primary/20 p-4 space-y-4 bg-gray-900 overflow-y-auto">
+					<div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] absolute inset-0">
+						<div
+							className={`border-r border-primary/20 p-4 space-y-4 bg-gray-900 overflow-y-auto
+							${isSidebarOpen ? 'block' : 'hidden'} 
+							lg:block
+							${!isViewingMail ? 'absolute lg:relative inset-0 z-20' : 'hidden lg:block'}`}
+						>
 							<div className="space-y-2">
 								{MAIL_CATEGORIES.map((category) => (
 									<Button
@@ -166,7 +175,10 @@ export default function Reports() {
 							</div>
 						</div>
 
-						<div className="flex flex-col h-full overflow-y-auto">
+						<div
+							className={`flex flex-col h-full overflow-y-auto
+							${isSidebarOpen && !isViewingMail ? 'hidden lg:flex' : 'flex'}`}
+						>
 							{!isViewingMail ? (
 								<div className="flex-1 p-4">
 									<div className="space-y-2">
