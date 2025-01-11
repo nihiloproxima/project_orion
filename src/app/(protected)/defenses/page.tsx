@@ -1,5 +1,5 @@
 'use client';
-
+import _ from 'lodash';
 import {
 	AlertTriangle,
 	Beaker,
@@ -460,13 +460,9 @@ function DesktopCategories({ selectedCategory, setSelectedCategory }: any) {
 }
 
 function CurrentDefensesOverview({ planetDefenses }: { planetDefenses: Defense[] }) {
-	const defensesByType = planetDefenses.reduce((acc, defense) => {
-		acc[defense.type] = (acc[defense.type] || 0) + 1;
-		return acc;
-	}, {} as Record<DefenseType, number>);
+	const totalDefenses = _.sum(planetDefenses.map((d) => d.amount));
 
 	// Calculate total defenses
-	const totalDefenses = Object.values(defensesByType).reduce((sum, count) => sum + count, 0);
 
 	return (
 		<Collapsible className="mb-6">
@@ -485,7 +481,9 @@ function CurrentDefensesOverview({ planetDefenses }: { planetDefenses: Defense[]
 			<CollapsibleContent>
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
 					{Object.entries(DEFENSE_ASSETS).map(([type, asset]) => {
-						const count = defensesByType[type as DefenseType] || 0;
+						const entry = planetDefenses.find((d) => d.type === type);
+
+						const count = entry?.amount || 0;
 						if (count === 0) return null; // Only show defenses that exist
 						return (
 							<Card key={type} className="bg-black/30">
@@ -707,7 +705,7 @@ export default function Defenses() {
 											key={type}
 											type={type}
 											queue={queue}
-											currentCount={planetDefenses.filter((d) => d.type === type).length}
+											currentCount={planetDefenses.find((d) => d.type === type)?.amount || 0}
 										/>
 									))}
 								</div>

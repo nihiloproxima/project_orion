@@ -64,12 +64,16 @@ function QuickSpyButton({ targetPlanetId, fromPlanetId }: QuickSpyButtonProps) {
 				return;
 			}
 
-			await sendMission({
+			console.log(spyProbes, targetPlanetId);
+
+			const response = await sendMission({
 				from_planet_id: fromPlanetId,
 				to_planet_id: targetPlanetId,
 				ships_ids: [spyProbes[0].id],
 				mission_type: 'spy',
 			});
+
+			console.log(response);
 
 			toast({
 				title: 'Spy Mission Launched',

@@ -3,7 +3,7 @@
 import { GameConfig, Planet, PlanetResources, PlanetStructures, User, UserResearchs } from '../models/';
 import { ReactNode, createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { calculateEnergyBalance, calculatePlanetResources } from '../utils/resources_calculations';
-
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -69,10 +69,194 @@ const usePageVisibility = (callback: () => void) => {
 	}, [callback]);
 };
 
+// Add this type to handle subscription cleanup
+type Subscription = ReturnType<typeof supabase.channel>;
+
+// Create a helper function to manage subscriptions
+const setupSubscriptions = (
+	state: GameState,
+	authedUser: SupabaseUser | null,
+	setState: React.Dispatch<React.SetStateAction<GameState>>
+) => {
+	const subscriptions: Subscription[] = [];
+
+	if (!authedUser) return () => {};
+
+	// User subscription
+	subscriptions.push(
+		supabase
+			.channel('users-channel')
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'users',
+					filter: `id=eq.${authedUser.id}`,
+				},
+				(payload: any) => {
+					setState((prev) => ({
+						...prev,
+						currentUser: payload.eventType === 'DELETE' ? null : payload.new,
+					}));
+				}
+			)
+			.subscribe()
+	);
+
+	// Planet ownership changes subscription
+	subscriptions.push(
+		supabase
+			.channel('planet_changes')
+			.on(
+				'postgres_changes',
+				{
+					event: 'UPDATE',
+					schema: 'public',
+					table: 'planets',
+					filter: 'owner_id IS NOT NULL',
+				},
+				(payload) => {
+					setState((prev) => ({
+						...prev,
+						planets:
+							prev.planets?.map((planet) =>
+								planet.id === payload.new.id ? { ...planet, owner_id: payload.new.owner_id } : planet
+							) || [],
+					}));
+				}
+			)
+			.subscribe()
+	);
+
+	// Only set up these subscriptions if we have a selected planet
+	if (state.selectedPlanet?.id) {
+		// Resources subscription
+		subscriptions.push(
+			supabase
+				.channel('resources-channel')
+				.on(
+					'postgres_changes',
+					{
+						event: '*',
+						schema: 'public',
+						table: 'planet_resources',
+						filter: `planet_id=eq.${state.selectedPlanet.id}`,
+					},
+					(payload: any) => {
+						setState((prev) => ({
+							...prev,
+							resources: {
+								...(prev.resources as PlanetResources),
+								...(payload.new as PlanetResources),
+								energy_production: 0,
+								energy_consumption: 0,
+							},
+						}));
+					}
+				)
+				.subscribe()
+		);
+
+		// Structures subscription
+		subscriptions.push(
+			supabase
+				.channel(`structures-${state.selectedPlanet.id}`)
+				.on(
+					'postgres_changes',
+					{
+						event: '*',
+						schema: 'public',
+						table: 'planet_structures',
+						filter: `planet_id=eq.${state.selectedPlanet.id}`,
+					},
+					(payload: any) => {
+						setState((prev) => ({
+							...prev,
+							planetStructures: payload.eventType === 'DELETE' ? null : (payload.new as PlanetStructures),
+						}));
+					}
+				)
+				.subscribe()
+		);
+
+		// Research subscription
+		subscriptions.push(
+			supabase
+				.channel(`research-${state.selectedPlanet.id}`)
+				.on(
+					'postgres_changes',
+					{
+						event: '*',
+						schema: 'public',
+						table: 'user_researchs',
+						filter: `user_id=eq.${authedUser.id}`,
+					},
+					(payload: any) => {
+						setState((prev) => ({
+							...prev,
+							userResearchs: payload.new as UserResearchs,
+						}));
+					}
+				)
+				.subscribe()
+		);
+	}
+
+	// Return cleanup function
+	return () => {
+		subscriptions.forEach((subscription) => {
+			subscription.unsubscribe();
+		});
+	};
+};
+
 export function GameProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<GameState>(initialState);
-
 	const { authedUser } = useAuth();
+
+	// Consolidated subscriptions effect
+	useEffect(() => {
+		if (!authedUser || !state.selectedPlanet) return;
+
+		const cleanup = setupSubscriptions(state, authedUser, setState);
+		return cleanup;
+	}, [authedUser?.id, state.selectedPlanet?.id]);
+
+	// Initial data fetching effect
+	useEffect(() => {
+		if (!authedUser || !state.selectedPlanet?.id) return;
+
+		const fetchInitialData = async () => {
+			try {
+				const [resourcesRes, structuresRes, researchRes] = await Promise.all([
+					supabase.from('planet_resources').select('*').eq('planet_id', state.selectedPlanet!.id),
+					supabase.from('planet_structures').select().eq('planet_id', state.selectedPlanet!.id).single(),
+					supabase.from('user_researchs').select('*').eq('user_id', authedUser.id).single(),
+				]);
+
+				setState((prev) => ({
+					...prev,
+					resources: resourcesRes.data?.[0]
+						? {
+								...resourcesRes.data[0],
+								energy_production: 0,
+								energy_consumption: 0,
+						  }
+						: null,
+					planetStructures: structuresRes.data,
+					userResearchs: researchRes.data,
+					loadedResources: true,
+					loadedStructures: true,
+					loadedUserResearchs: true,
+				}));
+			} catch (error) {
+				console.error('Error fetching initial data:', error);
+			}
+		};
+
+		fetchInitialData();
+	}, [authedUser?.id, state.selectedPlanet?.id]);
 
 	// Create a function to handle resubscription of all channels
 	const resubscribeAll = useCallback(() => {
@@ -358,7 +542,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		return () => {
 			planetsSubscription.unsubscribe();
 		};
-	}, [authedUser, state.selectedPlanet?.id, state.selectedPlanet]);
+	}, [authedUser?.id]);
 
 	useEffect(() => {
 		if (!state.selectedPlanet?.id || !authedUser) return;
