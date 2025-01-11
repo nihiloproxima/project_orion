@@ -17,6 +17,7 @@ interface GameState {
 	planetStructures: PlanetStructures | null;
 	userPlanets: Planet[];
 	userResearchs: UserResearchs | null;
+	resourcesIntervalId: NodeJS.Timeout | null;
 }
 
 interface GameContextType {
@@ -27,6 +28,7 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | null>(null);
 
 const initialState: GameState = {
+	resourcesIntervalId: null,
 	activePlayers: [],
 	loading: true,
 	currentUser: null,
@@ -40,7 +42,11 @@ const initialState: GameState = {
 };
 
 // Setup subscriptions for a selected planet
-const setupPlanetSubscriptions = (planetId: string, setState: React.Dispatch<React.SetStateAction<GameState>>) => {
+const setupPlanetSubscriptions = (
+	state: GameState,
+	planetId: string,
+	setState: React.Dispatch<React.SetStateAction<GameState>>
+) => {
 	const subscriptions = [
 		// Gameconfig
 		supabase
@@ -73,6 +79,10 @@ const setupPlanetSubscriptions = (planetId: string, setState: React.Dispatch<Rea
 					filter: `planet_id=eq.${planetId}`,
 				},
 				(payload: any) => {
+					if (state.resourcesIntervalId) {
+						clearInterval(state.resourcesIntervalId);
+					}
+
 					setState((prev) => ({
 						...prev,
 						planetResources: {
@@ -224,7 +234,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		}
 
 		// Setup planet subscriptions
-		const unsubscribe = setupPlanetSubscriptions(state.selectedPlanet.id, setState);
+		const unsubscribe = setupPlanetSubscriptions(state, state.selectedPlanet.id, setState);
 
 		// Setup resource calculation interval
 		const calculateResources = () => {
@@ -246,13 +256,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			}));
 		};
 
-		const intervalId = setInterval(calculateResources, 1000);
+		state.resourcesIntervalId = setInterval(calculateResources, 1000);
 
 		// Initial calculation
 		calculateResources();
 
 		return () => {
-			clearInterval(intervalId);
+			if (state.resourcesIntervalId) {
+				clearInterval(state.resourcesIntervalId);
+			}
 			unsubscribe();
 		};
 	}, [state.selectedPlanet?.id, state.gameConfig, state.planetStructures, state.userResearchs]);

@@ -415,11 +415,12 @@ export default function Fleet() {
 
 		const missionTypes: MissionType[] = [];
 
-		if (selectedShipTypes.has('cruiser')) missionTypes.push('attack');
+		if (selectedShipTypes.has('cruiser')) missionTypes.push('attack', 'transport');
+		if (selectedShipTypes.has('destroyer')) missionTypes.push('attack', 'transport');
 		if (selectedShipTypes.has('transport_ship')) missionTypes.push('transport');
 		if (selectedShipTypes.has('colony_ship')) missionTypes.push('colonize', 'transport');
-		if (selectedShipTypes.has('spy_probe')) missionTypes.push('spy');
-		if (selectedShipTypes.has('recycler_ship')) missionTypes.push('recycle');
+		if (selectedShipTypes.has('spy_probe')) missionTypes.push('spy', 'transport');
+		if (selectedShipTypes.has('recycler_ship')) missionTypes.push('recycle', 'transport');
 
 		// Select first available mission type by default
 		if (missionTypes.length > 0 && !missionType) {
