@@ -63,16 +63,16 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 	});
 
 	useEffect(() => {
-		if (state.selectedPlanet === null || !state.planetResources) {
+		if (state.selectedPlanet === null || !state.currentResources) {
 			return;
 		}
 
-		setResources(state.planetResources);
-	}, [state.selectedPlanet, state.planetResources]);
+		setResources(state.currentResources);
+	}, [state.selectedPlanet, state.currentResources]);
 
 	if (
 		state.selectedPlanet === null ||
-		!state.planetResources ||
+		!state.currentResources ||
 		!state.gameConfig ||
 		!state.planetStructures ||
 		!state.userResearchs
@@ -159,18 +159,20 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 						<div className="flex items-center gap-2">
 							<span
 								className={`font-mono font-bold text-base ${
-									state.planetResources.energy_production >= state.planetResources.energy_consumption
+									state.currentResources.energy_production >=
+									state.currentResources.energy_consumption
 										? 'text-violet-400'
 										: 'text-red-400'
 								}`}
 							>
 								{millify(
-									state.planetResources.energy_production - state.planetResources.energy_consumption
+									state.currentResources.energy_production - state.currentResources.energy_consumption
 								)}
 							</span>
 							<Zap
 								className={`h-4 w-4 ${
-									state.planetResources.energy_production >= state.planetResources.energy_consumption
+									state.currentResources.energy_production >=
+									state.currentResources.energy_consumption
 										? 'text-violet-400'
 										: 'text-red-400'
 								}`}
@@ -178,7 +180,7 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 						</div>
 						<span className="text-xs font-medium">
 							{Number(
-								state.planetResources.energy_production / state.planetResources.energy_consumption
+								state.currentResources.energy_production / state.currentResources.energy_consumption
 							).toFixed(2)}
 						</span>
 					</div>
@@ -225,31 +227,31 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 							<div className="flex items-center gap-1">
 								<Zap
 									className={`h-3 w-3 ${
-										state.planetResources.energy_production >=
-										state.planetResources.energy_consumption
+										state.currentResources.energy_production >=
+										state.currentResources.energy_consumption
 											? 'text-violet-400'
 											: 'text-red-400'
 									}`}
 								/>
 								<span
 									className={`font-mono font-bold text-xs truncate ${
-										state.planetResources.energy_production >=
-										state.planetResources.energy_consumption
+										state.currentResources.energy_production >=
+										state.currentResources.energy_consumption
 											? 'text-violet-400'
 											: 'text-red-400'
 									}`}
 								>
 									{millify(
-										state.planetResources.energy_production -
-											state.planetResources.energy_consumption
+										state.currentResources.energy_production -
+											state.currentResources.energy_consumption
 									)}
 								</span>
 							</div>
 							{isExpanded && (
 								<span className="text-[10px] font-medium">
 									{Number(
-										state.planetResources.energy_production /
-											state.planetResources.energy_consumption
+										state.currentResources.energy_production /
+											state.currentResources.energy_consumption
 									).toFixed(2)}
 								</span>
 							)}

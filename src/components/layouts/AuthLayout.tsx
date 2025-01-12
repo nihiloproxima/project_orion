@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { LoadingScreen } from '../../components/LoadingScreen';
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
+	const loadingDuration = 1000;
 	const { state } = useGame();
 	const [showLoading, setShowLoading] = useState(true);
 	const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -14,7 +15,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		const timer = setTimeout(() => {
 			setShowLoading(false);
-		}, 3000);
+		}, loadingDuration);
 
 		return () => clearTimeout(timer);
 	}, []);
@@ -24,7 +25,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 	}, []);
 
 	if (state.loading || showLoading) {
-		return <LoadingScreen />;
+		return <LoadingScreen duration={loadingDuration} />;
 	}
 
 	return (

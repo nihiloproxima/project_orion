@@ -90,7 +90,7 @@ const ResourceSelectionUI = ({
 	});
 
 	const { state } = useGame();
-	const currentResources = state.planetResources;
+	const currentResources = state.currentResources;
 
 	// Calculate total resources selected
 	const totalResourcesSelected = Object.values(resources).reduce((sum, value) => sum + value, 0);

@@ -143,7 +143,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 		}
 	}, [structure, state.selectedPlanet]);
 
-	if (!state.planetResources || !state.gameConfig || !state.planetStructures || !state.userResearchs) {
+	if (!state.currentResources || !state.gameConfig || !state.planetStructures || !state.userResearchs) {
 		return <LoadingScreen message="Loading structures..." />;
 	}
 
@@ -199,9 +199,9 @@ function StructureCard({ structure }: { structure: Structure }) {
 	const storageCapacities = calculateStructureStorageCapacities(state.gameConfig!, structure.type, structure.level);
 
 	const futureEnergyRatio =
-		(state.planetResources.energy_production - currentEnergyProduction + futureEnergyProduction) /
-		(state.planetResources.energy_consumption - energyConsumption + futureEnergyConsumption);
-	const currentEnergyRatio = state.planetResources.energy_production / state.planetResources.energy_consumption;
+		(state.currentResources.energy_production - currentEnergyProduction + futureEnergyProduction) /
+		(state.currentResources.energy_consumption - energyConsumption + futureEnergyConsumption);
+	const currentEnergyRatio = state.currentResources.energy_production / state.currentResources.energy_consumption;
 
 	// Skip rendering if structure has no production and no storage
 	return (
@@ -240,8 +240,8 @@ function StructureCard({ structure }: { structure: Structure }) {
 								<div className="flex items-center gap-2">
 									<span
 										className={
-											state.planetResources.energy_production <
-											state.planetResources.energy_consumption
+											state.currentResources.energy_production <
+											state.currentResources.energy_consumption
 												? 'text-red-400'
 												: ''
 										}
@@ -372,9 +372,9 @@ function StructureContent({
 	const [isUpgrading, setIsUpgrading] = useState(false);
 
 	const canAfford =
-		state.planetResources!.metal >= upgradeCosts.metal &&
-		state.planetResources!.deuterium >= upgradeCosts.deuterium &&
-		state.planetResources!.microchips >= upgradeCosts.microchips;
+		state.currentResources!.metal >= upgradeCosts.metal &&
+		state.currentResources!.deuterium >= upgradeCosts.deuterium &&
+		state.currentResources!.microchips >= upgradeCosts.microchips;
 
 	// Only check prerequisites if structure is level 0
 	let prerequisitesMet = true;
@@ -452,7 +452,7 @@ function StructureContent({
 					{upgradeCosts.metal > 0 && (
 						<div
 							className={`flex items-center gap-2 ${
-								state.planetResources!.metal < upgradeCosts.metal ? 'text-red-500' : 'text-secondary'
+								state.currentResources!.metal < upgradeCosts.metal ? 'text-red-500' : 'text-secondary'
 							}`}
 						>
 							<Hammer className="h-4 w-4" />
@@ -462,7 +462,7 @@ function StructureContent({
 					{upgradeCosts.deuterium > 0 && (
 						<div
 							className={`flex items-center gap-2 ${
-								state.planetResources!.deuterium < upgradeCosts.deuterium
+								state.currentResources!.deuterium < upgradeCosts.deuterium
 									? 'text-red-500'
 									: 'text-primary'
 							}`}
@@ -474,7 +474,7 @@ function StructureContent({
 					{upgradeCosts.microchips > 0 && (
 						<div
 							className={`flex items-center gap-2 ${
-								state.planetResources!.microchips < upgradeCosts.microchips
+								state.currentResources!.microchips < upgradeCosts.microchips
 									? 'text-red-500'
 									: 'text-accent'
 							}`}

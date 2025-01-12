@@ -12,12 +12,20 @@ interface GameState {
 	gameConfig: GameConfig | null;
 	loading: boolean;
 	planets: Planet[];
-	planetResources: (PlanetResources & { energy_production: number; energy_consumption: number }) | null;
+	planetResources: PlanetResources | null;
 	selectedPlanet: Planet | null;
 	planetStructures: PlanetStructures | null;
 	userPlanets: Planet[];
 	userResearchs: UserResearchs | null;
 	resourcesIntervalId: NodeJS.Timeout | null;
+	currentResources: {
+		metal: number;
+		deuterium: number;
+		microchips: number;
+		energy: number;
+		energy_production: number;
+		energy_consumption: number;
+	};
 }
 
 interface GameContextType {
@@ -39,6 +47,14 @@ const initialState: GameState = {
 	planetStructures: null,
 	userPlanets: [],
 	userResearchs: null,
+	currentResources: {
+		metal: 0,
+		deuterium: 0,
+		microchips: 0,
+		energy: 0,
+		energy_production: 0,
+		energy_consumption: 0,
+	},
 };
 
 // Setup subscriptions for a selected planet
@@ -86,6 +102,7 @@ const setupPlanetSubscriptions = (
 				}
 			)
 			.subscribe(),
+
 		// Resources subscription
 		supabase
 			.channel(`resources-${planetId}`)
@@ -98,22 +115,9 @@ const setupPlanetSubscriptions = (
 					filter: `planet_id=eq.${planetId}`,
 				},
 				(payload: any) => {
-					if (state.resourcesIntervalId) {
-						clearInterval(state.resourcesIntervalId);
-					}
-
-					console.log(
-						`Resorces updated: metal:${payload.new.metal}, deuterium:${payload.new.deuterium}, microchips:${payload.new.microchips}, energy:${payload.new.energy}`
-					);
-
 					setState((prev) => ({
 						...prev,
-						planetResources: {
-							...(prev.planetResources as PlanetResources),
-							...(payload.new as PlanetResources),
-							energy_production: prev.planetResources?.energy_production || 0,
-							energy_consumption: prev.planetResources?.energy_consumption || 0,
-						},
+						planetResources: payload.new,
 					}));
 				}
 			)
@@ -269,6 +273,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			return;
 		}
 
+		// Clear any existing interval first
+		if (state.resourcesIntervalId) {
+			clearInterval(state.resourcesIntervalId);
+		}
+
 		// Setup planet subscriptions
 		const unsubscribe = setupPlanetSubscriptions(state, state.selectedPlanet.id, setState);
 
@@ -284,7 +293,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 			setState((prev) => ({
 				...prev,
-				planetResources: {
+				currentResources: {
 					...planetResources,
 					energy_production: energyBalance.production,
 					energy_consumption: energyBalance.consumption,
@@ -292,18 +301,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			}));
 		};
 
-		state.resourcesIntervalId = setInterval(calculateResources, 1000);
+		// Store new interval ID
+		const intervalId = setInterval(calculateResources, 1000);
+		setState((prev) => ({ ...prev, resourcesIntervalId: intervalId }));
 
 		// Initial calculation
 		calculateResources();
 
 		return () => {
-			if (state.resourcesIntervalId) {
-				clearInterval(state.resourcesIntervalId);
-			}
+			clearInterval(intervalId); // Clear using the captured intervalId
 			unsubscribe();
 		};
-	}, [state.selectedPlanet?.id, state.gameConfig, state.planetStructures, state.userResearchs]);
+	}, [
+		state.selectedPlanet?.id,
+		state.gameConfig,
+		state.planetStructures,
+		state.userResearchs,
+		state.planetResources,
+	]);
 
 	const selectPlanet = (planet: Planet) => {
 		setState((prev) => ({

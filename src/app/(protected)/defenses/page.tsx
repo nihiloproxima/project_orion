@@ -52,7 +52,7 @@ const DEFENSE_CATEGORIES: Record<string, { name: string; description: string; ty
 	basic: {
 		name: 'BASIC_DEFENSES',
 		description: 'Standard defensive structures',
-		types: ['missile_launcher', 'light_laser', 'heavy_laser'] as DefenseType[],
+		types: ['light_laser', 'missile_launcher', 'heavy_laser'] as DefenseType[],
 	},
 	advanced: {
 		name: 'ADVANCED_DEFENSES',
@@ -189,7 +189,7 @@ function DefenseCard({
 	if (
 		!state.planetStructures?.structures ||
 		!state.gameConfig?.defenses ||
-		!state.planetResources ||
+		!state.currentResources ||
 		!state.userResearchs
 	) {
 		return null;
@@ -209,9 +209,9 @@ function DefenseCard({
 
 	// Calculate max defenses possible with current resources
 	const maxDefensesPerResource = {
-		metal: Math.floor(state.planetResources.metal / config.cost.metal),
-		deuterium: Math.floor(state.planetResources.deuterium / config.cost.deuterium),
-		microchips: Math.floor(state.planetResources.microchips / config.cost.microchips),
+		metal: Math.floor(state.currentResources.metal / config.cost.metal),
+		deuterium: Math.floor(state.currentResources.deuterium / config.cost.deuterium),
+		microchips: Math.floor(state.currentResources.microchips / config.cost.microchips),
 	};
 	const maxPossibleDefenses = Math.min(...Object.values(maxDefensesPerResource));
 
@@ -327,7 +327,7 @@ function DefenseCard({
 						<div className="grid grid-cols-2 gap-2 mt-2">
 							<div
 								className={`flex items-center gap-2 ${
-									state.planetResources.metal < config.cost.metal * buildAmount
+									state.currentResources.metal < config.cost.metal * buildAmount
 										? 'text-red-400'
 										: 'text-muted-foreground'
 								}`}
@@ -337,7 +337,7 @@ function DefenseCard({
 							</div>
 							<div
 								className={`flex items-center gap-2 ${
-									state.planetResources.deuterium < config.cost.deuterium * buildAmount
+									state.currentResources.deuterium < config.cost.deuterium * buildAmount
 										? 'text-red-400'
 										: 'text-muted-foreground'
 								}`}
@@ -347,7 +347,7 @@ function DefenseCard({
 							</div>
 							<div
 								className={`flex items-center gap-2 ${
-									state.planetResources.microchips < config.cost.microchips * buildAmount
+									state.currentResources.microchips < config.cost.microchips * buildAmount
 										? 'text-red-400'
 										: 'text-muted-foreground'
 								}`}
