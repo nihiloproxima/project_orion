@@ -148,7 +148,11 @@ function StructureCard({ structure }: { structure: Structure }) {
 	}
 
 	const onUpgrade = async (structure: Structure) => {
-		await api.structures.startConstruction(state.selectedPlanet!.id, structure.type);
+		try {
+			await api.structures.startConstruction(state.selectedPlanet!.id, structure.type);
+		} catch (error) {
+			console.error('Error upgrading structure:', error);
+		}
 	};
 
 	const structureConfig = state.gameConfig!.structures.find((s) => s.type === structure.type);
@@ -393,11 +397,14 @@ function StructureContent({
 	}
 
 	const handleUpgrade = async () => {
+		if (isUpgrading) return; // Prevent multiple clicks while upgrading
 		try {
 			setIsUpgrading(true);
 			await onUpgrade(structure);
+		} catch (error) {
+			console.error('Error upgrading structure:', error);
 		} finally {
-			setIsUpgrading(false);
+			setTimeout(() => setIsUpgrading(false), 1000); // Add delay before allowing new clicks
 		}
 	};
 
