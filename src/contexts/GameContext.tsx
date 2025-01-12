@@ -75,7 +75,6 @@ const setupPlanetSubscriptions = (
 					filter: `user_id=eq.${state.currentUser?.id}`,
 				},
 				(payload: any) => {
-					console.log(`User researchs updated: ${payload.new.research_points}`);
 					setState((prev) => ({
 						...prev,
 						userResearchs: payload.new as UserResearchs,
@@ -135,7 +134,6 @@ const setupPlanetSubscriptions = (
 					filter: `planet_id=eq.${planetId}`,
 				},
 				(payload: any) => {
-					console.log(`Structures updated`);
 					setState((prev) => ({
 						...prev,
 						planetStructures: payload.eventType === 'DELETE' ? null : (payload.new as PlanetStructures),
@@ -234,8 +232,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					.eq('planet_id', state.selectedPlanet.id)
 					.single();
 
-				console.log(planetStructuresData);
-
 				if (planetStructuresData) {
 					planetStructures = planetStructuresData;
 				}
@@ -261,8 +257,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				}));
 			}
 		};
-
-		console.log(`Selected planet change: ${state.selectedPlanet?.name}`);
 
 		fetchPlanetData();
 	}, [state.selectedPlanet]);

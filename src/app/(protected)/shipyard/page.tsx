@@ -163,6 +163,7 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 	const [buildAmount, setBuildAmount] = useState(1);
 	const asset = SHIP_ASSETS[type];
 	const shipyard = state.planetStructures?.structures.find((s) => s.type === 'shipyard');
+	const shipyardConfig = state.gameConfig!.structures.find((s) => s.type === 'shipyard');
 	const config = state.gameConfig!.ships.find((s) => s.type === type);
 
 	if (!config) return null;
@@ -188,7 +189,8 @@ function ShipCard({ type, queue }: { type: ShipType; queue: ShipyardQueue | null
 
 	// Calculate build time based on shipyard level and amount
 	const baseTime = config.construction_time || 60; // Default 60 seconds if not specified
-	const buildTime = baseTime * buildAmount;
+	const reductionCoef = 1 - ((shipyardConfig?.production.percent_increase_per_level ?? 0) * shipyard!.level) / 100;
+	const buildTime = baseTime * buildAmount * reductionCoef;
 
 	const isQueueFull = (queue?.commands?.length || 0) >= (queue?.capacity || 0);
 
