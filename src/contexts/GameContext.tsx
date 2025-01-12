@@ -283,7 +283,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				state.planetResources!,
 				state.userResearchs!
 			);
-			const energyBalance = calculateEnergyBalance(state.gameConfig!, state.planetStructures!.structures);
+			const energyBalance = calculateEnergyBalance(
+				state.gameConfig!,
+				state.userResearchs!,
+				state.planetStructures!.structures
+			);
 
 			setState((prev) => ({
 				...prev,

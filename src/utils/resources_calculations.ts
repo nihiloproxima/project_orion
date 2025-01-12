@@ -1,9 +1,5 @@
 import { GameConfig, PlanetResources, PlanetStructures, ResourceType, Structure, UserResearchs } from '../models';
-import {
-	StorageCapacities,
-	calculateStructureEnergyConsumption,
-	calculateStructureEnergyProduction,
-} from './structures_calculations';
+import { StorageCapacities } from './structures_calculations';
 
 export type ResourceGenerationRates = {
 	[resource in ResourceType]?: number;
@@ -104,14 +100,37 @@ export function calculateBaseRates(
 
 export function calculateEnergyBalance(
 	gameConfig: GameConfig,
+	userResearchs: UserResearchs,
 	structures: Structure[]
 ): { production: number; consumption: number } {
 	let production = 0;
 	let consumption = 0;
 
+	const energyEfficiencyTech = userResearchs.technologies['energy_efficiency'];
+	let efficiencyBonus = 1;
+	if (energyEfficiencyTech) {
+		const config = gameConfig.researchs.find((r) => r.id === 'energy_efficiency');
+		if (config) {
+			efficiencyBonus = 1 + (energyEfficiencyTech.level * config.effects[0].value) / 100;
+		}
+	}
+
 	structures.forEach((structure) => {
-		production += calculateStructureEnergyProduction(gameConfig, structure.type, structure.level);
-		consumption += calculateStructureEnergyConsumption(gameConfig, structure.type, structure.level);
+		const structureConfig = gameConfig.structures.find((s) => s.type === structure.type);
+		if (!structureConfig) return;
+		if (structure.level === 0) return;
+
+		if (structureConfig.production.resource === 'energy') {
+			const base = structureConfig.production.base || 0;
+			const percentIncrease = structureConfig.production.percent_increase_per_level || 0;
+
+			const perLevelCoef = 1 + (percentIncrease * structure.level) / 100;
+			production += base * perLevelCoef * efficiencyBonus;
+		}
+
+		consumption +=
+			structureConfig.energy_consumption.base *
+			(1 + (structureConfig.energy_consumption.percent_increase_per_level * structure.level) / 100);
 	});
 
 	return { production, consumption };
@@ -152,7 +171,7 @@ export function calculateResourceGeneration(
 
 	return {
 		...rates,
-		energy_balance: calculateEnergyBalance(gameConfig, structures),
+		energy_balance: calculateEnergyBalance(gameConfig, userResearchs, structures),
 	};
 }
 
@@ -214,6 +233,15 @@ export function calculatePlanetResources(
 	if (energyDeficit < 0) {
 		productionMalus = Math.max(0, 1 + energyDeficit / resourceGeneration.energy_balance.consumption);
 	}
+
+	const debugInfo = {
+		productionMalus,
+		energyDeficit,
+		energyProduction: resourceGeneration.energy_balance.production,
+		energyConsumption: resourceGeneration.energy_balance.consumption,
+		energyBalance: resourceGeneration.energy_balance,
+	};
+	console.debug('Resource Calculation Debug Info:', debugInfo);
 
 	// Calculate current resources with energy malus applied
 	const updatedResources: PlanetResources = {

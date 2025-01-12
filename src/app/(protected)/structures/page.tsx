@@ -188,11 +188,13 @@ function StructureCard({ structure }: { structure: Structure }) {
 
 	const currentEnergyProduction = calculateStructureEnergyProduction(
 		state.gameConfig!,
+		state.userResearchs!,
 		structure.type,
 		structure.level
 	);
 	const futureEnergyProduction = calculateStructureEnergyProduction(
 		state.gameConfig!,
+		state.userResearchs!,
 		structure.type,
 		structure.level + 1
 	);

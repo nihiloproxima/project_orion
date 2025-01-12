@@ -152,6 +152,7 @@ export function calculateStructureEnergyConsumption(
 
 export function calculateStructureEnergyProduction(
 	gameConfig: GameConfig,
+	userResearchs: UserResearchs,
 	structureType: StructureType,
 	currentLevel: number
 ) {
@@ -161,6 +162,12 @@ export function calculateStructureEnergyProduction(
 		throw new Error(`Structure ${structureType} does not exist`);
 	}
 
+	const researchConfig = gameConfig.researchs.find((r) => r.id === 'energy_efficiency');
+	if (!researchConfig) return 0;
+
+	const researchLevel = userResearchs.technologies[researchConfig.id].level;
+	const researchBonus = 1 + (researchConfig.effects[0].value * researchLevel) / 100;
+
 	if (
 		!structureConfig.production.base ||
 		!structureConfig.production.percent_increase_per_level ||
@@ -169,9 +176,8 @@ export function calculateStructureEnergyProduction(
 		return 0;
 	}
 
-	const result =
-		structureConfig.production.base *
-		(1 + (structureConfig.production.percent_increase_per_level * currentLevel) / 100);
+	const perLevelCoef = 1 + (structureConfig.production.percent_increase_per_level * currentLevel) / 100;
+	const result = structureConfig.production.base * perLevelCoef * researchBonus;
 
 	return result;
 }
