@@ -144,7 +144,7 @@ function QueueDisplay({ queue }: { queue: ShipyardQueue | null }) {
 										<div className="text-sm">
 											Starts in:{' '}
 											{formatTimerTime(
-												(queue.commands[0].construction_finish_time - Date.now()) / 1000
+												(queue.commands.at(-1)!.construction_finish_time - Date.now()) / 1000
 											)}
 										</div>
 									)}
