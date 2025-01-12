@@ -87,7 +87,8 @@ const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
 	shipyard: {
 		type: 'shipyard',
 		name: 'Shipyard',
-		description: 'Builds and maintains your fleet of spacecraft. Each level unlocks new ship types.',
+		description:
+			'Builds and maintains your fleet of spacecraft. Each level unlocks new ship types and increases ship production speed.',
 		productionType: 'none',
 		icon: <Building2 className="h-5 w-5" />,
 		hasStorage: false,
@@ -369,7 +370,6 @@ function StructureContent({
 	energyConsumption,
 }: StructureContentProps) {
 	const { state } = useGame();
-	const [isUpgrading, setIsUpgrading] = useState(false);
 
 	const canAfford =
 		state.currentResources!.metal >= upgradeCosts.metal &&
@@ -397,14 +397,10 @@ function StructureContent({
 	}
 
 	const handleUpgrade = async () => {
-		if (isUpgrading) return; // Prevent multiple clicks while upgrading
 		try {
-			setIsUpgrading(true);
 			await onUpgrade(structure);
 		} catch (error) {
 			console.error('Error upgrading structure:', error);
-		} finally {
-			setTimeout(() => setIsUpgrading(false), 1000); // Add delay before allowing new clicks
 		}
 	};
 
@@ -520,9 +516,9 @@ function StructureContent({
 
 			<Button
 				onClick={handleUpgrade}
-				disabled={!canAfford || !prerequisitesMet || isUpgrading}
+				disabled={!canAfford || !prerequisitesMet}
 				className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
-					!canAfford || !prerequisitesMet || isUpgrading
+					!canAfford || !prerequisitesMet
 						? 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed'
 						: 'bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border'
 				}`}
@@ -531,8 +527,6 @@ function StructureContent({
 					? 'Prerequisites Not Met'
 					: !canAfford
 					? 'Not Enough Resources'
-					: isUpgrading
-					? 'Upgrading...'
 					: structure.level === 0
 					? 'Construct'
 					: `Upgrade to Level ${structure.level + 1}`}
