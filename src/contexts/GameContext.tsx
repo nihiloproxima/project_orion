@@ -47,8 +47,6 @@ const setupPlanetSubscriptions = (
 	planetId: string,
 	setState: React.Dispatch<React.SetStateAction<GameState>>
 ) => {
-	console.log(`Setting up subscriptions for planet ${planetId}`);
-
 	const subscriptions = [
 		supabase
 			.channel(`user_researchs-${state.currentUser?.id}`)

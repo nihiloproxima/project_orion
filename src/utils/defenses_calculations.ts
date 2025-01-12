@@ -17,7 +17,7 @@ export function calculateDefenseConstructionTimeSeconds(
 	const time = defenseConfig.construction_time * amount;
 
 	// Defense factory level reduces construction time by 5% per level
-	const reductionFactor = 1 - (structConfig.production.percent_increase_per_level ?? 0) * defenseFactoryLevel;
+	const reductionFactor = 1 - ((structConfig.production.percent_increase_per_level ?? 0) * defenseFactoryLevel) / 100;
 
 	return Math.floor(time * reductionFactor);
 }

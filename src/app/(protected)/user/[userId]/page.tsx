@@ -64,16 +64,12 @@ function QuickSpyButton({ targetPlanetId, fromPlanetId }: QuickSpyButtonProps) {
 				return;
 			}
 
-			console.log(spyProbes, targetPlanetId);
-
-			const response = await sendMission({
+			await sendMission({
 				from_planet_id: fromPlanetId,
 				to_planet_id: targetPlanetId,
 				ships_ids: [spyProbes[0].id],
 				mission_type: 'spy',
 			});
-
-			console.log(response);
 
 			toast({
 				title: 'Spy Mission Launched',
@@ -167,7 +163,6 @@ export default function UserProfilePage() {
 	const handleAvatarSelect = async (avatarName: string) => {
 		if (!user) return;
 
-		console.log('Updating avatar to:', avatarName);
 		try {
 			await api.users.update(user.name, avatarName.split('.')[0]);
 			setIsAvatarDialogOpen(false);

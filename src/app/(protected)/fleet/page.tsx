@@ -208,7 +208,7 @@ const getCurrentColonyCount = (planets: Planet[], userId: string): number => {
 
 export default function Fleet() {
 	const { state } = useGame();
-	const { planets, userPlanets, loading: planetsLoading } = usePlanets();
+	const { planets, loading: planetsLoading } = usePlanets();
 	const [stationedShips, setStationedShips] = useState<Ship[]>([]);
 	const [selectedShips, setSelectedShips] = useState<Set<string>>(new Set());
 	const [loading, setLoading] = useState(true);
@@ -237,17 +237,6 @@ export default function Fleet() {
 			setTargetPlanet(null);
 		}
 	}, [showMissionSetup]);
-
-	// Add debug logging
-	useEffect(() => {
-		console.log('Fleet component state:', {
-			planetsLoaded: !!planets,
-			planetCount: planets?.length || 0,
-			userPlanetsCount: userPlanets.length,
-			selectedPlanet: state.selectedPlanet,
-			loading,
-		});
-	}, [planets, userPlanets, state.selectedPlanet, loading]);
 
 	// Get allowed target planets based on mission type
 	const getAllowedTargetPlanets = useCallback(() => {
