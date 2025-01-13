@@ -234,15 +234,6 @@ export function calculatePlanetResources(
 		productionMalus = Math.max(0, 1 + energyDeficit / resourceGeneration.energy_balance.consumption);
 	}
 
-	const debugInfo = {
-		productionMalus,
-		energyDeficit,
-		energyProduction: resourceGeneration.energy_balance.production,
-		energyConsumption: resourceGeneration.energy_balance.consumption,
-		energyBalance: resourceGeneration.energy_balance,
-	};
-	console.debug('Resource Calculation Debug Info:', debugInfo);
-
 	// Calculate current resources with energy malus applied
 	const updatedResources: PlanetResources = {
 		...planetResources,

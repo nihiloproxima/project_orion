@@ -180,23 +180,15 @@ function StructureCard({ structure }: { structure: Structure }) {
 	);
 
 	const energyConsumption = calculateStructureEnergyConsumption(state.gameConfig!, structure.type, structure.level);
-	const futureEnergyConsumption = calculateStructureEnergyConsumption(
-		state.gameConfig!,
-		structure.type,
-		structure.level + 1
+	const futureEnergyConsumption = Math.floor(
+		calculateStructureEnergyConsumption(state.gameConfig!, structure.type, structure.level + 1)
 	);
 
-	const currentEnergyProduction = calculateStructureEnergyProduction(
-		state.gameConfig!,
-		state.userResearchs!,
-		structure.type,
-		structure.level
+	const currentEnergyProduction = Math.floor(
+		calculateStructureEnergyProduction(state.gameConfig!, state.userResearchs!, structure.type, structure.level)
 	);
-	const futureEnergyProduction = calculateStructureEnergyProduction(
-		state.gameConfig!,
-		state.userResearchs!,
-		structure.type,
-		structure.level + 1
+	const futureEnergyProduction = Math.floor(
+		calculateStructureEnergyProduction(state.gameConfig!, state.userResearchs!, structure.type, structure.level + 1)
 	);
 
 	const storageCapacities = calculateStructureStorageCapacities(state.gameConfig!, structure.type, structure.level);
