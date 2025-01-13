@@ -245,6 +245,19 @@ export function MailContent({ mail }: MailContentProps) {
 								</div>
 							</div>
 						)}
+						{combatData.debris_field && (
+							<div className="mt-4">
+								<h4 className="font-medium mb-2">Debris Field:</h4>
+								<div className="grid grid-cols-2 gap-2 text-sm">
+									{Object.entries(combatData.debris_field).map(([resource, amount]) => (
+										<div key={resource} className="flex justify-between">
+											<span className="capitalize">{resource}:</span>
+											<span>{amount.toLocaleString()}</span>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

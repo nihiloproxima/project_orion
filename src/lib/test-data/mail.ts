@@ -66,6 +66,11 @@ const generateCombatReport = (ownerId: string): CombatMail => ({
 	read: Math.random() > 0.5,
 	archived: false,
 	data: {
+		debris_field: {
+			metal: Math.floor(Math.random() * 10000),
+			deuterium: Math.floor(Math.random() * 5000),
+			microchips: Math.floor(Math.random() * 2500),
+		},
 		battle_id: generateId(),
 		location: {
 			planet_id: generateId(),
