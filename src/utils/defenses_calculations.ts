@@ -1,10 +1,9 @@
 import { GameConfig } from '@/models/game_config';
-
-import { DefenseConfig } from '@/models/defenses_config';
+import { DefenseType } from '@/models/defense';
 
 export function calculateDefenseConstructionTimeSeconds(
 	gameConfig: GameConfig,
-	defenseConfig: DefenseConfig,
+	defenseType: DefenseType,
 	defenseFactoryLevel: number,
 	amount: number
 ): number {
@@ -12,12 +11,17 @@ export function calculateDefenseConstructionTimeSeconds(
 	if (!structConfig) {
 		throw new Error('Defense factory config not found');
 	}
+	const defenseConfig = gameConfig.defenses.find((d) => d.type === defenseType);
+	if (!defenseConfig) {
+		throw new Error('Defense config not found');
+	}
 
-	// Construction time in seconds from config with amount
-	const time = defenseConfig.construction_time * amount;
+	// Construction time in seconds from config
+	const time = defenseConfig.construction_time;
 
-	// Defense factory level reduces construction time by 5% per level
-	const reductionFactor = 1 - ((structConfig.production.percent_increase_per_level ?? 0) * defenseFactoryLevel) / 100;
+	// Defense factory coef
+	const productionPercentIncrease = structConfig.production.percent_increase_per_level ?? 0;
+	const constructionTimeReductionFactor = 1 - (productionPercentIncrease * defenseFactoryLevel) / 100;
 
-	return Math.floor(time * reductionFactor);
+	return Math.floor(time * constructionTimeReductionFactor * amount);
 }

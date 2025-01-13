@@ -221,7 +221,7 @@ function DefenseCard({
 	// Calculate build time
 	const buildTime = calculateDefenseConstructionTimeSeconds(
 		state.gameConfig!,
-		config,
+		type,
 		defenseFactory!.level,
 		buildAmount
 	);
@@ -360,7 +360,7 @@ function DefenseCard({
 						<div className="flex flex-col gap-4 mt-4">
 							<div className="flex items-center gap-2 text-muted-foreground">
 								<Clock className="h-4 w-4" />
-								<span>Build Time: {formatTimerTime(buildTime)}</span>
+								<span>Build Time: {buildTime > 0 ? formatTimerTime(buildTime) : '0s'}</span>
 							</div>
 
 							<div className="flex flex-col items-center gap-4">

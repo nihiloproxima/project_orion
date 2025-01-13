@@ -27,9 +27,11 @@ export const formatTimeString = (timeRemainingMs: number) => {
 	const minutes = Math.floor((timeRemainingMs % (1000 * 60 * 60)) / (1000 * 60));
 	const seconds = Math.floor((timeRemainingMs % (1000 * 60)) / 1000);
 
-	return [days > 0 && `${days}d`, hours > 0 && `${hours}h`, minutes > 0 && `${minutes}m`, `${seconds}s`]
+	const result = [days > 0 && `${days}d`, hours > 0 && `${hours}h`, minutes > 0 && `${minutes}m`, `${seconds}s`]
 		.filter(Boolean)
 		.join(' ');
+
+	return result;
 };
 
 export const secondsToMs = (seconds: number) => seconds * 1000;
