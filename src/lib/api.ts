@@ -134,4 +134,12 @@ export const api = {
 			return post('rankings', 'getRankings', params);
 		},
 	},
+	mails: {
+		markAsRead: async (id: string) => {
+			return post('mails', 'markAsRead', { maild_id: id });
+		},
+		deleteMail: async (id: string) => {
+			return post('mails', 'deleteMail', { maild_id: id });
+		},
+	},
 };

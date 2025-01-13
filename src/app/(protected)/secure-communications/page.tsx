@@ -11,6 +11,7 @@ import { MailContent } from '@/components/MailContent';
 import { generateOnboardingMails } from '@/lib/onboarding-mails';
 import { supabase } from '@/lib/supabase';
 import { useGame } from '@/contexts/GameContext';
+import { api } from '@/lib/api';
 
 type FilterCategory = 'all' | MailType;
 
@@ -95,7 +96,7 @@ export default function Reports() {
 				return; // Prevent deletion of game messages
 			}
 
-			await supabase.from('mails').delete().eq('id', id);
+			await api.mails.deleteMail(id);
 			if (selectedMail?.id === id) {
 				setSelectedMail(null);
 				setIsViewingMail(false);
@@ -108,7 +109,7 @@ export default function Reports() {
 
 	const markAsRead = async (id: string) => {
 		try {
-			await supabase.from('mails').update({ read: true }).eq('id', id);
+			await api.mails.markAsRead(id);
 			setMails((current) => current.map((m) => (m.id === id ? { ...m, read: true } : m)));
 		} catch (error) {
 			console.error('Error marking mail as read:', error);
