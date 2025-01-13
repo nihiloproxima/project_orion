@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
 import { useRouter } from 'next/navigation'; // Changed from next/router
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 
 export default function Dashboard() {
 	const router = useRouter();
@@ -25,6 +26,8 @@ export default function Dashboard() {
 	const [stationedShips, setStationedShips] = useState<number>(0);
 	const [allShips, setAllShips] = useState<Ship[]>([]);
 	const [unreadMails, setUnreadMails] = useState<number>(0);
+	const [showOnlineCommanders, setShowOnlineCommanders] = useState(false);
+	const [commanders, setCommanders] = useState<{ id: string; name: string; avatar: string | null }[]>([]);
 
 	useEffect(() => {
 		// Initial fetch of messages
@@ -96,6 +99,15 @@ export default function Dashboard() {
 			}
 		}
 	}, [state.loading, state.currentUser, state.selectedPlanet, state.userPlanets.length, router]);
+
+	useEffect(() => {
+		const fetchActivePlayers = async () => {
+			const { data } = await supabase.from('users').select('id, name, avatar').in('id', state.activePlayers);
+			setCommanders(data || []);
+		};
+
+		fetchActivePlayers();
+	}, [state.activePlayers]);
 
 	useEffect(() => {
 		const fetchStationedShips = async () => {
@@ -253,18 +265,21 @@ export default function Dashboard() {
 						icon: <Rocket className="h-4 w-4 text-primary" />,
 						value: `${fleetStats.total} Ships`,
 						subtext: `${fleetStats.inCombat} in combat, ${fleetStats.inOrbit} in orbit, ${fleetStats.stationed} stationed`,
+						onClick: undefined,
 					},
 					{
 						title: 'UNREAD MESSAGES',
 						icon: <MessageSquare className="h-4 w-4 text-primary" />,
 						value: `${unreadMails} Messages`,
 						subtext: 'Unread communications',
+						onClick: undefined,
 					},
 					{
 						title: 'ACTIVE COMMANDERS',
 						icon: <Users className="h-4 w-4 text-primary" />,
 						value: state.activePlayers.length,
 						subtext: 'Currently online',
+						onClick: () => setShowOnlineCommanders(true),
 					},
 				].map((stat) => (
 					<motion.div
@@ -273,7 +288,12 @@ export default function Dashboard() {
 						whileHover={{ scale: 1.02 }}
 						whileTap={{ scale: 0.98 }}
 					>
-						<Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
+						<Card
+							className={`bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300 ${
+								stat.onClick ? 'cursor-pointer' : ''
+							}`}
+							onClick={stat.onClick}
+						>
 							<CardHeader className="flex flex-row items-center justify-between pb-2">
 								<CardTitle className="text-sm font-medium neon-text">{stat.title}</CardTitle>
 								{stat.icon}
@@ -355,6 +375,61 @@ export default function Dashboard() {
 					</CardContent>
 				</Card>
 			</motion.div>
+
+			<OnlineCommandersDialog
+				open={showOnlineCommanders}
+				onOpenChange={setShowOnlineCommanders}
+				commanders={commanders}
+			/>
 		</motion.div>
+	);
+}
+
+function OnlineCommandersDialog({
+	open,
+	onOpenChange,
+	commanders,
+}: {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	commanders: { id: string; name: string; avatar: string | null }[];
+}) {
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-[425px]">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-2">
+						<Users className="h-5 w-5 text-primary" />
+						Online Commanders
+					</DialogTitle>
+				</DialogHeader>
+				<ScrollArea className="max-h-[60vh]">
+					<div className="space-y-4 pr-4">
+						{commanders.map((commander) => (
+							<Link
+								key={commander.id}
+								href={`/user/${commander.id}`}
+								className="flex items-center gap-3 p-2 rounded-lg hover:bg-primary/10 transition-colors"
+							>
+								{commander.avatar ? (
+									<Image
+										src={getPublicImageUrl('avatars', commander.avatar + '.webp')}
+										width={40}
+										height={40}
+										alt={commander.name}
+										className="rounded-full"
+									/>
+								) : (
+									<div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg uppercase">
+										{commander.name[0]}
+									</div>
+								)}
+								<span className="text-primary">{commander.name}</span>
+							</Link>
+						))}
+					</div>
+				</ScrollArea>
+			</DialogContent>
+		</Dialog>
 	);
 }

@@ -43,6 +43,11 @@ export interface CombatMail extends BaseMail {
 	category: 'reports';
 	data: {
 		battle_id: string;
+		debris_field: {
+			metal: number;
+			deuterium: number;
+			microchips: number;
+		};
 		location: {
 			planet_id: string;
 			coordinates: { x: number; y: number };
