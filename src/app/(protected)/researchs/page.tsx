@@ -253,59 +253,61 @@ function ResearchCard({
 						</div>
 					)}
 
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="w-full p-3 bg-black/30 rounded-lg border border-primary/20">
-									<h4 className="font-medium text-primary mb-2">Resource Cost</h4>
-									<div className="grid grid-cols-2 gap-4">
-										{config.cost.base_metal > 0 && (
-											<div className="flex items-center gap-2">
-												<Hammer className="h-4 w-4 text-secondary" />
-												<span
-													className={`text-sm truncate ${
-														state.currentResources.metal < costs.metal
-															? 'text-red-400'
-															: 'text-gray-200'
-													}`}
-												>
-													{Math.floor(costs.metal).toLocaleString()}
-												</span>
-											</div>
-										)}
-										{config.cost.base_deuterium > 0 && (
-											<div className="flex items-center gap-2">
-												<Flame className="h-4 w-4 text-primary" />
-												<span
-													className={`text-sm truncate ${
-														state.currentResources.deuterium < costs.deuterium
-															? 'text-red-400'
-															: 'text-gray-200'
-													}`}
-												>
-													{Math.floor(costs.deuterium).toLocaleString()}
-												</span>
-											</div>
-										)}
-										{config.cost.base_microchips > 0 && (
-											<div className="flex items-center gap-2">
-												<Microchip className="h-4 w-4 text-accent" />
-												<span
-													className={`text-sm truncate ${
-														state.currentResources.microchips < costs.microchips
-															? 'text-red-400'
-															: 'text-gray-200'
-													}`}
-												>
-													{Math.floor(costs.microchips).toLocaleString()}
-												</span>
-											</div>
-										)}
+					{tech.level < config.max_level && (
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div className="w-full p-3 bg-black/30 rounded-lg border border-primary/20">
+										<h4 className="font-medium text-primary mb-2">Resource Cost</h4>
+										<div className="grid grid-cols-2 gap-4">
+											{config.cost.base_metal > 0 && (
+												<div className="flex items-center gap-2">
+													<Hammer className="h-4 w-4 text-secondary" />
+													<span
+														className={`text-sm truncate ${
+															state.currentResources.metal < costs.metal
+																? 'text-red-400'
+																: 'text-gray-200'
+														}`}
+													>
+														{Math.floor(costs.metal).toLocaleString()}
+													</span>
+												</div>
+											)}
+											{config.cost.base_deuterium > 0 && (
+												<div className="flex items-center gap-2">
+													<Flame className="h-4 w-4 text-primary" />
+													<span
+														className={`text-sm truncate ${
+															state.currentResources.deuterium < costs.deuterium
+																? 'text-red-400'
+																: 'text-gray-200'
+														}`}
+													>
+														{Math.floor(costs.deuterium).toLocaleString()}
+													</span>
+												</div>
+											)}
+											{config.cost.base_microchips > 0 && (
+												<div className="flex items-center gap-2">
+													<Microchip className="h-4 w-4 text-accent" />
+													<span
+														className={`text-sm truncate ${
+															state.currentResources.microchips < costs.microchips
+																? 'text-red-400'
+																: 'text-gray-200'
+														}`}
+													>
+														{Math.floor(costs.microchips).toLocaleString()}
+													</span>
+												</div>
+											)}
+										</div>
 									</div>
-								</div>
-							</TooltipTrigger>
-						</Tooltip>
-					</TooltipProvider>
+								</TooltipTrigger>
+							</Tooltip>
+						</TooltipProvider>
+					)}
 
 					<button
 						onClick={() => onStartResearch(id)}
