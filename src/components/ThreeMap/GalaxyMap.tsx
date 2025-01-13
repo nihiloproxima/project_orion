@@ -4,13 +4,19 @@ import * as THREE from 'three';
 
 import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useContext } from 'react';
 
 import { FleetMovement } from '@/models';
 import { Planet } from '@/models';
 import { formatTimeString } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useGame } from '@/contexts/GameContext';
+
+// Add a new context at the top level to manage open cards
+const OpenCardsContext = React.createContext<{
+	openCards: Set<string>;
+	setOpenCards: React.Dispatch<React.SetStateAction<Set<string>>>;
+}>({ openCards: new Set(), setOpenCards: () => {} });
 
 function PlanetObject({
 	planet,
@@ -25,8 +31,9 @@ function PlanetObject({
 	onSelect?: () => void;
 	mode: 'view-only' | 'mission-target' | 'homeworld';
 }) {
-	const [isHovered, setIsHovered] = useState(false);
 	const [isInfoCardHovered, setIsInfoCardHovered] = useState(false);
+	const { openCards, setOpenCards } = useContext(OpenCardsContext);
+	const isHovered = openCards.has(planet.id);
 	const meshRef = useRef<THREE.Mesh>(null);
 	const glowRef = useRef<THREE.Mesh>(null);
 	const starRef = useRef<THREE.Mesh>(null);
@@ -92,10 +99,28 @@ function PlanetObject({
 		}
 	});
 
-	const handleClick = (e: ThreeEvent<MouseEvent>) => {
+	const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
+		e.stopPropagation();
+		if (e.pointerType === 'touch') {
+			setOpenCards(new Set([planet.id]));
+		}
+	};
+
+	const handleClick = (e: any) => {
 		e.stopPropagation();
 		if (mode === 'homeworld' && isSelectable && onSelect) {
 			onSelect();
+		}
+		if (e.pointerType !== 'touch') {
+			setOpenCards((current) => {
+				const next = new Set(current);
+				if (next.has(planet.id)) {
+					next.delete(planet.id);
+				} else {
+					next.add(planet.id);
+				}
+				return next;
+			});
 		}
 	};
 
@@ -105,8 +130,23 @@ function PlanetObject({
 		<group
 			position={[planet.coordinate_x, planet.coordinate_y, 0]}
 			onClick={handleClick}
-			onPointerEnter={() => setIsHovered(true)}
-			onPointerLeave={() => setIsHovered(false)}
+			onPointerDown={handlePointerDown}
+			onPointerEnter={(e) => {
+				// Only set hover for mouse devices
+				if (e.pointerType !== 'touch') {
+					setOpenCards(new Set([planet.id]));
+				}
+			}}
+			onPointerLeave={(e) => {
+				// Only remove hover for mouse devices
+				if (e.pointerType !== 'touch') {
+					setOpenCards((current) => {
+						const next = new Set(current);
+						next.delete(planet.id);
+						return next;
+					});
+				}
+			}}
 		>
 			{/* Hitbox (invisible but clickable) */}
 			<mesh>
@@ -523,6 +563,7 @@ const GalaxyMap = ({
 	const [fleetMovements, setFleetMovements] = useState<FleetMovement[]>([]);
 	const controlsRef = useRef(null);
 	const [animating, setAnimating] = useState(false);
+	const [openCards, setOpenCards] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
 		// Initial fetch of fleet movements
@@ -652,62 +693,65 @@ const GalaxyMap = ({
 	const handleCanvasClick = (event: any) => {
 		if (event.target.tagName === 'CANVAS') {
 			console.log('Canvas clicked');
+			setOpenCards(new Set()); // Clear all open cards
 		}
 	};
 
 	return (
 		<div className="relative w-full h-full">
-			<Canvas
-				ref={canvasRef}
-				className="relative"
-				orthographic
-				camera={{
-					position: [0, 0, 1000],
-					zoom: 0.1,
-					up: [0, 1, 0],
-					far: 10000,
-				}}
-				style={{ width: '100%', height: '100%' }}
-				onClick={handleCanvasClick}
-			>
-				<StarryBackground />
-				<GridSystem />
+			<OpenCardsContext.Provider value={{ openCards, setOpenCards }}>
+				<Canvas
+					ref={canvasRef}
+					className="relative"
+					orthographic
+					camera={{
+						position: [0, 0, 1000],
+						zoom: 0.1,
+						up: [0, 1, 0],
+						far: 10000,
+					}}
+					style={{ width: '100%', height: '100%' }}
+					onPointerDown={handleCanvasClick}
+				>
+					<StarryBackground />
+					<GridSystem />
 
-				{/* Fleet movements */}
-				{fleetMovements.map((fleetMovement) => (
-					<FleetMovementTracker key={fleetMovement.id} fleetMovement={fleetMovement} />
-				))}
+					{/* Fleet movements */}
+					{fleetMovements.map((fleetMovement) => (
+						<FleetMovementTracker key={fleetMovement.id} fleetMovement={fleetMovement} />
+					))}
 
-				{state.planets?.map((planet) => (
-					<PlanetObject
-						key={planet.id}
-						planet={planet}
-						isHighlighted={highlightedPlanets.includes(planet.id)}
-						isSelectable={mode === 'view-only' || allowedPlanets.includes(planet.id)}
-						onSelect={() => onPlanetSelect?.(planet)}
-						mode={mode}
+					{state.planets?.map((planet) => (
+						<PlanetObject
+							key={planet.id}
+							planet={planet}
+							isHighlighted={highlightedPlanets.includes(planet.id)}
+							isSelectable={mode === 'view-only' || allowedPlanets.includes(planet.id)}
+							onSelect={() => onPlanetSelect?.(planet)}
+							mode={mode}
+						/>
+					))}
+					<OrbitControls
+						ref={controlsRef}
+						enableRotate={false}
+						enablePan={!animating}
+						enableZoom={!animating}
+						maxZoom={2}
+						minZoom={0.05}
+						screenSpacePanning={true}
+						mouseButtons={{
+							LEFT: THREE.MOUSE.PAN,
+							MIDDLE: THREE.MOUSE.DOLLY,
+							RIGHT: THREE.MOUSE.ROTATE,
+						}}
+						touches={{
+							ONE: THREE.TOUCH.PAN,
+							TWO: THREE.TOUCH.DOLLY_PAN,
+						}}
+						zoomSpeed={0.5}
 					/>
-				))}
-				<OrbitControls
-					ref={controlsRef}
-					enableRotate={false}
-					enablePan={!animating}
-					enableZoom={!animating}
-					maxZoom={2}
-					minZoom={0.05}
-					screenSpacePanning={true}
-					mouseButtons={{
-						LEFT: THREE.MOUSE.PAN,
-						MIDDLE: THREE.MOUSE.DOLLY,
-						RIGHT: THREE.MOUSE.ROTATE,
-					}}
-					touches={{
-						ONE: THREE.TOUCH.PAN,
-						TWO: THREE.TOUCH.DOLLY_PAN,
-					}}
-					zoomSpeed={0.5}
-				/>
-			</Canvas>
+				</Canvas>
+			</OpenCardsContext.Provider>
 		</div>
 	);
 };
