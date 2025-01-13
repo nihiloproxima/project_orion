@@ -46,4 +46,6 @@ export interface StructureConfig {
 		base: number;
 		percent_increase_per_level: number;
 	};
+
+	max_level: number | null;
 }

@@ -370,6 +370,8 @@ function StructureContent({
 		state.currentResources!.deuterium >= upgradeCosts.deuterium &&
 		state.currentResources!.microchips >= upgradeCosts.microchips;
 
+	const isMaxLevel = config.max_level !== null && structure.level >= config.max_level;
+
 	// Only check prerequisites if structure is level 0
 	let prerequisitesMet = true;
 	if (structure.level === 0) {
@@ -434,7 +436,10 @@ function StructureContent({
 
 	return (
 		<div className="space-y-4">
-			<div className="text-sm text-primary/70">Level {structure.level}</div>
+			<div className="text-sm text-primary/70">
+				Level {structure.level}
+				{config.max_level && <span> / {config.max_level}</span>}
+			</div>
 
 			<div className="space-y-2">
 				<div className="text-sm font-medium">{structure.level === 0 ? 'Construction' : 'Upgrade'} Costs:</div>
@@ -508,11 +513,18 @@ function StructureContent({
 				</div>
 			) : null}
 
+			{isMaxLevel && (
+				<div className="text-sm text-amber-400 flex items-center gap-2">
+					<AlertTriangle className="h-4 w-4" />
+					<span>Maximum level reached</span>
+				</div>
+			)}
+
 			<Button
 				onClick={handleUpgrade}
-				disabled={!canAfford || !prerequisitesMet}
+				disabled={!canAfford || !prerequisitesMet || isMaxLevel}
 				className={`w-full px-4 py-2 rounded-lg font-medium transition-colors border ${
-					!canAfford || !prerequisitesMet
+					!canAfford || !prerequisitesMet || isMaxLevel
 						? 'bg-gray-800/50 text-gray-500 border-gray-700 cursor-not-allowed'
 						: 'bg-primary/20 hover:bg-primary/30 text-primary border-primary/50 hover:border-primary/80 neon-border'
 				}`}
@@ -521,6 +533,8 @@ function StructureContent({
 					? 'Prerequisites Not Met'
 					: !canAfford
 					? 'Not Enough Resources'
+					: isMaxLevel
+					? 'Maximum Level Reached'
 					: structure.level === 0
 					? 'Construct'
 					: `Upgrade to Level ${structure.level + 1}`}
