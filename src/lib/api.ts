@@ -136,10 +136,10 @@ export const api = {
 	},
 	mails: {
 		markAsRead: async (id: string) => {
-			return post('mails', 'markAsRead', { maild_id: id });
+			return post('mails', 'markAsRead', { mail_id: id });
 		},
 		deleteMail: async (id: string) => {
-			return post('mails', 'deleteMail', { maild_id: id });
+			return post('mails', 'deleteMail', { mail_id: id });
 		},
 	},
 };
