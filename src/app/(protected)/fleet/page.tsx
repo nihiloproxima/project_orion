@@ -39,7 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { containerVariants, itemVariants } from '../../../lib/animations';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { UserResearchs } from '@/models';
+import { DebrisField, UserResearchs } from '@/models';
 
 const getShipImageUrl = (type: ShipType) => {
 	return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
@@ -206,6 +206,10 @@ const getCurrentColonyCount = (planets: Planet[], userId: string): number => {
 	return planets?.filter((p) => p.owner_id === userId).length || 0;
 };
 
+const findDebrisFieldAtCoordinates = (debrisFields: DebrisField[], x: number, y: number) => {
+	return debrisFields.find((df) => df.coordinate_x === x && df.coordinate_y === y);
+};
+
 export default function Fleet() {
 	const { state } = useGame();
 	const { planets, loading: planetsLoading } = usePlanets();
@@ -229,6 +233,7 @@ export default function Fleet() {
 		microchips: 0,
 	});
 	const { sendMission } = useFleetMissions();
+	const [debrisFields, setDebrisFields] = useState<DebrisField[]>([]);
 
 	// Reset mission setup when dialog closes
 	useEffect(() => {
@@ -261,8 +266,15 @@ export default function Fleet() {
 						return planet.owner_id !== null;
 					case 'spy':
 						return planet.owner_id && planet.owner_id !== state.currentUser?.id;
-					case 'recycle':
-						return true;
+					case 'recycle': {
+						// Allow recycle mission only if there's a debris field at these coordinates
+						const hasDebrisField = findDebrisFieldAtCoordinates(
+							debrisFields,
+							planet.coordinate_x,
+							planet.coordinate_y
+						);
+						return hasDebrisField !== undefined;
+					}
 					default:
 						return false;
 				}
@@ -270,7 +282,7 @@ export default function Fleet() {
 			.map((p) => p.id);
 
 		return allowedPlanets;
-	}, [missionType, state.selectedPlanet, state.currentUser?.id, planets]);
+	}, [missionType, state.selectedPlanet, state.currentUser?.id, planets, debrisFields]);
 
 	// Calculate estimated travel time for selected ships
 	const calculateTravelTime = useCallback(
@@ -409,7 +421,19 @@ export default function Fleet() {
 		if (selectedShipTypes.has('transport_ship')) missionTypes.push('transport');
 		if (selectedShipTypes.has('colony_ship')) missionTypes.push('colonize', 'transport');
 		if (selectedShipTypes.has('spy_probe')) missionTypes.push('spy', 'transport');
-		if (selectedShipTypes.has('recycler_ship')) missionTypes.push('recycle', 'transport');
+
+		// Only add recycle mission if there's at least one recycler ship
+		if (selectedShipTypes.has('recycler_ship')) {
+			// Check if there are any debris fields
+			const hasDebrisFields = planets?.some((planet) =>
+				findDebrisFieldAtCoordinates(debrisFields, planet.coordinate_x, planet.coordinate_y)
+			);
+
+			if (hasDebrisFields) {
+				missionTypes.push('recycle');
+			}
+			missionTypes.push('transport');
+		}
 
 		// Select first available mission type by default
 		if (missionTypes.length > 0 && !missionType) {
@@ -447,6 +471,15 @@ export default function Fleet() {
 			return total + (ship?.cargo_capacity || 0);
 		}, 0);
 	};
+
+	// Add debris fields fetch
+	useEffect(() => {
+		const fetchDebrisFields = async () => {
+			const { data } = await supabase.from('debris_fields').select('*');
+			setDebrisFields(data || []);
+		};
+		fetchDebrisFields();
+	}, []);
 
 	if (loading || planetsLoading) {
 		return null;
@@ -609,8 +642,14 @@ export default function Fleet() {
 													// Only show unowned planets if user hasn't reached colony limit
 													return !p.owner_id && currentColonies < colonyLimit;
 												}
-												case 'recycle':
-													return false;
+												case 'recycle': {
+													const hasDebrisField = findDebrisFieldAtCoordinates(
+														debrisFields,
+														p.coordinate_x,
+														p.coordinate_y
+													);
+													return hasDebrisField !== undefined;
+												}
 												default:
 													return false;
 											}
@@ -629,10 +668,22 @@ export default function Fleet() {
 												? Math.round(calculateDistance(planet, state.selectedPlanet))
 												: null;
 
+											const debrisField = findDebrisFieldAtCoordinates(
+												debrisFields,
+												planet.coordinate_x,
+												planet.coordinate_y
+											);
+
 											return (
 												<SelectItem key={planet.id} value={planet.id}>
 													{planet.name} ({planet.coordinate_x}, {planet.coordinate_y})
 													{distance !== null && ` - ${distance} units away`}
+													{debrisField &&
+														` - Resources: ${Math.floor(
+															debrisField.metal +
+																debrisField.deuterium +
+																debrisField.microchips
+														).toLocaleString()}`}
 												</SelectItem>
 											);
 										})}

@@ -6,11 +6,13 @@ import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import React, { useEffect, useRef, useState, useMemo, useContext } from 'react';
 
-import { FleetMovement } from '@/models';
+import { DebrisField, FleetMovement } from '@/models';
 import { Planet } from '@/models';
 import { formatTimeString } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { useGame } from '@/contexts/GameContext';
+import { DebrisFieldEffect } from './DebrisField';
+import { AnomalyMarker } from './AnomalyMarker';
 
 // Add a new context at the top level to manage open cards
 const OpenCardsContext = React.createContext<{
@@ -543,6 +545,85 @@ const StarryBackground = () => {
 	);
 };
 
+const TradingOutpostMarker = ({ position }: { position: [number, number, number] }) => {
+	const meshRef = useRef<THREE.Group>(null);
+	const glowRef = useRef<THREE.Mesh>(null);
+
+	useFrame((state) => {
+		if (meshRef.current) {
+			// Gentle floating animation
+			meshRef.current.position.y += Math.sin(state.clock.elapsedTime) * 0.01;
+			meshRef.current.rotation.z += 0.005;
+		}
+		if (glowRef.current) {
+			// Pulse effect for the glow
+			const glowScale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.1;
+			glowRef.current.scale.set(glowScale, glowScale, 1);
+		}
+	});
+
+	return (
+		<group position={position}>
+			{/* Base glow effect */}
+			<mesh ref={glowRef}>
+				<ringGeometry args={[15, 25, 6]} />
+				<meshBasicMaterial
+					color={0x4f46e5} // Indigo color
+					transparent
+					opacity={0.3}
+					blending={THREE.AdditiveBlending}
+				/>
+			</mesh>
+
+			{/* Main structure group */}
+			<group ref={meshRef}>
+				{/* Central hexagon */}
+				<mesh>
+					<ringGeometry args={[8, 12, 6]} />
+					<meshBasicMaterial color={0x818cf8} /> {/* Lighter indigo */}
+				</mesh>
+
+				{/* Outer ring */}
+				<mesh>
+					<ringGeometry args={[15, 16, 6]} />
+					<meshBasicMaterial color={0x818cf8} />
+				</mesh>
+
+				{/* Connecting lines */}
+				{Array.from({ length: 6 }).map((_, i) => {
+					const angle = (i * Math.PI * 2) / 6;
+					return (
+						<line key={i}>
+							<bufferGeometry
+								attach="geometry"
+								attributes={{
+									position: new THREE.BufferAttribute(
+										new Float32Array([
+											Math.cos(angle) * 12,
+											Math.sin(angle) * 12,
+											0,
+											Math.cos(angle) * 15,
+											Math.sin(angle) * 15,
+											0,
+										]),
+										3
+									),
+								}}
+							/>
+							<lineBasicMaterial color={0x818cf8} />
+						</line>
+					);
+				})}
+			</group>
+
+			{/* Label */}
+			<Html position={[0, 25, 0]}>
+				<div className="text-indigo-400 text-sm font-bold whitespace-nowrap">Trading Outpost</div>
+			</Html>
+		</group>
+	);
+};
+
 interface GalaxyMapProps {
 	mode: 'view-only' | 'mission-target' | 'homeworld';
 	onPlanetSelect?: (planet: Planet) => void;
@@ -564,6 +645,27 @@ const GalaxyMap = ({
 	const controlsRef = useRef(null);
 	const [animating, setAnimating] = useState(false);
 	const [openCards, setOpenCards] = useState<Set<string>>(new Set());
+	const [debrisFields, setDebrisFields] = useState<DebrisField[]>([]);
+	const [tradingOutposts, setTradingOutposts] = useState<Array<{ x: number; y: number }>>([]);
+	const [anomalies, setAnomalies] = useState<Array<{ x: number; y: number }>>([]);
+
+	useEffect(() => {
+		const fetchDebrisFields = async () => {
+			const { data: debrisFields } = await supabase.from('debris_fields').select('*');
+			setDebrisFields(debrisFields || []);
+		};
+		fetchDebrisFields();
+	}, []);
+
+	useEffect(() => {
+		// const fetchTradingOutposts = async () => {
+		// 	const { data: tradingOutposts } = await supabase.from('trading_outposts').select('*');
+		// 	setTradingOutposts(tradingOutposts || []);
+		// };
+		// fetchTradingOutposts();
+		setTradingOutposts([]);
+		setAnomalies([]);
+	}, []);
 
 	useEffect(() => {
 		// Initial fetch of fleet movements
@@ -715,6 +817,21 @@ const GalaxyMap = ({
 				>
 					<StarryBackground />
 					<GridSystem />
+
+					{/* Add Trading Outposts */}
+					{tradingOutposts.map((outpost, index) => (
+						<TradingOutpostMarker key={`outpost-${index}`} position={[outpost.x, outpost.y, 0]} />
+					))}
+
+					{/* Add Anomalies */}
+					{anomalies.map((anomaly, index) => (
+						<AnomalyMarker key={`anomaly-${index}`} position={[anomaly.x, anomaly.y, 0]} />
+					))}
+
+					{/* Add debris fields before planets */}
+					{debrisFields.map((debrisField) => (
+						<DebrisFieldEffect key={debrisField.id} debrisField={debrisField} />
+					))}
 
 					{/* Fleet movements */}
 					{fleetMovements.map((fleetMovement) => (
