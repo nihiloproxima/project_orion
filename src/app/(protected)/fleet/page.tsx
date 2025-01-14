@@ -1,5 +1,5 @@
 'use client';
-
+import _ from 'lodash';
 import {
 	Anchor,
 	ArrowLeft,
@@ -440,7 +440,7 @@ export default function Fleet() {
 			setMissionType(missionTypes[0]);
 		}
 
-		return missionTypes;
+		return _.uniq(missionTypes);
 	};
 
 	const handleConfirmMission = async (resources?: ResourcePayload) => {
