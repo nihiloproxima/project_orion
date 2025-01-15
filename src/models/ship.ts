@@ -2,7 +2,7 @@ export type ShipType = 'colony_ship' | 'transport_ship' | 'spy_probe' | 'recycle
 
 export type ShipStatus = 'stationed' | 'traveling' | 'returning';
 
-export type MissionType = 'transport' | 'colonize' | 'attack' | 'spy' | 'recycle';
+export type MissionType = 'transport' | 'colonize' | 'attack' | 'spy' | 'recycle' | 'move';
 
 export interface Ship {
 	id: string;

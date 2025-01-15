@@ -19,7 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { Ship, ShipType } from '../../../models/ship';
+import { MissionType, Ship, ShipType } from '../../../models/ship';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '../../../components/ui/button';
@@ -74,7 +74,6 @@ const SHIP_ASSETS: Record<ShipType, { name: string; image: string }> = {
 
 type SortField = 'speed' | 'cargo_capacity' | 'attack_power' | 'defense';
 type SortOrder = 'asc' | 'desc';
-type MissionType = 'attack' | 'transport' | 'colonize' | 'spy' | 'recycle';
 
 const ResourceSelectionUI = ({
 	onResourcesSelect,
@@ -258,6 +257,8 @@ export default function Fleet() {
 
 				// Filter based on mission type
 				switch (missionType) {
+					case 'move':
+						return planet.owner_id !== null;
 					case 'colonize':
 						return !planet.owner_id;
 					case 'attack':
@@ -414,7 +415,7 @@ export default function Fleet() {
 			Array.from(selectedShips).map((id) => stationedShips.find((ship) => ship.id === id)?.type)
 		);
 
-		const missionTypes: MissionType[] = [];
+		const missionTypes: MissionType[] = ['move'];
 
 		if (selectedShipTypes.has('cruiser')) missionTypes.push('attack', 'transport');
 		if (selectedShipTypes.has('destroyer')) missionTypes.push('attack', 'transport');
@@ -628,6 +629,8 @@ export default function Fleet() {
 									{planets
 										?.filter((p) => {
 											switch (missionType) {
+												case 'move':
+													return p.owner_id && p.owner_id === state.currentUser?.id;
 												case 'transport':
 													return p.owner_id !== null;
 												case 'attack':
