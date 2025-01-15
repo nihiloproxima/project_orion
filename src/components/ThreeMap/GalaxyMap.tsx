@@ -794,7 +794,6 @@ const GalaxyMap = ({
 
 	const handleCanvasClick = (event: any) => {
 		if (event.target.tagName === 'CANVAS') {
-			console.log('Canvas clicked');
 			setOpenCards(new Set()); // Clear all open cards
 		}
 	};

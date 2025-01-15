@@ -166,7 +166,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					supabase.from('planets').select('*'),
 				]);
 
-				if (!gameConfig.data || !userResearchs.data || !planets.data) {
+				if (!gameConfig.data || !planets.data) {
 					console.error('Error fetching initial data:', gameConfig.error, userResearchs.error);
 					return;
 				}
