@@ -18,6 +18,7 @@ import {
 	Trophy,
 	MailIcon,
 	Shield,
+	ShoppingCart,
 } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 
@@ -121,6 +122,12 @@ export function Sidebar() {
 											to: '/rankings',
 											icon: Trophy,
 											label: 'RANKINGS',
+											color: 'blue',
+										},
+										{
+											to: '/shop',
+											icon: ShoppingCart,
+											label: 'SHOP',
 											color: 'blue',
 										},
 								  ]

@@ -663,8 +663,8 @@ const GalaxyMap = ({
 		// 	setTradingOutposts(tradingOutposts || []);
 		// };
 		// fetchTradingOutposts();
-		setTradingOutposts([]);
-		setAnomalies([]);
+		setTradingOutposts([{ x: 0, y: 0 }]);
+		setAnomalies([{ x: 1000, y: 1000 }]);
 	}, []);
 
 	useEffect(() => {
