@@ -51,6 +51,8 @@ export const api = {
 		register: (name: string, avatar: string) => post('users', 'register', { name, avatar }),
 		update: (name: string, avatar: string) => post('users', 'update', { name, avatar }),
 		chooseHomeworld: (planetId: string) => post('users', 'chooseHomeworld', { planet_id: planetId }),
+		claimTaskRewards: (taskId: string) => post('users', 'claimTaskRewards', { task_id: taskId }),
+		collectReward: (rewardId: string) => post('users', 'collectReward', { reward_id: rewardId }),
 	},
 	planets: {
 		claim: async (planetId: string, homeworld: boolean) => {

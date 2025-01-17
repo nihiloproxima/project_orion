@@ -1,10 +1,9 @@
 import { MissionType } from './ship';
+import { ResourceType } from './planets_resources';
 
-export interface ResourcePayload {
-	metal: number;
-	deuterium: number;
-	microchips: number;
-}
+export type ResourcePayload = {
+	[key in ResourceType]?: number;
+};
 
 export interface FleetMovement {
 	id: string;

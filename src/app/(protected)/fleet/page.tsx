@@ -28,7 +28,7 @@ import GalaxyMap from '@/components/ThreeMap/GalaxyMap';
 import Image from 'next/image';
 import { Input } from '../../../components/ui/input';
 import { Planet } from '../../../models/planet';
-import { ResourcePayload } from '@/models/fleet_movement';
+
 import { api } from '../../../lib/api';
 import { formatTimerTime } from '@/lib/utils';
 import { supabase } from '../../../lib/supabase';
@@ -39,38 +39,8 @@ import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { containerVariants, itemVariants } from '../../../lib/animations';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { DebrisField, UserResearchs } from '@/models';
-
-const getShipImageUrl = (type: ShipType) => {
-	return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/ships/${type}.webp`;
-};
-
-const SHIP_ASSETS: Record<ShipType, { name: string; image: string }> = {
-	colony_ship: {
-		name: 'Colony Ship',
-		image: getShipImageUrl('colony_ship'),
-	},
-	transport_ship: {
-		name: 'Transport Ship',
-		image: getShipImageUrl('transport_ship'),
-	},
-	spy_probe: {
-		name: 'Spy Probe',
-		image: getShipImageUrl('spy_probe'),
-	},
-	recycler_ship: {
-		name: 'Recycler Ship',
-		image: getShipImageUrl('recycler_ship'),
-	},
-	cruiser: {
-		name: 'Cruiser',
-		image: getShipImageUrl('cruiser'),
-	},
-	destroyer: {
-		name: 'Destroyer',
-		image: getShipImageUrl('destroyer'),
-	},
-};
+import { DebrisField, ResourcePayload, UserResearchs } from '@/models';
+import { SHIP_ASSETS } from '@/lib/constants';
 
 type SortField = 'speed' | 'cargo_capacity' | 'attack_power' | 'defense';
 type SortOrder = 'asc' | 'desc';
@@ -126,7 +96,7 @@ const ResourceSelectionUI = ({
 							currentResources?.metal || 0,
 							maxCargo - (totalResourcesSelected - (resources.metal || 0))
 						)}
-						value={Math.floor(resources.metal * 100) / 100}
+						value={Math.floor(resources.metal! * 100) / 100}
 						onChange={(e) => handleChange('metal', parseInt(e.target.value) || 0)}
 					/>
 					<span className="text-sm text-muted-foreground">
@@ -149,7 +119,7 @@ const ResourceSelectionUI = ({
 							currentResources?.deuterium || 0,
 							maxCargo - (totalResourcesSelected - (resources.deuterium || 0))
 						)}
-						value={Math.floor(resources.deuterium * 100) / 100}
+						value={Math.floor(resources.deuterium! * 100) / 100}
 						onChange={(e) => handleChange('deuterium', parseInt(e.target.value) || 0)}
 					/>
 					<span className="text-sm text-muted-foreground">
@@ -172,7 +142,7 @@ const ResourceSelectionUI = ({
 							currentResources?.microchips || 0,
 							maxCargo - (totalResourcesSelected - (resources.microchips || 0))
 						)}
-						value={Math.floor(resources.microchips * 100) / 100}
+						value={Math.floor(resources.microchips! * 100) / 100}
 						onChange={(e) => handleChange('microchips', parseInt(e.target.value) || 0)}
 					/>
 					<span className="text-sm text-muted-foreground">

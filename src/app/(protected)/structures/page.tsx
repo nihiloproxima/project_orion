@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Building2, Flame, Grid, Grid2x2, Grid3x3, Hammer, Microchip } from 'lucide-react';
+import { AlertTriangle, Flame, Grid, Grid2x2, Grid3x3, Hammer, Microchip } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import {
 	DropdownMenu,
@@ -24,7 +24,7 @@ import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import Image from 'next/image';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { StructureConfig } from '@/models';
-import { TECHNOLOGIES } from '@/lib/constants';
+import { STRUCTURE_INFO, TECHNOLOGIES } from '@/lib/constants';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
 import { formatTimerTime } from '@/lib/utils';
@@ -33,102 +33,6 @@ import millify from 'millify';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
 import { useState, useEffect } from 'react';
-
-interface StructureInfo {
-	type: StructureType;
-	name: string;
-	description: string;
-	productionType: string;
-	icon: React.ReactNode;
-	hasStorage: boolean;
-}
-
-const STRUCTURE_INFO: Record<StructureType, StructureInfo> = {
-	metal_mine: {
-		type: 'metal_mine',
-		name: 'Metal Mine',
-		description: 'Mines and processes metal ore from planetary deposits. Each level increases metal production.',
-		productionType: 'metal',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: false,
-	},
-	deuterium_synthesizer: {
-		type: 'deuterium_synthesizer',
-		name: 'Deuterium Synthesizer',
-		description: 'Extracts hydrogen and synthesizes deuterium fuel. Each level increases deuterium production.',
-		productionType: 'deuterium',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: false,
-	},
-	energy_plant: {
-		type: 'energy_plant',
-		name: 'Energy Plant',
-		description: 'Generates power to fuel your planetary operations. Each level increases energy output.',
-		productionType: 'energy',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: false,
-	},
-	research_lab: {
-		type: 'research_lab',
-		name: 'Research Laboratory',
-		description: 'Conducts scientific research to unlock new technologies. Each level increases research speed.',
-		productionType: 'none',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: false,
-	},
-	microchip_factory: {
-		type: 'microchip_factory',
-		name: 'Microchip Factory',
-		description: 'Manufactures advanced microprocessors and circuitry. Each level increases microchip production.',
-		productionType: 'microchips',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: false,
-	},
-	shipyard: {
-		type: 'shipyard',
-		name: 'Shipyard',
-		description:
-			'Builds and maintains your fleet of spacecraft. Each level unlocks new ship types and increases ship production speed.',
-		productionType: 'none',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: false,
-	},
-	defense_factory: {
-		type: 'defense_factory',
-		name: 'Defense Factory',
-		description:
-			'Manufactures planetary defense systems and weaponry. Each level reduces defense construction time and unlocks new defense types.',
-		productionType: 'none',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: false,
-	},
-	metal_hangar: {
-		type: 'metal_hangar',
-		name: 'Metal Hangar',
-		description: 'Large-scale storage facility for processed metal. Each level increases metal storage capacity.',
-		productionType: 'metal',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: true,
-	},
-	deuterium_tank: {
-		type: 'deuterium_tank',
-		name: 'Deuterium Tank',
-		description:
-			'Pressurized storage facility for deuterium fuel. Each level increases deuterium storage capacity.',
-		productionType: 'deuterium',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: true,
-	},
-	microchip_vault: {
-		type: 'microchip_vault',
-		name: 'Microchip Vault',
-		description:
-			'Secure storage facility for sensitive microelectronics. Each level increases microchip storage capacity.',
-		productionType: 'microchips',
-		icon: <Building2 className="h-5 w-5" />,
-		hasStorage: true,
-	},
-};
 
 function StructureCard({ structure }: { structure: Structure }) {
 	const { state } = useGame();
@@ -338,7 +242,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 
 interface StructureContentProps {
 	structure: Structure;
-	info: StructureInfo;
+	info: (typeof STRUCTURE_INFO)[StructureType];
 	upgradeCosts: {
 		metal: number;
 		deuterium: number;

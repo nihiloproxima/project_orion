@@ -24,7 +24,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '../../../components/ui/button';
 import { DefenseQueue } from '../../../models/defense_queue';
-import { Defense, DefenseType, PlanetDefenses } from '../../../models/defense';
+import { Defense, DefenseType, PlanetDefenses } from '../../../models';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import Image from 'next/image';
 import { ScrollArea } from '../../../components/ui/scroll-area';

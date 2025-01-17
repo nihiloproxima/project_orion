@@ -1,5 +1,118 @@
-import { ResearchCategory } from '../models';
+import { ResearchCategory, ShipType, StructureType } from '../models';
 import { TechnologyId } from '../models';
+
+export const SHIP_ASSETS: Record<ShipType, { name: string; image: string }> = {
+	colony_ship: {
+		name: 'Colony Ship',
+		image: 'colony_ship.webp',
+	},
+	transport_ship: {
+		name: 'Transport Ship',
+		image: 'transport_ship.webp',
+	},
+	spy_probe: {
+		name: 'Spy Probe',
+		image: 'spy_probe.webp',
+	},
+	recycler_ship: {
+		name: 'Recycler Ship',
+		image: 'recycler_ship.webp',
+	},
+	cruiser: {
+		name: 'Cruiser',
+		image: 'cruiser.webp',
+	},
+	destroyer: {
+		name: 'Destroyer',
+		image: 'destroyer.webp',
+	},
+};
+
+export const STRUCTURE_INFO: Record<
+	StructureType,
+	{
+		type: StructureType;
+		name: string;
+		description: string;
+		productionType: string;
+		hasStorage: boolean;
+	}
+> = {
+	metal_mine: {
+		type: 'metal_mine',
+		name: 'Metal Mine',
+		description: 'Mines and processes metal ore from planetary deposits. Each level increases metal production.',
+		productionType: 'metal',
+		hasStorage: false,
+	},
+	deuterium_synthesizer: {
+		type: 'deuterium_synthesizer',
+		name: 'Deuterium Synthesizer',
+		description: 'Extracts hydrogen and synthesizes deuterium fuel. Each level increases deuterium production.',
+		productionType: 'deuterium',
+		hasStorage: false,
+	},
+	energy_plant: {
+		type: 'energy_plant',
+		name: 'Energy Plant',
+		description: 'Generates power to fuel your planetary operations. Each level increases energy output.',
+		productionType: 'energy',
+		hasStorage: false,
+	},
+	research_lab: {
+		type: 'research_lab',
+		name: 'Research Laboratory',
+		description: 'Conducts scientific research to unlock new technologies. Each level increases research speed.',
+		productionType: 'none',
+		hasStorage: false,
+	},
+	microchip_factory: {
+		type: 'microchip_factory',
+		name: 'Microchip Factory',
+		description: 'Manufactures advanced microprocessors and circuitry. Each level increases microchip production.',
+		productionType: 'microchips',
+		hasStorage: false,
+	},
+	shipyard: {
+		type: 'shipyard',
+		name: 'Shipyard',
+		description:
+			'Builds and maintains your fleet of spacecraft. Each level unlocks new ship types and increases ship production speed.',
+		productionType: 'none',
+		hasStorage: false,
+	},
+	defense_factory: {
+		type: 'defense_factory',
+		name: 'Defense Factory',
+		description:
+			'Manufactures planetary defense systems and weaponry. Each level reduces defense construction time and unlocks new defense types.',
+		productionType: 'none',
+		hasStorage: false,
+	},
+	metal_hangar: {
+		type: 'metal_hangar',
+		name: 'Metal Hangar',
+		description: 'Large-scale storage facility for processed metal. Each level increases metal storage capacity.',
+		productionType: 'metal',
+		hasStorage: true,
+	},
+	deuterium_tank: {
+		type: 'deuterium_tank',
+		name: 'Deuterium Tank',
+		description:
+			'Pressurized storage facility for deuterium fuel. Each level increases deuterium storage capacity.',
+		productionType: 'deuterium',
+		hasStorage: true,
+	},
+	microchip_vault: {
+		type: 'microchip_vault',
+		name: 'Microchip Vault',
+		description:
+			'Secure storage facility for sensitive microelectronics. Each level increases microchip storage capacity.',
+		productionType: 'microchips',
+		hasStorage: true,
+	},
+};
 
 export const TECHNOLOGIES: Record<
 	TechnologyId,

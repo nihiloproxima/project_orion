@@ -19,6 +19,7 @@ import {
 	MailIcon,
 	Shield,
 	ShoppingCart,
+	CheckCircle2,
 } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 
@@ -27,6 +28,9 @@ export function Sidebar() {
 	const { state } = useGame();
 	const { theme, setTheme } = useTheme();
 	const router = useRouter();
+
+	// Add this to track completed tasks
+	const completedTasksCount = state.userTasks?.tasks.filter((task) => task.status === 'completed')?.length || 0;
 
 	const handleLogout = () => {
 		logout();
@@ -65,6 +69,13 @@ export function Sidebar() {
 											icon: Computer,
 											label: 'MAIN_CONSOLE',
 											color: 'primary',
+										},
+										{
+											to: '/tasks',
+											icon: CheckCircle2,
+											label: 'TASKS',
+											color: 'blue',
+											badge: completedTasksCount,
 										},
 
 										// Planet management
@@ -147,7 +158,7 @@ export function Sidebar() {
 										item.color
 									}-500/10 
                   border border-transparent hover:border-${item.color}-500/30 
-                  group transition-all duration-300
+                  group transition-all duration-300 relative
                   ${location.pathname === item.to ? `bg-${item.color}-500/10 border-${item.color}-500/30` : ''}`}
 								>
 									<item.icon
@@ -166,6 +177,11 @@ export function Sidebar() {
 									>
 										{`> ${item.label}`}
 									</span>
+									{item.badge && item.badge > 0 && (
+										<span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5 rounded-full">
+											{item.badge}
+										</span>
+									)}
 								</Button>
 							</Link>
 						))}

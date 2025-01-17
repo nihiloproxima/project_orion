@@ -31,6 +31,8 @@ import { useGame } from '../../../../contexts/GameContext';
 import { useParams } from 'next/navigation';
 import { useFleetMissions } from '@/hooks/useFleetMissions';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '../../../../components/ui/progress';
+import { getRequiredPointsForLevel } from '@/utils/user_calculations';
 
 interface QuickSpyButtonProps {
 	targetPlanetId: string;
@@ -246,6 +248,36 @@ export default function UserProfilePage() {
 						</div>
 					</div>
 					<CardContent className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
+						<Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300 md:col-span-3">
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2 text-yellow-400">
+									<Trophy className="h-5 w-5" />
+									Reputation Level {user.reputation_level}
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="space-y-2">
+									<div className="flex justify-between text-sm text-muted-foreground">
+										<span>
+											{user.reputation_points.toLocaleString()} /{' '}
+											{getRequiredPointsForLevel(user.reputation_level + 1).toLocaleString()} XP
+										</span>
+										<span>Next Level: {user.reputation_level + 1}</span>
+									</div>
+									<Progress
+										value={
+											((user.reputation_points -
+												getRequiredPointsForLevel(user.reputation_level)) /
+												(getRequiredPointsForLevel(user.reputation_level + 1) -
+													getRequiredPointsForLevel(user.reputation_level))) *
+											100
+										}
+										className="h-2"
+									/>
+								</div>
+							</CardContent>
+						</Card>
+
 						<Card className="bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300">
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2 text-primary">

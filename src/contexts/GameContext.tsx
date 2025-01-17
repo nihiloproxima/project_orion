@@ -1,6 +1,15 @@
 'use client';
 
-import { GameConfig, Planet, PlanetResources, PlanetStructures, User, UserResearchs } from '../models/';
+import {
+	GameConfig,
+	Planet,
+	PlanetResources,
+	PlanetStructures,
+	User,
+	UserResearchs,
+	UserTasks,
+	UserReward,
+} from '../models/';
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import { calculateEnergyBalance, calculatePlanetResources } from '../utils/resources_calculations';
 import { supabase } from '../lib/supabase';
@@ -12,11 +21,13 @@ interface GameState {
 	gameConfig: GameConfig | null;
 	loading: boolean;
 	planets: Planet[];
+	userTasks: UserTasks | null;
 	planetResources: PlanetResources | null;
 	selectedPlanet: Planet | null;
 	planetStructures: PlanetStructures | null;
 	userPlanets: Planet[];
 	userResearchs: UserResearchs | null;
+	userRewards: UserReward[];
 	resourcesIntervalId: NodeJS.Timeout | null;
 	currentResources: {
 		metal: number;
@@ -30,6 +41,7 @@ interface GameState {
 
 interface GameContextType {
 	state: GameState;
+	setState: React.Dispatch<React.SetStateAction<GameState>>;
 	selectPlanet: (planet: Planet) => void;
 }
 
@@ -40,9 +52,11 @@ const initialState: GameState = {
 	activePlayers: [],
 	loading: true,
 	currentUser: null,
+	userRewards: [],
 	gameConfig: null,
 	planets: [],
 	planetResources: null,
+	userTasks: null,
 	selectedPlanet: null,
 	planetStructures: null,
 	userPlanets: [],
@@ -79,6 +93,22 @@ const setupPlanetSubscriptions = (
 						...prev,
 						userResearchs: payload.new as UserResearchs,
 					}));
+				}
+			)
+			.subscribe(),
+		// UserTasks
+		supabase
+			.channel(`user_tasks-${state.currentUser?.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'user_tasks',
+					filter: `user_id=eq.${state.currentUser?.id}`,
+				},
+				(payload: any) => {
+					setState((prev) => ({ ...prev, userTasks: payload.new as UserTasks }));
 				}
 			)
 			.subscribe(),
@@ -141,9 +171,51 @@ const setupPlanetSubscriptions = (
 				}
 			)
 			.subscribe(),
+		// Rewards subscription
+		supabase
+			.channel(`user_rewards-${state.currentUser?.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'user_rewards',
+					filter: `user_id=eq.${state.currentUser?.id}`,
+				},
+				(payload: any) => {
+					console.log('user rewards updated', payload);
+					setState((prev) => {
+						let updatedRewards = [...prev.userRewards];
+
+						switch (payload.eventType) {
+							case 'INSERT':
+								updatedRewards.push(payload.new as UserReward);
+								break;
+							case 'DELETE':
+								updatedRewards = updatedRewards.filter((reward) => reward.id !== payload.old.id);
+								break;
+							case 'UPDATE':
+								updatedRewards = updatedRewards.map((reward) =>
+									reward.id === payload.old.id ? (payload.new as UserReward) : reward
+								);
+								break;
+							default:
+								break;
+						}
+
+						return {
+							...prev,
+							userRewards: updatedRewards,
+						};
+					});
+				}
+			)
+			.subscribe(),
 	];
 
-	return () => subscriptions.forEach((sub) => sub.unsubscribe());
+	return () => {
+		subscriptions.forEach((subscription) => subscription.unsubscribe());
+	};
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
@@ -159,11 +231,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 		const fetchInitialData = async () => {
 			try {
-				const [gameConfig, currentUser, userResearchs, planets] = await Promise.all([
+				const [gameConfig, currentUser, userResearchs, planets, userTasks, userRewards] = await Promise.all([
 					supabase.from('configs').select('*').eq('id', 'game').single(),
 					supabase.from('users').select('*').eq('id', authedUser.id).single(),
 					supabase.from('user_researchs').select('*').eq('user_id', authedUser.id).single(),
 					supabase.from('planets').select('*'),
+					supabase.from('user_tasks').select('*').eq('user_id', authedUser.id).single(),
+					supabase.from('user_rewards').select('*').eq('user_id', authedUser.id),
 				]);
 
 				if (!gameConfig.data || !planets.data) {
@@ -174,12 +248,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				const userPlanets = planets.data.filter((planet) => planet.owner_id === authedUser.id);
 				const homeWorld = userPlanets.find((planet) => planet.is_homeworld);
 
+				console.log(userRewards.data);
+
 				setState((prev) => ({
 					...prev,
 					currentUser: currentUser.data,
 					gameConfig: gameConfig.data.config_data,
 					userResearchs: userResearchs.data,
 					userPlanets,
+					userRewards: userRewards.data || [],
+					userTasks: userTasks.data || null,
 					selectedPlanet: homeWorld || null,
 					planets: planets.data,
 					loading: false,
@@ -329,6 +407,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		<GameContext.Provider
 			value={{
 				state,
+				setState,
 				selectPlanet,
 			}}
 		>
