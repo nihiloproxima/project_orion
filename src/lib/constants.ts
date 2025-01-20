@@ -1,4 +1,4 @@
-import { ResearchCategory, ShipType, StructureType } from '../models';
+import { PlanetBiome, ResearchCategory, ShipType, StructureType } from '../models';
 import { TechnologyId } from '../models';
 
 export const SHIP_ASSETS: Record<ShipType, { name: string; image: string }> = {

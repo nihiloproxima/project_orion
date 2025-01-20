@@ -1,8 +1,22 @@
-import { GameConfig, PlanetResources, PlanetStructures, ResourceType, Structure, UserResearchs } from '../models';
-import { StorageCapacities } from './structures_calculations';
+import {
+	GameConfig,
+	Planet,
+	PlanetResources,
+	PlanetStructures,
+	ResourceType,
+	Structure,
+	UserResearchs,
+} from '../models';
 
-export type ResourceGenerationRates = {
-	[resource in ResourceType]?: number;
+export interface ResourceGenerationRates {
+	metal: number;
+	microchips: number;
+	deuterium: number;
+	energy?: number;
+}
+
+export type StorageCapacities = {
+	[key in ResourceType]: number;
 };
 
 export function calculateStorageCapacities(gameConfig: GameConfig, structures: Structure[]): StorageCapacities {
@@ -11,6 +25,7 @@ export function calculateStorageCapacities(gameConfig: GameConfig, structures: S
 		metal: 1000,
 		microchips: 500,
 		deuterium: 500,
+		energy: 0,
 	};
 
 	// Add storage from buildings
@@ -18,13 +33,13 @@ export function calculateStorageCapacities(gameConfig: GameConfig, structures: S
 		const config = gameConfig.structures.find((s) => s.type === structure.type);
 		if (!config || !config.storage.resource || !config.storage.increase_per_level) return;
 
-		capacities[config.storage.resource]! += config.storage.increase_per_level * structure.level;
+		capacities[config.storage.resource] += config.storage.increase_per_level * structure.level;
 	});
 
 	return capacities;
 }
 
-function calculateResearchProductionBoost(
+export function calculateResearchProductionBoost(
 	gameConfig: GameConfig,
 	userResearchs: UserResearchs,
 	resource: ResourceType
@@ -56,7 +71,8 @@ function calculateResearchProductionBoost(
 export function calculateBaseRates(
 	gameConfig: GameConfig,
 	structures: Structure[],
-	userResearchs: UserResearchs
+	userResearchs: UserResearchs,
+	biome: Planet['biome']
 ): ResourceGenerationRates {
 	const rates: ResourceGenerationRates = {
 		metal: 0,
@@ -84,13 +100,11 @@ export function calculateBaseRates(
 					userResearchs,
 					structureConfig.production.resource
 				);
+				const biomeProductionBoost =
+					1 + (gameConfig.biomes[biome]?.[structureConfig.production.resource] ?? 0) / 100;
 
-				if (!rates[structureConfig.production.resource]) {
-					rates[structureConfig.production.resource] = 0;
-				}
-
-				rates[structureConfig.production.resource]! +=
-					baseProduction * productionBoost * gameConfig.speed.resources;
+				rates[structureConfig.production.resource] +=
+					baseProduction * productionBoost * biomeProductionBoost * gameConfig.speed.resources;
 			}
 		}
 	});
@@ -128,9 +142,10 @@ export function calculateEnergyBalance(
 			production += base * perLevelCoef * efficiencyBonus;
 		}
 
-		consumption +=
-			structureConfig.energy_consumption.base *
-			(1 + (structureConfig.energy_consumption.percent_increase_per_level * structure.level) / 100);
+		const sonsumptionCoefPerLevel =
+			1 + (structureConfig.energy_consumption.percent_increase_per_level * structure.level) / 100;
+
+		consumption += structureConfig.energy_consumption.base * sonsumptionCoefPerLevel;
 	});
 
 	return { production, consumption };
@@ -141,12 +156,13 @@ export function calculateResourceGeneration(
 	structures: Structure[],
 	userResearchs: UserResearchs,
 	elapsedTimeSeconds: number,
-	currentResources: PlanetResources
+	currentResources: PlanetResources,
+	biome: Planet['biome']
 ): ResourceGenerationRates & {
 	energy_balance: { production: number; consumption: number };
 } {
 	const storageCapacities = calculateStorageCapacities(gameConfig, structures);
-	const rates = calculateBaseRates(gameConfig, structures, userResearchs);
+	const rates = calculateBaseRates(gameConfig, structures, userResearchs, biome);
 
 	// Apply storage limits
 	Object.keys(rates).forEach((resource) => {
@@ -154,14 +170,13 @@ export function calculateResourceGeneration(
 		if (resourceKey === 'energy') return; // Energy isn't stored
 
 		const currentAmount = currentResources[resourceKey];
-		const maxAmount = storageCapacities[resourceKey] || 0;
+		const maxAmount = storageCapacities[resourceKey];
 
 		if (currentAmount >= maxAmount) {
 			rates[resourceKey] = 0; // Stop production if storage is full
 		} else {
 			// Calculate how much can be produced before hitting cap
 			const remainingSpace = maxAmount - currentAmount;
-			if (!rates[resourceKey]) rates[resourceKey] = 0;
 			const wouldProduce = rates[resourceKey] * elapsedTimeSeconds;
 			if (wouldProduce > remainingSpace) {
 				rates[resourceKey] = remainingSpace / elapsedTimeSeconds;
@@ -179,9 +194,10 @@ export function calculateHourlyRates(
 	structures: Structure[],
 	gameConfig: GameConfig,
 	planetResources: PlanetResources,
-	userResearchs: UserResearchs
+	userResearchs: UserResearchs,
+	biome: Planet['biome']
 ): ResourceGenerationRates {
-	return calculateResourceGeneration(gameConfig, structures, userResearchs, 3600, planetResources);
+	return calculateResourceGeneration(gameConfig, structures, userResearchs, 3600, planetResources, biome);
 }
 
 export function calculateCurrentResources(
@@ -189,7 +205,8 @@ export function calculateCurrentResources(
 	structures: Structure[],
 	gameConfig: GameConfig,
 	lastUpdateTimestamp: number,
-	userResearchs: UserResearchs
+	userResearchs: UserResearchs,
+	biome: Planet['biome']
 ): ResourceGenerationRates {
 	const elapsedSeconds = (Date.now() - lastUpdateTimestamp) / 1000;
 	const generatedResources = calculateResourceGeneration(
@@ -197,14 +214,14 @@ export function calculateCurrentResources(
 		structures,
 		userResearchs,
 		elapsedSeconds,
-		planetResources
+		planetResources,
+		biome
 	);
 
 	return {
-		metal: planetResources.metal + (generatedResources.metal || 0),
-		microchips: planetResources.microchips + (generatedResources.microchips || 0),
-		deuterium: planetResources.deuterium + (generatedResources.deuterium || 0),
-		energy: 0,
+		metal: planetResources.metal + generatedResources.metal,
+		microchips: planetResources.microchips + generatedResources.microchips,
+		deuterium: planetResources.deuterium + generatedResources.deuterium,
 	};
 }
 
@@ -212,9 +229,10 @@ export function calculatePlanetResources(
 	gameConfig: GameConfig,
 	planetStructures: PlanetStructures,
 	planetResources: PlanetResources,
-	userResearchs: UserResearchs
+	userResearchs: UserResearchs,
+	biome: Planet['biome']
 ) {
-	const now = Date.now() + 1000;
+	const now = Date.now();
 	const lastUpdate = planetResources.updated_at;
 	const elapsedSeconds = (now - lastUpdate) / 1000;
 
@@ -224,7 +242,8 @@ export function calculatePlanetResources(
 		planetStructures.structures,
 		userResearchs,
 		elapsedSeconds,
-		planetResources
+		planetResources,
+		biome
 	);
 
 	// Calculate production malus based on energy balance
@@ -237,10 +256,9 @@ export function calculatePlanetResources(
 	// Calculate current resources with energy malus applied
 	const updatedResources: PlanetResources = {
 		...planetResources,
-		metal: planetResources.metal + (resourceGeneration.metal || 0) * elapsedSeconds * productionMalus,
-		microchips:
-			planetResources.microchips + (resourceGeneration.microchips || 0) * elapsedSeconds * productionMalus,
-		deuterium: planetResources.deuterium + (resourceGeneration.deuterium || 0) * elapsedSeconds * productionMalus,
+		metal: planetResources.metal + resourceGeneration.metal * elapsedSeconds * productionMalus,
+		microchips: planetResources.microchips + resourceGeneration.microchips * elapsedSeconds * productionMalus,
+		deuterium: planetResources.deuterium + resourceGeneration.deuterium * elapsedSeconds * productionMalus,
 		energy: resourceGeneration.energy_balance.production,
 		updated_at: now,
 	};

@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare, Rocket, Users } from 'lucide-react';
+import { MessageSquare, Rocket, Users, MapPin, Ruler, TreePine } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { ChatMessage, Ship } from '../../../models';
 import { containerVariants, itemVariants } from '@/lib/animations';
@@ -16,6 +16,11 @@ import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
 import { useRouter } from 'next/navigation'; // Changed from next/router
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../components/ui/collapsible';
+import { Button } from '../../../components/ui/button';
+import { ResourceType } from '@/models/planets_resources';
+import { Input } from '../../../components/ui/input';
+import { DialogFooter } from '../../../components/ui/dialog';
 
 export default function Dashboard() {
 	const router = useRouter();
@@ -28,6 +33,20 @@ export default function Dashboard() {
 	const [unreadMails, setUnreadMails] = useState<number>(0);
 	const [showOnlineCommanders, setShowOnlineCommanders] = useState(false);
 	const [commanders, setCommanders] = useState<{ id: string; name: string; avatar: string | null }[]>([]);
+	const [planetInfo, setPlanetInfo] = useState<{
+		name: string;
+		size: string;
+		coordinates: string;
+		biome: string;
+	}>({
+		name: '',
+		size: '',
+		coordinates: '',
+		biome: '',
+	});
+	const [biomeInfo, setBiomeInfo] = useState<{ bonuses: string; maluses: string } | null>(null);
+	const [showAllBiomes, setShowAllBiomes] = useState(false);
+	const [showRenameDialog, setShowRenameDialog] = useState(false);
 
 	useEffect(() => {
 		// Initial fetch of messages
@@ -241,6 +260,25 @@ export default function Dashboard() {
 		return stats;
 	};
 
+	// Example planet data fetching, replace with actual data retrieval logic
+	useEffect(() => {
+		const fetchPlanetInfo = async () => {
+			setPlanetInfo({
+				name: state.selectedPlanet?.name || 'Unknown',
+				size: state.selectedPlanet?.size_km.toString() || 'Unknown',
+				coordinates: `${state.selectedPlanet?.coordinate_x}, ${state.selectedPlanet?.coordinate_y}, ${state.selectedPlanet?.coordinate_z}`,
+				biome: state.selectedPlanet?.biome || 'Unknown',
+			});
+
+			if (state.selectedPlanet?.biome && state.gameConfig) {
+				const biomeModifiers = state.gameConfig.biomes[state.selectedPlanet.biome];
+				setBiomeInfo(formatBiomeInfo(biomeModifiers));
+			}
+		};
+
+		fetchPlanetInfo();
+	}, [state.selectedPlanet, state.gameConfig]);
+
 	if (state.userPlanets.length === 0) {
 		router.push('/secure-communications');
 		return null; // Return null while redirecting
@@ -306,6 +344,92 @@ export default function Dashboard() {
 					</motion.div>
 				))}
 			</div>
+
+			{/* Planet Information Card */}
+			<motion.div variants={itemVariants}>
+				<Card className="bg-card/50 backdrop-blur-sm neon-border">
+					<CardHeader className="pb-2">
+						<CardTitle className="neon-text flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<MapPin className="h-4 w-4" />
+								PLANETARY OVERVIEW
+							</div>
+							<button
+								onClick={() => setShowRenameDialog(true)}
+								className="text-sm bg-primary/20 hover:bg-primary/30 px-3 py-1 rounded-md transition-colors"
+							>
+								Rename
+							</button>
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+							<div className="space-y-4">
+								<div>
+									<div className="text-sm text-muted-foreground mb-1">DESIGNATION</div>
+									<div className="text-xl font-bold">{planetInfo.name}</div>
+								</div>
+								<div>
+									<div className="text-sm text-muted-foreground mb-1">COORDINATES</div>
+									<div className="font-mono">{planetInfo.coordinates}</div>
+								</div>
+							</div>
+							<div className="space-y-4">
+								<div>
+									<div className="text-sm text-muted-foreground mb-1">SIZE</div>
+									<div className="flex items-center gap-2">
+										<Ruler className="h-4 w-4 text-primary" />
+										{planetInfo.size}
+									</div>
+								</div>
+								<div>
+									<div className="text-sm text-muted-foreground mb-1">BIOME</div>
+									<Collapsible>
+										<CollapsibleTrigger className="flex items-center gap-2 hover:text-primary transition-colors">
+											<TreePine className="h-4 w-4" />
+											{planetInfo.biome}
+										</CollapsibleTrigger>
+
+										<CollapsibleContent>
+											<motion.div
+												initial={{ opacity: 0, y: -10 }}
+												animate={{ opacity: 1, y: 0 }}
+												className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/20"
+											>
+												<div className="flex justify-between items-center mb-2">
+													<div className="text-sm font-medium">BIOME CHARACTERISTICS</div>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => setShowAllBiomes(true)}
+														className="text-xs text-primary hover:text-primary/80"
+													>
+														View All Biomes
+													</Button>
+												</div>
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div>
+														<div className="text-xs text-primary mb-1">ADVANTAGES</div>
+														<div className="text-sm text-muted-foreground">
+															{biomeInfo?.bonuses}
+														</div>
+													</div>
+													<div>
+														<div className="text-xs text-red-400 mb-1">DISADVANTAGES</div>
+														<div className="text-sm text-muted-foreground">
+															{biomeInfo?.maluses}
+														</div>
+													</div>
+												</div>
+											</motion.div>
+										</CollapsibleContent>
+									</Collapsible>
+								</div>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			</motion.div>
 
 			{/* Chat Window */}
 			<motion.div variants={itemVariants}>
@@ -381,6 +505,10 @@ export default function Dashboard() {
 				onOpenChange={setShowOnlineCommanders}
 				commanders={commanders}
 			/>
+
+			<BiomesDialog open={showAllBiomes} onOpenChange={setShowAllBiomes} />
+
+			<RenamePlanetDialog open={showRenameDialog} onOpenChange={setShowRenameDialog} />
 		</motion.div>
 	);
 }
@@ -429,6 +557,135 @@ function OnlineCommandersDialog({
 						))}
 					</div>
 				</ScrollArea>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function BiomesDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+	const { state } = useGame();
+
+	if (!state.gameConfig) return null;
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-3xl">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-2">
+						<TreePine className="h-5 w-5 text-primary" />
+						Planet Biomes Overview
+					</DialogTitle>
+				</DialogHeader>
+				<ScrollArea className="max-h-[60vh]">
+					<div className="space-y-6 pr-4">
+						{Object.entries(state.gameConfig?.biomes || {}).map(([biome, modifiers]) => {
+							const info = formatBiomeInfo(modifiers);
+							return (
+								<Card key={biome} className="bg-card/50">
+									<CardHeader>
+										<CardTitle className="text-lg flex items-center gap-2">
+											<TreePine className="h-4 w-4 text-primary" />
+											{biome.replace(/_/g, ' ').toUpperCase()}
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div>
+											<div className="text-xs text-primary mb-1">ADVANTAGES</div>
+											<div className="text-sm text-muted-foreground">{info.bonuses}</div>
+										</div>
+										<div>
+											<div className="text-xs text-red-400 mb-1">DISADVANTAGES</div>
+											<div className="text-sm text-muted-foreground">{info.maluses}</div>
+										</div>
+									</CardContent>
+								</Card>
+							);
+						})}
+					</div>
+				</ScrollArea>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+const formatBiomeInfo = (biomeModifiers: { [key in ResourceType]?: number }) => {
+	const bonuses: string[] = [];
+	const maluses: string[] = [];
+
+	Object.entries(biomeModifiers).forEach(([resource, modifier]) => {
+		const formattedResource = resource.replace('_', ' ').toUpperCase();
+		const percentage = Math.abs(modifier || 0);
+
+		if (modifier && modifier > 0) {
+			bonuses.push(`+${percentage}% ${formattedResource} production`);
+		} else if (modifier && modifier < 0) {
+			maluses.push(`-${percentage}% ${formattedResource} production`);
+		}
+	});
+
+	return {
+		bonuses: bonuses.join('\n') || 'No bonuses',
+		maluses: maluses.join('\n') || 'No penalties',
+	};
+};
+
+function RenamePlanetDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+	const { state } = useGame();
+	const [newPlanetName, setNewPlanetName] = useState('');
+
+	const handleRenamePlanet = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		if (!state.selectedPlanet?.id) return;
+
+		try {
+			await api.users.renamePlanet(state.selectedPlanet.id, newPlanetName);
+			onOpenChange(false);
+			setNewPlanetName('');
+			console.log('Planet renamed successfully');
+		} catch (error) {
+			console.error('Failed to rename planet:', error);
+		}
+	};
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-[425px]">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-2">
+						<MapPin className="h-5 w-5 text-primary" />
+						Rename Planet
+					</DialogTitle>
+				</DialogHeader>
+				<form onSubmit={handleRenamePlanet}>
+					<div className="grid gap-4 py-4">
+						<div className="space-y-2">
+							<div className="text-sm text-muted-foreground">Current Name</div>
+							<div className="font-medium">{state.selectedPlanet?.name}</div>
+						</div>
+						<div className="space-y-2">
+							<label htmlFor="name" className="text-sm text-muted-foreground">
+								New Name
+							</label>
+							<Input
+								id="name"
+								value={newPlanetName}
+								onChange={(e) => setNewPlanetName(e.target.value)}
+								placeholder="Enter new planet name"
+								className="col-span-3"
+								autoFocus
+								required
+								minLength={3}
+								maxLength={30}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button type="submit" disabled={!newPlanetName.trim()}>
+							Rename Planet
+						</Button>
+					</DialogFooter>
+				</form>
 			</DialogContent>
 		</Dialog>
 	);

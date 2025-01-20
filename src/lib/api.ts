@@ -2,7 +2,7 @@ import { ResourcePayload } from '@/models/fleet_movement';
 import { MissionType, ShipType } from '../models/ship';
 import { supabase } from './supabase';
 import { StructureType } from '@/models/planet_structures';
-import { DefenseType } from '@/models/defense';
+import { DefenseType } from '@/models/planet_defenses';
 
 function getAuthToken() {
 	return supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,11 +53,8 @@ export const api = {
 		chooseHomeworld: (planetId: string) => post('users', 'chooseHomeworld', { planet_id: planetId }),
 		claimTaskRewards: (taskId: string) => post('users', 'claimTaskRewards', { task_id: taskId }),
 		collectReward: (rewardId: string) => post('users', 'collectReward', { reward_id: rewardId }),
-	},
-	planets: {
-		claim: async (planetId: string, homeworld: boolean) => {
-			return post('planets', 'claim', { planet_id: planetId, homeworld });
-		},
+		renamePlanet: (planetId: string, newName: string) =>
+			post('users', 'renamePlanet', { planet_id: planetId, new_name: newName }),
 	},
 	structures: {
 		construct: async (planetId: string, type: StructureType) => {

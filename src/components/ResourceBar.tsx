@@ -80,7 +80,12 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 		return null;
 	}
 
-	const baseRates = calculateBaseRates(state.gameConfig, state.planetStructures.structures, state.userResearchs);
+	const baseRates = calculateBaseRates(
+		state.gameConfig,
+		state.planetStructures.structures,
+		state.userResearchs,
+		state.selectedPlanet.biome
+	);
 	const hourlyRates: ResourceGenerationRates = {
 		metal: (baseRates.metal || 0) * 3600,
 		deuterium: (baseRates.deuterium || 0) * 3600,

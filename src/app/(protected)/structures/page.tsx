@@ -454,6 +454,8 @@ export default function Structures() {
 		return saved ? parseInt(saved) : 2;
 	});
 
+	const currentEnergyRatio = state.currentResources.energy_production / state.currentResources.energy_consumption;
+
 	const gridColsClass = {
 		1: 'grid-cols-1',
 		2: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2',
@@ -501,6 +503,21 @@ export default function Structures() {
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
+
+				{currentEnergyRatio < 1 && (
+					<div className="flex items-center gap-2 p-4 border rounded-lg bg-yellow-500/10 border-yellow-500/50">
+						<AlertTriangle className="h-5 w-5 text-yellow-500" />
+						<div className="flex flex-col">
+							<p className="text-sm text-yellow-500">
+								Your planet is experiencing an energy shortage! Resource production is reduced due to
+								insufficient power.
+							</p>
+							<p className="text-sm text-muted-foreground">
+								Consider building or upgrading Power Plants to restore full production efficiency.
+							</p>
+						</div>
+					</div>
+				)}
 
 				<div className={`grid ${gridColsClass} gap-6`}>
 					{state.planetStructures.structures.map((structure) => (
