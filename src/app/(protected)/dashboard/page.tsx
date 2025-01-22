@@ -292,7 +292,9 @@ export default function Dashboard() {
 			<motion.div className="flex justify-between items-center" variants={itemVariants}>
 				<div>
 					<h1 className="text-3xl font-bold neon-text mb-2">COMMAND CENTER</h1>
-					<p className="text-muted-foreground">Welcome, Commander. All systems operational.</p>
+					<p className="text-muted-foreground">
+						Welcome, Commander {state.currentUser?.name}. All systems operational.
+					</p>
 				</div>
 			</motion.div>
 
@@ -311,7 +313,7 @@ export default function Dashboard() {
 						icon: <MessageSquare className="h-4 w-4 text-primary" />,
 						value: `${unreadMails} Messages`,
 						subtext: 'Unread communications',
-						onClick: undefined,
+						onClick: () => router.push('/secure-communications'),
 					},
 					{
 						title: 'ACTIVE COMMANDERS',

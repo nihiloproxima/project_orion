@@ -24,14 +24,22 @@ import {
 	Microchip,
 	Info,
 } from 'lucide-react';
-import { Task, TaskStatus, BuildStructureTask, ResearchTask, ShipTask, MissionTask } from '@/models/user_tasks';
+import {
+	Task,
+	TaskStatus,
+	BuildStructureTask,
+	ResearchTask,
+	ShipTask,
+	MissionTask,
+	DefenseTask,
+} from '@/models/user_tasks';
 import { motion } from 'framer-motion';
 import { containerVariants, itemVariants } from '@/lib/animations';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState, useMemo } from 'react';
-import { SHIP_ASSETS } from '@/lib/constants';
+import { DEFENSE_ASSETS, SHIP_ASSETS } from '@/lib/constants';
 import { STRUCTURE_INFO } from '@/lib/constants';
 import { TECHNOLOGIES } from '@/lib/constants';
 import { Progress } from '@/components/ui/progress';
@@ -136,6 +144,21 @@ function TaskCard({ task, onTogglePin }: { task: TaskWithPin; onTogglePin: (task
 							<Progress value={(shipTask.progress / shipTask.goal) * 100} />
 							<div className="absolute inset-0 flex items-center justify-center text-xs">
 								{shipTask.progress}/{shipTask.goal}
+							</div>
+						</div>
+					</div>
+				);
+			case 'defense':
+				const defenseTask = task as DefenseTask;
+				return (
+					<div>
+						<p>
+							Build {defenseTask.goal} {DEFENSE_ASSETS[defenseTask.defense_type].name}
+						</p>
+						<div className="relative mt-2">
+							<Progress value={(defenseTask.progress / defenseTask.goal) * 100} />
+							<div className="absolute inset-0 flex items-center justify-center text-xs">
+								{defenseTask.progress}/{defenseTask.goal}
 							</div>
 						</div>
 					</div>

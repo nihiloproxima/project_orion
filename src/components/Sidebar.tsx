@@ -80,8 +80,14 @@ export function Sidebar() {
 			{
 				to: '/dashboard',
 				icon: Computer,
-				label: 'MAIN_CONSOLE',
+				label: 'DASHBOARD',
 				color: 'primary',
+			},
+			{
+				to: '/secure-communications',
+				icon: MailIcon,
+				label: 'SECURE_COMS',
+				color: 'blue',
 			},
 			{
 				to: '/tasks',
@@ -148,12 +154,6 @@ export function Sidebar() {
 			},
 		],
 		OTHER: [
-			{
-				to: '/secure-communications',
-				icon: MailIcon,
-				label: 'SECURE_COMS',
-				color: 'blue',
-			},
 			{
 				to: '/shop',
 				icon: ShoppingCart,
