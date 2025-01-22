@@ -51,8 +51,8 @@ export function calculateStructureStorageCapacities(
 	structureType: StructureType,
 	level: number = 0
 ): StorageCapacities {
-	const structureConfig = gameConfig.structures.find((s) => s.type === structureType);
-	if (!structureConfig) {
+	const structure = gameConfig.structures.find((s) => s.type === structureType);
+	if (!structure) {
 		return { metal: 0, microchips: 0, deuterium: 0, energy: 0 };
 	}
 
@@ -65,9 +65,9 @@ export function calculateStructureStorageCapacities(
 	};
 
 	// Calculate storage capacity if it's a storage structure
-
-	if (structureConfig.storage.resource && structureConfig.storage.increase_per_level) {
-		capacities[structureConfig.storage.resource] = structureConfig.storage.increase_per_level * level;
+	if (structure.storage.resource && structure.storage.base && structure.storage.multiplier_per_level) {
+		const storage = structure.storage.base * Math.pow(structure.storage.multiplier_per_level, level - 1);
+		capacities[structure.storage.resource]! += storage;
 	}
 
 	return capacities;

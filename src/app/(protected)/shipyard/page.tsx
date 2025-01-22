@@ -15,9 +15,10 @@ import {
 	Microchip,
 	Minus,
 	Plus,
-	Rocket,
+	Factory,
 	Shield,
 	Ship,
+	Rocket,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../../../components/ui/card';
 import {
@@ -516,7 +517,7 @@ export default function Shipyard() {
 				<div className="flex justify-between items-center">
 					<div>
 						<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
-							<Ship className="h-8 w-8" />
+							<Factory className="h-8 w-8" />
 							SHIPYARD
 						</h1>
 						<p className="text-muted-foreground">Construct and manage your fleet of spacecraft</p>

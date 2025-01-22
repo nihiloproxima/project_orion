@@ -5,7 +5,7 @@ export interface Planet {
 	name: string;
 	coordinate_x: number;
 	coordinate_y: number;
-	coordinate_z: number; // system
+	coordinate_z: number; // Galaxy number (0-10)
 	owner_id: string | null;
 	is_homeworld: boolean;
 	owner_name?: string;

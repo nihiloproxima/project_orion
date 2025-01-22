@@ -47,14 +47,16 @@ export default function ChooseHomeworldPage() {
 					<CardContent className="p-6">
 						<p className="text-center text-muted-foreground mb-6">
 							Choose your starting planet carefully, Commander. This decision will shape your destiny.
-							{unclaimedPlanets.length} unclaimed worlds await your command.
+							{unclaimedPlanets.filter((p) => p.coordinate_z == 0).length} unclaimed worlds await your
+							command.
 						</p>
 
 						<div className="flex justify-center w-full h-[calc(100vh-20rem)]">
 							<GalaxyMap
 								mode="homeworld"
 								onPlanetSelect={handlePlanetSelect}
-								allowedPlanets={unclaimedPlanets.map((p) => p.id)}
+								allowedPlanets={unclaimedPlanets.filter((p) => p.coordinate_z == 0).map((p) => p.id)}
+								galaxyFilter={0}
 							/>
 						</div>
 					</CardContent>

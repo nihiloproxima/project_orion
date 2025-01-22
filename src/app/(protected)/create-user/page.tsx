@@ -21,7 +21,7 @@ export default function CreateUser() {
 	const [error, setError] = useState('');
 	const [loading, setLoading] = useState(false);
 
-	const avatars = Array.from({ length: 27 }, (_, i) => i + '.webp');
+	const avatars = Array.from({ length: 9 }, (_, i) => i + '.webp');
 	const avatarsPerPage = 9;
 	const totalPages = Math.ceil(avatars.length / avatarsPerPage);
 	const paginatedAvatars = avatars.slice(currentPage * avatarsPerPage, (currentPage + 1) * avatarsPerPage);
@@ -107,29 +107,31 @@ export default function CreateUser() {
 								))}
 							</div>
 
-							<div className="flex justify-between items-center">
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-									disabled={currentPage === 0}
-								>
-									<ChevronLeft className="h-4 w-4 mr-2" />
-									Previous
-								</Button>
-								<span className="text-sm text-muted-foreground">
-									Page {currentPage + 1} of {totalPages}
-								</span>
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
-									disabled={currentPage === totalPages - 1}
-								>
-									Next
-									<ChevronRight className="h-4 w-4 ml-2" />
-								</Button>
-							</div>
+							{totalPages > 1 && (
+								<div className="flex justify-between items-center">
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+										disabled={currentPage === 0}
+									>
+										<ChevronLeft className="h-4 w-4 mr-2" />
+										Previous
+									</Button>
+									<span className="text-sm text-muted-foreground">
+										Page {currentPage + 1} of {totalPages}
+									</span>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
+										disabled={currentPage === totalPages - 1}
+									>
+										Next
+										<ChevronRight className="h-4 w-4 ml-2" />
+									</Button>
+								</div>
+							)}
 						</div>
 
 						{error && <div className="text-red-500 text-sm bg-red-500/10 p-2 rounded">{error}</div>}

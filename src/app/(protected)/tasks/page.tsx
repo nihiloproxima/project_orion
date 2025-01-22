@@ -24,7 +24,7 @@ import {
 	Microchip,
 	Info,
 } from 'lucide-react';
-import { Task, TaskStatus, BuildStructureTask, ResearchTask, ShipTask } from '@/models/user_tasks';
+import { Task, TaskStatus, BuildStructureTask, ResearchTask, ShipTask, MissionTask } from '@/models/user_tasks';
 import { motion } from 'framer-motion';
 import { containerVariants, itemVariants } from '@/lib/animations';
 import { api } from '@/lib/api';
@@ -75,6 +75,11 @@ function TaskCard({ task, onTogglePin }: { task: TaskWithPin; onTogglePin: (task
 				return {
 					link: '/shipyard',
 					tooltip: 'Visit Shipyard to build ships',
+				};
+			case 'mission':
+				return {
+					link: '/fleet',
+					tooltip: 'Visit Fleet to send ships on missions',
 				};
 			default:
 				return null;
@@ -131,6 +136,26 @@ function TaskCard({ task, onTogglePin }: { task: TaskWithPin; onTogglePin: (task
 							<Progress value={(shipTask.progress / shipTask.goal) * 100} />
 							<div className="absolute inset-0 flex items-center justify-center text-xs">
 								{shipTask.progress}/{shipTask.goal}
+							</div>
+						</div>
+					</div>
+				);
+			case 'mission':
+				const missionTask = task as MissionTask;
+				return (
+					<div>
+						<p>
+							Complete{' '}
+							{missionTask.mission_type
+								.split('_')
+								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+								.join(' ')}{' '}
+							missions
+						</p>
+						<div className="relative mt-2">
+							<Progress value={task.status === 'completed' ? 100 : 0} />
+							<div className="absolute inset-0 flex items-center justify-center text-xs">
+								{task.status === 'completed' ? '1' : '0'}/1
 							</div>
 						</div>
 					</div>

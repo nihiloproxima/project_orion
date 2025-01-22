@@ -20,8 +20,40 @@ import {
 	Shield,
 	ShoppingCart,
 	CheckCircle2,
+	Factory,
 } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
+
+// Create a reusable NavLink component
+const NavLink = ({ item, badge }: { item: any; badge?: number }) => (
+	<Link key={item.to} href={item.to}>
+		<Button
+			variant="ghost"
+			className={`w-full justify-start text-${item.color}-400 hover:bg-${item.color}-500/10 
+				border border-transparent hover:border-${item.color}-500/30 
+				group transition-all duration-300 relative
+				${location.pathname === item.to ? `bg-${item.color}-500/10 border-${item.color}-500/30` : ''}`}
+		>
+			<item.icon
+				className={`mr-2 ${location.pathname === item.to ? 'animate-pulse' : 'group-hover:animate-pulse'}`}
+			/>
+			<span
+				className={`font-mono ${
+					location.pathname === item.to
+						? 'text-primary'
+						: 'group-hover:text-primary group-hover:animate-glitch'
+				}`}
+			>
+				{`> ${item.label}`}
+			</span>
+			{badge !== undefined && badge > 0 && (
+				<span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5 rounded-full">
+					{badge}
+				</span>
+			)}
+		</Button>
+	</Link>
+);
 
 export function Sidebar() {
 	const { logout } = useAuth();
@@ -39,6 +71,98 @@ export function Sidebar() {
 
 	const isCreateUserPage = location.pathname === '/create-user';
 
+	// Add this constant outside the component
+	const NAVIGATION_ITEMS: Record<
+		string,
+		{ to: string; icon: any; label: string; color: string; hasBadge?: boolean }[]
+	> = {
+		MAIN: [
+			{
+				to: '/dashboard',
+				icon: Computer,
+				label: 'MAIN_CONSOLE',
+				color: 'primary',
+			},
+			{
+				to: '/tasks',
+				icon: CheckCircle2,
+				label: 'TASKS',
+				color: 'blue',
+				hasBadge: true,
+			},
+			{
+				to: `/user/${state?.currentUser?.id}`,
+				icon: User,
+				label: 'USER_PROFILE',
+				color: 'blue',
+			},
+			{
+				to: '/galaxy',
+				icon: Eye,
+				label: 'GALAXY_MAP',
+				color: 'purple',
+			},
+			{
+				to: '/rankings',
+				icon: Trophy,
+				label: 'RANKINGS',
+				color: 'blue',
+			},
+			{
+				to: '/fleet-movements',
+				icon: ArrowRight,
+				label: 'FLEET_MOVEMENTS',
+				color: 'blue',
+			},
+		],
+		PLANET: [
+			{
+				to: '/structures',
+				icon: Building,
+				label: 'STRUCTURES',
+				color: 'primary',
+			},
+			{
+				to: '/researchs',
+				icon: FlaskConical,
+				label: 'RESEARCH_LAB',
+				color: 'green',
+			},
+			{
+				to: '/defenses',
+				icon: Shield,
+				label: 'DEFENSES',
+				color: 'blue',
+			},
+			{
+				to: '/shipyard',
+				icon: Factory,
+				label: 'SHIPYARD',
+				color: 'blue',
+			},
+			{
+				to: '/fleet',
+				icon: Rocket,
+				label: 'FLEET',
+				color: 'blue',
+			},
+		],
+		OTHER: [
+			{
+				to: '/secure-communications',
+				icon: MailIcon,
+				label: 'SECURE_COMS',
+				color: 'blue',
+			},
+			{
+				to: '/shop',
+				icon: ShoppingCart,
+				label: 'SHOP',
+				color: 'blue',
+			},
+		],
+	};
+
 	return (
 		<div className="w-[280px] md:w-64 bg-black/95 border-r border-primary/30 h-full flex flex-col relative overflow-hidden font-mono">
 			{/* Matrix-like rain effect overlay */}
@@ -51,140 +175,32 @@ export function Sidebar() {
 					<h2 className="text-xl font-bold text-primary tracking-wider effect">Project Orion</h2>
 				</div>
 				<div className="text-xs text-primary/70 mt-2 typing-effect-delay">
-					<span className="inline-block w-2 h-2 bg-primary/80  mr-2" />
-					Alpha V.0.1
+					<span className="inline-block w-2 h-2 bg-primary/80  mr-2" />v{state.version}
 				</div>
 			</div>
 
 			{!isCreateUserPage && (
 				<div className="flex-1 px-2 md:px-4 overflow-y-auto">
 					<nav className="space-y-1">
-						{[
-							// Only show secure communications if no planet is selected
-							...(state.selectedPlanet
-								? [
-										// Main console
-										{
-											to: '/dashboard',
-											icon: Computer,
-											label: 'MAIN_CONSOLE',
-											color: 'primary',
-										},
-										{
-											to: '/tasks',
-											icon: CheckCircle2,
-											label: 'TASKS',
-											color: 'blue',
-											badge: completedTasksCount,
-										},
-
-										// Planet management
-										{
-											to: '/structures',
-											icon: Building,
-											label: 'STRUCTURES',
-											color: 'primary',
-										},
-										{
-											to: '/researchs',
-											icon: FlaskConical,
-											label: 'RESEARCH_LAB',
-											color: 'green',
-										},
-
-										// Fleet management
-										{
-											to: '/defenses',
-											icon: Shield,
-											label: 'DEFENSES',
-											color: 'blue',
-										},
-										{
-											to: '/shipyard',
-											icon: Rocket,
-											label: 'SHIPYARD',
-											color: 'blue',
-										},
-										{
-											to: '/fleet',
-											icon: Rocket,
-											label: 'FLEET',
-											color: 'blue',
-										},
-										{
-											to: '/fleet-movements',
-											icon: ArrowRight,
-											label: 'FLEET_MOVEMENTS',
-											color: 'blue',
-										},
-										{
-											to: '/galaxy',
-											icon: Eye,
-											label: 'GALAXY_MAP',
-											color: 'purple',
-										},
-										{
-											to: `/user/${state.currentUser?.id}`,
-											icon: User,
-											label: 'USER_PROFILE',
-											color: 'blue',
-										},
-										{
-											to: '/rankings',
-											icon: Trophy,
-											label: 'RANKINGS',
-											color: 'blue',
-										},
-										{
-											to: '/shop',
-											icon: ShoppingCart,
-											label: 'SHOP',
-											color: 'blue',
-										},
-								  ]
-								: []),
-							// Always show secure communications
-							{
-								to: '/secure-communications',
-								icon: MailIcon,
-								label: 'SECURE_COMS',
-								color: 'blue',
-							},
-						].map((item) => (
-							<Link key={item.to} href={item.to}>
-								<Button
-									variant="ghost"
-									className={`w-full justify-start text-${item.color}-400 hover:bg-${
-										item.color
-									}-500/10 
-                  border border-transparent hover:border-${item.color}-500/30 
-                  group transition-all duration-300 relative
-                  ${location.pathname === item.to ? `bg-${item.color}-500/10 border-${item.color}-500/30` : ''}`}
-								>
-									<item.icon
-										className={`mr-2 ${
-											location.pathname === item.to
-												? 'animate-pulse'
-												: 'group-hover:animate-pulse'
-										}`}
-									/>
-									<span
-										className={`font-mono ${
-											location.pathname === item.to
-												? 'text-primary '
-												: 'group-hover:text-primary group-hover:animate-glitch'
-										}`}
-									>
-										{`> ${item.label}`}
-									</span>
-									{item.badge && item.badge > 0 && (
-										<span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5 rounded-full">
-											{item.badge}
-										</span>
-									)}
-								</Button>
-							</Link>
-						))}
+						{state.selectedPlanet && (
+							<>
+								{Object.entries(NAVIGATION_ITEMS).map(([section, items]) => (
+									<div key={section} className="mb-4">
+										<div className="text-xs text-primary/50 mb-2 pl-2">{section}</div>
+										{items.map((item) => (
+											<NavLink
+												key={item.to}
+												item={item}
+												badge={item.hasBadge ? completedTasksCount : undefined}
+											/>
+										))}
+									</div>
+								))}
+							</>
+						)}
+						{!state.selectedPlanet && (
+							<NavLink item={NAVIGATION_ITEMS.OTHER.find((item) => item.label === 'SECURE_COMS')} />
+						)}
 					</nav>
 				</div>
 			)}
@@ -221,8 +237,8 @@ export function Sidebar() {
 						variant="ghost"
 						onClick={handleLogout}
 						className="w-full justify-start text-red-500 hover:bg-red-500/10 
-              border border-transparent hover:border-red-500/30 
-              group transition-all duration-300"
+						border border-transparent hover:border-red-500/30 
+						group transition-all duration-300"
 					>
 						<LogOut className="mr-2 group-hover:animate-pulse" />
 						<span className="font-mono group-hover:animate-glitch">{'>'} TERMINATE_SESSION</span>

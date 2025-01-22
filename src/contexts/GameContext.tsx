@@ -29,6 +29,7 @@ interface GameState {
 	userResearchs: UserResearchs | null;
 	userRewards: UserReward[];
 	resourcesIntervalId: NodeJS.Timeout | null;
+	version: string;
 	currentResources: {
 		metal: number;
 		deuterium: number;
@@ -61,6 +62,7 @@ const initialState: GameState = {
 	planetStructures: null,
 	userPlanets: [],
 	userResearchs: null,
+	version: '0.0.0',
 	currentResources: {
 		metal: 0,
 		deuterium: 0,
@@ -127,6 +129,7 @@ const setupPlanetSubscriptions = (
 					setState((prev) => ({
 						...prev,
 						gameConfig: payload.new.config_data,
+						version: payload.new.version,
 					}));
 				}
 			)
@@ -241,21 +244,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
 				]);
 
 				if (!gameConfig.data || !planets.data) {
-					console.error('Error fetching initial data:', gameConfig.error, userResearchs.error);
+					console.error('Error fetching initial data:', gameConfig.error, planets.error);
 					return;
 				}
 
-				const userPlanets = planets.data.filter((planet) => planet.owner_id === authedUser.id);
-				const homeWorld = userPlanets.find((planet) => planet.is_homeworld);
-
-				console.log(userRewards.data);
+				const userPlanets = planets.data.filter((p) => p.owner_id === authedUser.id);
+				const homeWorld = userPlanets.find((p) => p.is_homeworld === true);
 
 				setState((prev) => ({
 					...prev,
 					currentUser: currentUser.data,
 					gameConfig: gameConfig.data.config_data,
+					version: gameConfig.data.version,
 					userResearchs: userResearchs.data,
-					userPlanets,
+					userPlanets: userPlanets,
 					userRewards: userRewards.data || [],
 					userTasks: userTasks.data || null,
 					selectedPlanet: homeWorld || null,

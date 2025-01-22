@@ -41,6 +41,7 @@ import { containerVariants, itemVariants } from '../../../lib/animations';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DebrisField, ResourcePayload, UserResearchs } from '@/models';
 import { SHIP_ASSETS } from '@/lib/constants';
+import { getPublicImageUrl } from '@/lib/images';
 
 type SortField = 'speed' | 'cargo_capacity' | 'attack_power' | 'defense';
 type SortOrder = 'asc' | 'desc';
@@ -682,8 +683,8 @@ export default function Fleet() {
 		<motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
 			<motion.div variants={itemVariants}>
 				<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
-					<ShipIcon className="h-8 w-8" />
-					FLEET CONTROL
+					<Rocket className="h-8 w-8" />
+					FLEET
 				</h1>
 				<p className="text-muted-foreground">Manage and deploy your stationed ships</p>
 			</motion.div>
@@ -794,7 +795,7 @@ export default function Fleet() {
 										onCheckedChange={() => handleShipSelect(ship.id)}
 									/>
 									<Image
-										src={SHIP_ASSETS[ship.type].image}
+										src={getPublicImageUrl('ships', ship.type + '.webp')}
 										width={100}
 										height={100}
 										aria-description={`Ship ${ship.name}`}

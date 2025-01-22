@@ -630,6 +630,7 @@ interface GalaxyMapProps {
 	allowedPlanets?: string[];
 	highlightedPlanets?: string[];
 	focusedPlanet?: Planet | null;
+	galaxyFilter?: number;
 }
 
 const GalaxyMap = ({
@@ -638,6 +639,7 @@ const GalaxyMap = ({
 	allowedPlanets = [],
 	highlightedPlanets = [],
 	focusedPlanet = null,
+	galaxyFilter = 0,
 }: GalaxyMapProps) => {
 	const { state } = useGame();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -658,15 +660,11 @@ const GalaxyMap = ({
 	}, []);
 
 	useEffect(() => {
-		// const fetchTradingOutposts = async () => {
-		// 	const { data: tradingOutposts } = await supabase.from('trading_outposts').select('*');
-		// 	setTradingOutposts(tradingOutposts || []);
-		// };
-		// fetchTradingOutposts();
-		setTradingOutposts([{ x: 0, y: 0 }]);
-		setAnomalies([{ x: 1000, y: 1000 }]);
+		setTradingOutposts([]);
+		setAnomalies([]);
 	}, []);
 
+	// Initial fetch of fleet movements
 	useEffect(() => {
 		// Initial fetch of fleet movements
 		const fetchFleetMovements = async () => {
@@ -836,17 +834,18 @@ const GalaxyMap = ({
 					{fleetMovements.map((fleetMovement) => (
 						<FleetMovementTracker key={fleetMovement.id} fleetMovement={fleetMovement} />
 					))}
-
-					{state.planets?.map((planet) => (
-						<PlanetObject
-							key={planet.id}
-							planet={planet}
-							isHighlighted={highlightedPlanets.includes(planet.id)}
-							isSelectable={mode === 'view-only' || allowedPlanets.includes(planet.id)}
-							onSelect={() => onPlanetSelect?.(planet)}
-							mode={mode}
-						/>
-					))}
+					{state.planets
+						?.filter((planet) => galaxyFilter === undefined || planet.coordinate_z === galaxyFilter)
+						.map((planet) => (
+							<PlanetObject
+								key={planet.id}
+								planet={planet}
+								isHighlighted={highlightedPlanets.includes(planet.id)}
+								isSelectable={mode === 'view-only' || allowedPlanets.includes(planet.id)}
+								onSelect={() => onPlanetSelect?.(planet)}
+								mode={mode}
+							/>
+						))}
 					<OrbitControls
 						ref={controlsRef}
 						enableRotate={false}

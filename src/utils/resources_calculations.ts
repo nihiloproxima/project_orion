@@ -31,9 +31,10 @@ export function calculateStorageCapacities(gameConfig: GameConfig, structures: S
 	// Add storage from buildings
 	structures.forEach((structure) => {
 		const config = gameConfig.structures.find((s) => s.type === structure.type);
-		if (!config || !config.storage.resource || !config.storage.increase_per_level) return;
+		if (!config || !config.storage.resource || !config.storage.base || !config.storage.multiplier_per_level) return;
 
-		capacities[config.storage.resource] += config.storage.increase_per_level * structure.level;
+		const storage = config.storage.base * Math.pow(config.storage.multiplier_per_level, structure.level - 1);
+		capacities[config.storage.resource] += storage;
 	});
 
 	return capacities;

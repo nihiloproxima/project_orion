@@ -1,30 +1,24 @@
-import { PlanetBiome, ResearchCategory, ShipType, StructureType } from '../models';
+import { ResearchCategory, ShipType, StructureType } from '../models';
 import { TechnologyId } from '../models';
 
-export const SHIP_ASSETS: Record<ShipType, { name: string; image: string }> = {
+export const SHIP_ASSETS: Record<ShipType, { name: string }> = {
 	colony_ship: {
 		name: 'Colony Ship',
-		image: 'colony_ship.webp',
 	},
 	transport_ship: {
 		name: 'Transport Ship',
-		image: 'transport_ship.webp',
 	},
 	spy_probe: {
 		name: 'Spy Probe',
-		image: 'spy_probe.webp',
 	},
 	recycler_ship: {
 		name: 'Recycler Ship',
-		image: 'recycler_ship.webp',
 	},
 	cruiser: {
 		name: 'Cruiser',
-		image: 'cruiser.webp',
 	},
 	destroyer: {
 		name: 'Destroyer',
-		image: 'destroyer.webp',
 	},
 };
 

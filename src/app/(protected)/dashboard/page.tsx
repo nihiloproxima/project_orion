@@ -108,6 +108,7 @@ export default function Dashboard() {
 	};
 
 	useEffect(() => {
+		console.log(state);
 		if (!state.loading) {
 			if (state.currentUser) {
 				if (!state.selectedPlanet && state.userPlanets.length === 0) {
