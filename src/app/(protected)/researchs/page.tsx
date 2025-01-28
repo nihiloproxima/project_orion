@@ -71,7 +71,7 @@ function ResearchCard({
 	if (!state.currentResources) return null;
 
 	const assetConfig = TECHNOLOGIES[id as keyof typeof TECHNOLOGIES];
-	const costMultiplier = 1 + (tech.level * config.cost.percent_increase_per_level) / 100;
+	const costMultiplier = Math.pow(2, tech.level);
 	const researchTime = calculateResearchTime(state.gameConfig!, state.userResearchs!, id);
 
 	const costs = {

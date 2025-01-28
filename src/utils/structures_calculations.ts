@@ -87,7 +87,7 @@ export function calculateUpgradeCost(
 	if (!structureConfig) {
 		throw new Error(`Structure ${structureType} does not exist`);
 	}
-	const levelScaling = 1 + (structureConfig.cost.percent_increase_per_level * currentLevel) / 100;
+	const levelScaling = Math.pow(2, currentLevel);
 
 	const result = {
 		metal: structureConfig.cost.resources.metal * levelScaling,
@@ -116,9 +116,7 @@ export function calculateConstructionTime(
 	const baseTimeMs = structureConfig.time.base_seconds * 1000;
 
 	// Scale time with level based on config percentage increase
-	const levelScaling = 1 + (structureConfig.time.percent_increase_per_level * currentLevel) / 100;
-
-	// Apply game speed multiplier
+	const levelScaling = Math.pow(2, currentLevel);
 
 	// Apply construction speed bonus (lower is faster)
 	let finalTimeMs = (baseTimeMs * levelScaling * constructionSpeedCoef) / config.speed.construction;

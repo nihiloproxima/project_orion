@@ -58,10 +58,10 @@ export function calculateResearchTime(
 
 	const currentResearch = userResearchs.technologies[technologyId];
 
-	const timeMultiplier = 1 + (config.time.percent_increase_per_level * currentResearch.level) / 100;
+	const levelScaling = Math.pow(2, currentResearch.level);
 	const researchSpeedBonus = getTechnologyBonus(gameConfig, userResearchs, 'research_speed');
 
-	const researchTime = (config.time.base_seconds * timeMultiplier * researchSpeedBonus) / gameConfig.speed.researchs;
+	const researchTime = (config.time.base_seconds * levelScaling * researchSpeedBonus) / gameConfig.speed.researchs;
 
 	return researchTime;
 }
