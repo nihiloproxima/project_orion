@@ -223,7 +223,7 @@ const setupPlanetSubscriptions = (
 
 export function GameProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<GameState>(initialState);
-	const { authedUser } = useAuth();
+	const { authedUser, logout } = useAuth();
 
 	// Initial data fetch when auth changes
 	useEffect(() => {
@@ -265,6 +265,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 					loading: false,
 				}));
 			} catch (error) {
+				logout();
 				console.error('Error fetching initial data:', error);
 			}
 		};
