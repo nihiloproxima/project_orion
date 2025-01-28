@@ -1,5 +1,5 @@
+import { DefenseType } from '@/models';
 import { GameConfig } from '@/models/game_config';
-import { DefenseType } from '@/models/defense';
 
 export function calculateDefenseConstructionTimeSeconds(
 	gameConfig: GameConfig,
