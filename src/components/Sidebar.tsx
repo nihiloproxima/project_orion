@@ -153,14 +153,14 @@ export function Sidebar() {
 				color: 'blue',
 			},
 		],
-		OTHER: [
-			{
-				to: '/shop',
-				icon: ShoppingCart,
-				label: 'SHOP',
-				color: 'blue',
-			},
-		],
+		// OTHER: [
+		// {
+		// 	to: '/shop',
+		// 	icon: ShoppingCart,
+		// 	label: 'SHOP',
+		// 	color: 'blue',
+		// },
+		// ],
 	};
 
 	return (
