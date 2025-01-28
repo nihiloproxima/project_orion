@@ -198,7 +198,7 @@ export function Sidebar() {
 							</>
 						)}
 						{!state.selectedPlanet && (
-							<NavLink item={NAVIGATION_ITEMS.OTHER.find((item) => item.label === 'SECURE_COMS')} />
+							<NavLink item={NAVIGATION_ITEMS.MAIN.find((item) => item.label === 'SECURE_COMS')} />
 						)}
 					</nav>
 				</div>
