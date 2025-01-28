@@ -227,6 +227,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 	// Initial data fetch when auth changes
 	useEffect(() => {
+		console.log('authedUser', authedUser);
 		if (!authedUser) {
 			setState(initialState);
 			return;
