@@ -20,6 +20,7 @@ import {
 	Shield,
 	CheckCircle2,
 	Factory,
+	MessageSquare,
 } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 
@@ -152,14 +153,20 @@ export function Sidebar() {
 				color: 'blue',
 			},
 		],
-		// OTHER: [
-		// {
-		// 	to: '/shop',
-		// 	icon: ShoppingCart,
-		// 	label: 'SHOP',
-		// 	color: 'blue',
-		// },
-		// ],
+		OTHER: [
+			// {
+			// 	to: '/shop',
+			// 	icon: ShoppingCart,
+			// 	label: 'SHOP',
+			// 	color: 'blue',
+			// },
+			{
+				to: 'https://discord.gg/VhyygmeE',
+				icon: MessageSquare,
+				label: 'DISCORD',
+				color: 'blue',
+			},
+		],
 	};
 
 	return (
