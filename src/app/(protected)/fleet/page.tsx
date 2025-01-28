@@ -12,7 +12,6 @@ import {
 	Pencil,
 	Rocket,
 	Shield,
-	Ship as ShipIcon,
 	Target,
 	X,
 } from 'lucide-react';

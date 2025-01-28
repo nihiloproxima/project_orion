@@ -18,7 +18,6 @@ import {
 	Trophy,
 	MailIcon,
 	Shield,
-	ShoppingCart,
 	CheckCircle2,
 	Factory,
 } from 'lucide-react';

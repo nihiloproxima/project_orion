@@ -5,7 +5,6 @@ import { CreditCard, Crown, Rocket, User, Palette, Globe, ChevronRight, Star } f
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useGame } from '@/contexts/GameContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { containerVariants, itemVariants } from '@/lib/animations';
 
@@ -76,21 +75,19 @@ const SHOP_ITEMS = {
 	],
 };
 
-function ShopSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
-	return (
-		<div className="space-y-4">
-			<div className="flex items-center gap-2">
-				{icon}
-				<h2 className="text-xl font-bold neon-text">{title}</h2>
-			</div>
-			{children}
-		</div>
-	);
-}
+// function ShopSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+// 	return (
+// 		<div className="space-y-4">
+// 			<div className="flex items-center gap-2">
+// 				{icon}
+// 				<h2 className="text-xl font-bold neon-text">{title}</h2>
+// 			</div>
+// 			{children}
+// 		</div>
+// 	);
+// }
 
 export default function Shop() {
-	const { state } = useGame();
-
 	return (
 		<ErrorBoundary>
 			<motion.div
