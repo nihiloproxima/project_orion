@@ -6,13 +6,16 @@ import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import React, { useEffect, useRef, useState, useMemo, useContext } from 'react';
 
-import { DebrisField, FleetMovement } from '@/models';
+import { FleetMovement } from '@/models';
 import { Planet } from '@/models';
 import { formatTimeString } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import _ from 'lodash';
 import { useGame } from '@/contexts/GameContext';
 import { DebrisFieldEffect } from './DebrisField';
 import { AnomalyMarker } from './AnomalyMarker';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { db, withIdConverter } from '@/lib/firebase';
+import { collection, query, where } from 'firebase/firestore';
 
 // Add a new context at the top level to manage open cards
 const OpenCardsContext = React.createContext<{
@@ -130,7 +133,7 @@ function PlanetObject({
 
 	return (
 		<group
-			position={[planet.coordinate_x, planet.coordinate_y, 0]}
+			position={[planet.position.x, planet.position.y, 0]}
 			onClick={handleClick}
 			onPointerDown={handlePointerDown}
 			onPointerEnter={(e) => {
@@ -288,7 +291,7 @@ const Planet3DInfoCard = ({
 						{planet.name}
 					</span>
 					<span className="text-emerald-400/60 ml-4 font-mono text-xs">
-						[{planet.coordinate_x}, {planet.coordinate_y}]
+						[{planet.position.x}, {planet.position.y}]
 					</span>
 				</div>
 
@@ -420,13 +423,21 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 	useFrame(() => {
 		if (meshRef.current && lineRef.current) {
 			const now = Date.now();
-			const startTime = new Date(fleetMovement.departure_time).getTime();
-			const endTime = new Date(fleetMovement.arrival_time).getTime();
+			const startTime = fleetMovement.departure_time.toMillis();
+			const endTime = fleetMovement.arrival_time.toMillis();
 			const progress = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
 
 			// Lerp between start and end coordinates
-			const x = THREE.MathUtils.lerp(fleetMovement.origin_x, fleetMovement.destination_x, progress);
-			const y = THREE.MathUtils.lerp(fleetMovement.origin_y, fleetMovement.destination_y, progress);
+			const x = THREE.MathUtils.lerp(
+				fleetMovement.origin.coordinates.x,
+				fleetMovement.destination.coordinates.x,
+				progress
+			);
+			const y = THREE.MathUtils.lerp(
+				fleetMovement.origin.coordinates.y,
+				fleetMovement.destination.coordinates.y,
+				progress
+			);
 
 			meshRef.current.position.set(x, y, 0);
 		}
@@ -443,11 +454,11 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 					attributes={{
 						position: new THREE.BufferAttribute(
 							new Float32Array([
-								fleetMovement.origin_x,
-								fleetMovement.origin_y,
+								fleetMovement.origin.coordinates.x,
+								fleetMovement.origin.coordinates.y,
 								0,
-								fleetMovement.destination_x,
-								fleetMovement.destination_y,
+								fleetMovement.destination.coordinates.x,
+								fleetMovement.destination.coordinates.y,
 								0,
 							]),
 							3
@@ -466,7 +477,7 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 			</primitive>
 
 			{/* Fleet marker with info card */}
-			<group ref={meshRef} position={[fleetMovement.origin_x, fleetMovement.origin_y, 0]}>
+			<group ref={meshRef} position={[fleetMovement.origin.coordinates.x, fleetMovement.origin.coordinates.y, 0]}>
 				<mesh>
 					<circleGeometry args={[10, 32]} />
 					<meshBasicMaterial color={movementColor} transparent opacity={0.8} />
@@ -495,10 +506,10 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 										: 'text-emerald-400'
 								}
 							>
-								→ {fleetMovement.destination_name}
+								→ {fleetMovement.destination.planet_id}
 							</span>
 							<span className="text-neutral-400 text-[10px]">
-								Arrival: {formatTimeString(fleetMovement.arrival_time - Date.now())}
+								Arrival: {formatTimeString(fleetMovement.arrival_time.toMillis() - Date.now())}
 							</span>
 							{fleetMovement.mission_type && (
 								<span className="text-neutral-400 text-[10px] capitalize">
@@ -643,101 +654,32 @@ const GalaxyMap = ({
 }: GalaxyMapProps) => {
 	const { state } = useGame();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const [fleetMovements, setFleetMovements] = useState<FleetMovement[]>([]);
 	const controlsRef = useRef(null);
 	const [animating, setAnimating] = useState(false);
 	const [openCards, setOpenCards] = useState<Set<string>>(new Set());
-	const [debrisFields, setDebrisFields] = useState<DebrisField[]>([]);
+	const [debrisFields] = useCollectionData(
+		state.gameConfig
+			? collection(db, `seasons/${state.gameConfig.season.current}/debris_fields`).withConverter(withIdConverter)
+			: null
+	);
 	const [tradingOutposts, setTradingOutposts] = useState<Array<{ x: number; y: number }>>([]);
 	const [anomalies, setAnomalies] = useState<Array<{ x: number; y: number }>>([]);
-
-	useEffect(() => {
-		const fetchDebrisFields = async () => {
-			const { data: debrisFields } = await supabase.from('debris_fields').select('*');
-			setDebrisFields(debrisFields || []);
-		};
-		fetchDebrisFields();
-	}, []);
-
-	useEffect(() => {
-		setTradingOutposts([]);
-		setAnomalies([]);
-	}, []);
-
-	// Initial fetch of fleet movements
-	useEffect(() => {
-		// Initial fetch of fleet movements
-		const fetchFleetMovements = async () => {
-			// Fetch own movements
-			const { data: ownMovements } = await supabase
-				.from('fleet_movements')
-				.select('*')
-				.eq('owner_id', state.currentUser?.id)
-				.in('status', ['traveling', 'returning']);
-
-			// Fetch ally movements (transports coming to our planets)
-			const { data: allyMovements } = await supabase
-				.from('fleet_movements')
-				.select('*')
-				.neq('owner_id', state.currentUser?.id)
-				.eq('mission_type', 'transport')
-				.in('destination_planet_id', state.userPlanets?.map((p) => p.id) || [])
-				.eq('status', 'traveling');
-
-			// Fetch hostile movements targeting our planets
-			const { data: hostileMovements } = await supabase
-				.from('fleet_movements')
-				.select('*')
-				.neq('owner_id', state.currentUser?.id)
-				.neq('mission_type', 'transport')
-				.neq('mission_type', 'spy')
-				.in('destination_planet_id', state.userPlanets?.map((p) => p.id) || [])
-				.eq('status', 'traveling');
-
-			setFleetMovements([...(ownMovements || []), ...(allyMovements || []), ...(hostileMovements || [])]);
-		};
-
-		fetchFleetMovements();
-
-		// Subscribe to fleet movement changes
-		const subscription = supabase
-			.channel('fleet_movements')
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'fleet_movements',
-					filter: `owner_id=eq.${
-						state.currentUser?.id
-					} OR (mission_type=eq.transport AND destination_planet_id=in.(${
-						state.userPlanets?.map((p) => p.id).join(',') || ''
-					}))`,
-				},
-				(payload) => {
-					if (payload.eventType === 'DELETE') {
-						setFleetMovements((current) => current.filter((m) => m.id !== payload.old.id));
-					} else {
-						const movement = payload.new as FleetMovement;
-						setFleetMovements((current) => {
-							const updated = [...current];
-							const index = updated.findIndex((m) => m.id === movement.id);
-							if (index >= 0) {
-								updated[index] = movement;
-							} else {
-								updated.push(movement);
-							}
-							return updated;
-						});
-					}
-				}
-			)
-			.subscribe();
-
-		return () => {
-			subscription.unsubscribe();
-		};
-	}, [state.currentUser?.id, state.userPlanets]);
+	const [fleetMovements] = useCollectionData(
+		state.currentUser?.id && state.gameConfig
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`),
+					where('owner_id', '==', state.currentUser?.id)
+			  ).withConverter(withIdConverter)
+			: null
+	);
+	const [hostileFleetMovements] = useCollectionData(
+		state.currentUser?.id && state.gameConfig
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`),
+					where('destination.planet_id', 'array-contains', state.userPlanets?.map((p) => p.id) || [])
+			  ).withConverter(withIdConverter)
+			: null
+	);
 
 	// Add effect to handle focused planet changes
 	useEffect(() => {
@@ -756,11 +698,7 @@ const GalaxyMap = ({
 		camera.getWorldPosition(startPosition);
 
 		// Calculate target position (centered on focused planet)
-		const targetPosition = new THREE.Vector3(
-			focusedPlanet.coordinate_x,
-			focusedPlanet.coordinate_y,
-			camera.position.z
-		);
+		const targetPosition = new THREE.Vector3(focusedPlanet.position.x, focusedPlanet.position.y, camera.position.z);
 
 		const duration = 1000;
 		const startTime = Date.now();
@@ -776,7 +714,7 @@ const GalaxyMap = ({
 			controls.zoom = startZoom + (targetZoom - startZoom) * easing;
 
 			camera.position.lerpVectors(startPosition, targetPosition, easing);
-			controls.target.set(focusedPlanet.coordinate_x, focusedPlanet.coordinate_y, 0);
+			controls.target.set(focusedPlanet.position.x, focusedPlanet.position.y, 0);
 
 			controls.update();
 
@@ -826,16 +764,16 @@ const GalaxyMap = ({
 					))}
 
 					{/* Add debris fields before planets */}
-					{debrisFields.map((debrisField) => (
+					{debrisFields?.map((debrisField) => (
 						<DebrisFieldEffect key={debrisField.id} debrisField={debrisField} />
 					))}
 
 					{/* Fleet movements */}
-					{fleetMovements.map((fleetMovement) => (
+					{_.concat(fleetMovements, hostileFleetMovements).map((fleetMovement) => (
 						<FleetMovementTracker key={fleetMovement.id} fleetMovement={fleetMovement} />
 					))}
 					{state.planets
-						?.filter((planet) => galaxyFilter === undefined || planet.coordinate_z === galaxyFilter)
+						?.filter((planet) => galaxyFilter === undefined || planet.position.galaxy === galaxyFilter)
 						.map((planet) => (
 							<PlanetObject
 								key={planet.id}

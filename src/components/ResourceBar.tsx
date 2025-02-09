@@ -2,15 +2,12 @@ import { useGame } from '../contexts/GameContext';
 import millify from 'millify';
 import { Flame, Hammer, Microchip, Zap, Menu } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import {
-	calculateBaseRates,
-	calculateStorageCapacities,
-	ResourceGenerationRates,
-} from '@/utils/resources_calculations';
+
 import { ResourceType } from '@/models';
 import { useEffect, useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import planetCalculations, { ResourceGenerationRates } from '@/utils/planet_calculations';
 
 // First, define a resource config object
 type ResourceConfig = {
@@ -70,19 +67,13 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 		setResources(state.currentResources);
 	}, [state.selectedPlanet, state.currentResources]);
 
-	if (
-		state.selectedPlanet === null ||
-		!state.currentResources ||
-		!state.gameConfig ||
-		!state.planetStructures ||
-		!state.userResearchs
-	) {
+	if (state.selectedPlanet === null || !state.currentResources || !state.gameConfig || !state.userResearchs) {
 		return null;
 	}
 
-	const baseRates = calculateBaseRates(
+	const baseRates = planetCalculations.calculateBaseRates(
 		state.gameConfig,
-		state.planetStructures.structures,
+		state.selectedPlanet.structures,
 		state.userResearchs,
 		state.selectedPlanet.biome
 	);
@@ -92,7 +83,10 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 		microchips: (baseRates.microchips || 0) * 3600,
 	};
 
-	const storageCapacities = calculateStorageCapacities(state.gameConfig, state.planetStructures.structures);
+	const storageCapacities = planetCalculations.calculateStorageCapacities(
+		state.gameConfig,
+		state.selectedPlanet.structures
+	);
 
 	return (
 		<div className="w-full bg-black/80 border-b border-primary/30 backdrop-blur-sm py-2 px-4 sticky top-0 z-[55]">

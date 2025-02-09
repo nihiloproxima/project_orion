@@ -1,13 +1,8 @@
-import { ResourcePayload } from '@/models/fleet_movement';
-import { MissionType, ShipType } from '../models/ship';
-import { supabase } from './supabase';
-import { StructureType } from '@/models/planet_structures';
-import { DefenseType } from '@/models/planet_defenses';
+import { StructureType } from '@/models/planet';
+import { auth } from './firebase';
 
 function getAuthToken() {
-	return supabase.auth.getSession().then(({ data: { session } }) => {
-		return session?.access_token;
-	});
+	return auth.currentUser?.getIdToken();
 }
 
 async function post(group: string, endpoint: string, data: Record<string, any>) {
@@ -16,7 +11,7 @@ async function post(group: string, endpoint: string, data: Record<string, any>) 
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`,
+			Authorization: `${token}`,
 		},
 		body: JSON.stringify(data),
 	});
@@ -29,116 +24,46 @@ async function post(group: string, endpoint: string, data: Record<string, any>) 
 }
 
 export const api = {
-	admin: {
-		updateConfig: async (id: string, config_data: Record<string, any>) => {
-			return post('admin', 'updateConfig', { id, config_data });
-		},
+	startResearch: async (technologyId: string, planetId: string) => {
+		return post('game', 'startResearch', {
+			technology_id: technologyId,
+			planet_id: planetId,
+		});
 	},
-	researchs: {
-		startResearch: async (technologyId: string, planetId: string) => {
-			return post('researchs', 'startResearch', {
-				technology_id: technologyId,
-				planet_id: planetId,
-			});
-		},
+	sendMessage: async (channelId: string, text: string) => {
+		return post('game', 'sendChatMessage', { channel_id: channelId, text });
 	},
-	chat: {
-		sendMessage: async (channelId: string, text: string) => {
-			return post('chat', 'sendMessage', { channel_id: channelId, text });
-		},
+	createUser: (name: string, avatar: number) => post('game', 'createUser', { name, avatar }),
+	updateUser: (name: string, avatar: number) => post('game', 'updateUser', { name, avatar }),
+	selectHomeworld: (planetId: string) => post('game', 'chooseHomeworld', { planet_id: planetId }),
+	claimTaskRewards: (taskId: string) => post('game', 'claimTaskRewards', { task_id: taskId }),
+	collectReward: (rewardId: string) => post('game', 'collectReward', { reward_id: rewardId }),
+	renamePlanet: (planetId: string, newName: string) =>
+		post('game', 'renamePlanet', { planet_id: planetId, new_name: newName }),
+	upgradeStructure: async (planetId: string, structureType: StructureType, upgradeCount: number) => {
+		return post('game', 'upgradeStructure', {
+			planet_id: planetId,
+			structure_type: structureType,
+			upgrade_count: upgradeCount,
+		});
 	},
-	users: {
-		register: (name: string, avatar: string) => post('users', 'register', { name, avatar }),
-		update: (name: string, avatar: string) => post('users', 'update', { name, avatar }),
-		chooseHomeworld: (planetId: string) => post('users', 'chooseHomeworld', { planet_id: planetId }),
-		claimTaskRewards: (taskId: string) => post('users', 'claimTaskRewards', { task_id: taskId }),
-		collectReward: (rewardId: string) => post('users', 'collectReward', { reward_id: rewardId }),
-		renamePlanet: (planetId: string, newName: string) =>
-			post('users', 'renamePlanet', { planet_id: planetId, new_name: newName }),
+	getRankings: async (params: {
+		page: number;
+	}): Promise<{
+		status: 'ok';
+		rankings: {
+			user_id: string;
+			name: string;
+			avatar: string;
+			score: number;
+			planets_count: number;
+		}[];
+		page: number;
+		users_per_page: number;
+	}> => {
+		return post('game', 'getUsersRanking', params);
 	},
-	structures: {
-		construct: async (planetId: string, type: StructureType) => {
-			return post('structures', 'construct', {
-				planet_id: planetId,
-				structure_type: type,
-			});
-		},
-		startConstruction: async (planetId: string, type: StructureType) => {
-			return post('structures', 'startConstruction', {
-				planet_id: planetId,
-				structure_type: type,
-			});
-		},
-
-		resolvePendingConstructions: async (planetId: string) => {
-			return post('structures', 'resolvePendingConstructions', {
-				planet_id: planetId,
-			});
-		},
-	},
-	defenses: {
-		buildDefense: async (type: DefenseType, planetId: string, amount: number) => {
-			return post('defenses', 'buildDefense', {
-				defense_type: type,
-				planet_id: planetId,
-				amount,
-			});
-		},
-	},
-	fleet: {
-		buildShip: async (shipType: ShipType, planetId: string, amount: number) => {
-			return post('fleet', 'buildShip', {
-				ship_type: shipType,
-				planet_id: planetId,
-				amount,
-			});
-		},
-		renameShip: async (shipId: string, newName: string) => {
-			return post('fleet', 'renameShip', {
-				ship_id: shipId,
-				new_name: newName,
-			});
-		},
-		sendMission: async (params: {
-			from_planet_id: string;
-			to_planet_id: string;
-			ships_ids: string[];
-			mission_type: MissionType;
-			resources?: ResourcePayload;
-		}) => {
-			return post('fleet', 'sendMission', params);
-		},
-		cancelMission: async (fleet_movement_id: string) => {
-			return post('fleet', 'cancelMission', {
-				fleet_movement_id,
-			});
-		},
-	},
-	rankings: {
-		getRankings: async (params: {
-			type: 'global' | 'defense' | 'attack';
-			page: number;
-		}): Promise<{
-			status: 'ok';
-			rankings: {
-				user_id: string;
-				name: string;
-				avatar: string;
-				score: number;
-				planets_count: number;
-			}[];
-			page: number;
-			users_per_page: number;
-		}> => {
-			return post('rankings', 'getRankings', params);
-		},
-	},
-	mails: {
-		markAsRead: async (id: string) => {
-			return post('mails', 'markAsRead', { mail_id: id });
-		},
-		deleteMail: async (id: string) => {
-			return post('mails', 'deleteMail', { mail_id: id });
-		},
+	updateMail: async (params: { mail_id: string; read?: boolean; deleted?: boolean; archived?: boolean }) => {
+		return post('game', 'updateMail', params);
 	},
 };

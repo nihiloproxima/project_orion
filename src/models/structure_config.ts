@@ -1,18 +1,17 @@
-import { StructureType } from './planet_structures';
-import { ResourceType } from './planets_resources';
+import { StructureType, ResourceType } from './planet';
 import { TechnologyId } from './researchs_config';
 
 export interface StructureConfig {
 	type: StructureType;
 
-	cost: {
-		resources: {
-			metal: number;
-			deuterium: number;
-			microchips: number;
-		};
-		percent_increase_per_level: number;
-	};
+	cost: Array<{
+		metal_base: number;
+		level: number;
+		multiplier: number;
+		reducer: number;
+		offset: number;
+		minus: number;
+	}>;
 
 	prerequisites: {
 		structures: {
@@ -27,25 +26,23 @@ export interface StructureConfig {
 
 	production: {
 		base: number | null;
-		percent_increase_per_level: number | null;
+		per_level: number | null;
 		resource: ResourceType | null;
 	};
 
 	storage: {
 		base: number | null;
-		multiplier_per_level: number | null;
+		per_level: number | null;
 		resource: ResourceType | null;
 	};
 
-	time: {
-		base_seconds: number;
-		percent_increase_per_level: number;
-		max_seconds: number;
+	construction_time: {
+		seconds: number;
 	};
 
 	energy_consumption: {
 		base: number;
-		percent_increase_per_level: number;
+		per_level: number;
 	};
 
 	max_level: number | null;

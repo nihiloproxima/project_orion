@@ -29,8 +29,8 @@ export function usePlanets(): UsePlanetsReturn {
 		if (!state.planets) return [];
 
 		return state.planets.filter((p) => {
-			const dx = p.coordinate_x - planet.coordinate_x;
-			const dy = p.coordinate_y - planet.coordinate_y;
+			const dx = p.position.x - planet.position.x;
+			const dy = p.position.y - planet.position.y;
 			const distance = Math.sqrt(dx * dx + dy * dy);
 			return distance <= radius && p.id !== planet.id;
 		});

@@ -1,19 +1,14 @@
 'use client';
 
-import {
-	GameConfig,
-	Planet,
-	PlanetResources,
-	PlanetStructures,
-	User,
-	UserResearchs,
-	UserTasks,
-	UserReward,
-} from '../models/';
+import { auth, db } from '@/lib/firebase';
+import { doc, collection, onSnapshot, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { GameConfig, Planet, User, UserResearchs, UserTasks, UserReward } from '../models/';
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
-import { calculateEnergyBalance, calculatePlanetResources } from '../utils/resources_calculations';
-import { supabase } from '../lib/supabase';
+
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useDocument, useCollection } from 'react-firebase-hooks/firestore';
 import { useAuth } from './AuthContext';
+import planetCalculations from '@/utils/planet_calculations';
 
 interface GameState {
 	activePlayers: string[];
@@ -22,9 +17,7 @@ interface GameState {
 	loading: boolean;
 	planets: Planet[];
 	userTasks: UserTasks | null;
-	planetResources: PlanetResources | null;
 	selectedPlanet: Planet | null;
-	planetStructures: PlanetStructures | null;
 	userPlanets: Planet[];
 	userResearchs: UserResearchs | null;
 	userRewards: UserReward[];
@@ -51,15 +44,13 @@ const GameContext = createContext<GameContextType | null>(null);
 const initialState: GameState = {
 	resourcesIntervalId: null,
 	activePlayers: [],
-	loading: true,
+	loading: false,
 	currentUser: null,
 	userRewards: [],
 	gameConfig: null,
 	planets: [],
-	planetResources: null,
 	userTasks: null,
 	selectedPlanet: null,
-	planetStructures: null,
 	userPlanets: [],
 	userResearchs: null,
 	version: '0.0.0',
@@ -73,279 +64,83 @@ const initialState: GameState = {
 	},
 };
 
-// Setup subscriptions for a selected planet
-const setupPlanetSubscriptions = (
-	state: GameState,
-	planetId: string,
-	setState: React.Dispatch<React.SetStateAction<GameState>>
-) => {
-	const subscriptions = [
-		supabase
-			.channel(`user_researchs-${state.currentUser?.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'user_researchs',
-					filter: `user_id=eq.${state.currentUser?.id}`,
-				},
-				(payload: any) => {
-					setState((prev) => ({
-						...prev,
-						userResearchs: payload.new as UserResearchs,
-					}));
-				}
-			)
-			.subscribe(),
-		// UserTasks
-		supabase
-			.channel(`user_tasks-${state.currentUser?.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'user_tasks',
-					filter: `user_id=eq.${state.currentUser?.id}`,
-				},
-				(payload: any) => {
-					setState((prev) => ({ ...prev, userTasks: payload.new as UserTasks }));
-				}
-			)
-			.subscribe(),
-		// Gameconfig
-		supabase
-			.channel('gameconfig-changes')
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'configs',
-					filter: 'id=eq.game',
-				},
-				(payload: any) => {
-					setState((prev) => ({
-						...prev,
-						gameConfig: payload.new.config_data,
-						version: payload.new.version,
-					}));
-				}
-			)
-			.subscribe(),
-
-		// Resources subscription
-		supabase
-			.channel(`resources-${planetId}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'planet_resources',
-					filter: `planet_id=eq.${planetId}`,
-				},
-				(payload: any) => {
-					setState((prev) => ({
-						...prev,
-						planetResources: payload.new,
-					}));
-				}
-			)
-			.subscribe(),
-
-		// Structures subscription
-		supabase
-			.channel(`structures-${planetId}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'planet_structures',
-					filter: `planet_id=eq.${planetId}`,
-				},
-				(payload: any) => {
-					setState((prev) => ({
-						...prev,
-						planetStructures: payload.eventType === 'DELETE' ? null : (payload.new as PlanetStructures),
-					}));
-				}
-			)
-			.subscribe(),
-		// Rewards subscription
-		supabase
-			.channel(`user_rewards-${state.currentUser?.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'user_rewards',
-					filter: `user_id=eq.${state.currentUser?.id}`,
-				},
-				(payload: any) => {
-					console.log('user rewards updated', payload);
-					setState((prev) => {
-						let updatedRewards = [...prev.userRewards];
-
-						switch (payload.eventType) {
-							case 'INSERT':
-								updatedRewards.push(payload.new as UserReward);
-								break;
-							case 'DELETE':
-								updatedRewards = updatedRewards.filter((reward) => reward.id !== payload.old.id);
-								break;
-							case 'UPDATE':
-								updatedRewards = updatedRewards.map((reward) =>
-									reward.id === payload.old.id ? (payload.new as UserReward) : reward
-								);
-								break;
-							default:
-								break;
-						}
-
-						return {
-							...prev,
-							userRewards: updatedRewards,
-						};
-					});
-				}
-			)
-			.subscribe(),
-	];
-
-	return () => {
-		subscriptions.forEach((subscription) => subscription.unsubscribe());
-	};
-};
-
 export function GameProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<GameState>(initialState);
-	const { authedUser, logout } = useAuth();
+	const [user] = useAuthState(auth);
+	const { logout } = useAuth();
 
-	// Initial data fetch when auth changes
+	// Use react-firebase-hooks for main data
+	const [gameConfigDoc] = useDocument(doc(db, 'configs', 'game'));
+	const [userDoc] = useDocument(user ? doc(db, 'users', user.uid) : null);
+	const [userResearchsDoc] = useDocument(user ? doc(db, `users/${user.uid}/private/researchs`) : null);
+	const [planetsSnapshot] = useCollection(
+		gameConfigDoc ? collection(db, `seasons/${gameConfigDoc.data()?.season.current}/planets`) : null
+	);
+	const [userTasksDoc] = useDocument(user ? doc(db, `users/${user.uid}/private/tasks`) : null);
+	const [userRewardsSnapshot] = useCollection(user ? collection(db, `users/${user.uid}/rewards`) : null);
+
+	// Initial data setup when auth changes
 	useEffect(() => {
-		console.log('authedUser', authedUser);
-		if (!authedUser) {
+		if (!user || !gameConfigDoc?.exists() || !planetsSnapshot) {
 			setState(initialState);
 			return;
 		}
 
-		const fetchInitialData = async () => {
-			try {
-				const [gameConfig, currentUser, userResearchs, planets, userTasks, userRewards] = await Promise.all([
-					supabase.from('configs').select('*').eq('id', 'game').single(),
-					supabase.from('users').select('*').eq('id', authedUser.id).single(),
-					supabase.from('user_researchs').select('*').eq('user_id', authedUser.id).single(),
-					supabase.from('planets').select('*'),
-					supabase.from('user_tasks').select('*').eq('user_id', authedUser.id).single(),
-					supabase.from('user_rewards').select('*').eq('user_id', authedUser.id),
-				]);
+		try {
+			const userPlanets = planetsSnapshot.docs
+				.map((doc) => ({ id: doc.id, ...doc.data() } as Planet))
+				.filter((p) => p.owner_id === user.uid);
+			const homeWorld = userPlanets.find((p) => p.is_homeworld);
 
-				if (!gameConfig.data || !planets.data) {
-					console.error('Error fetching initial data:', gameConfig.error, planets.error);
-					return;
-				}
+			setState((prev) => ({
+				...prev,
+				currentUser: userDoc?.data() as User,
+				gameConfig: gameConfigDoc.data()?.config_data,
+				version: gameConfigDoc.data()?.version,
+				userResearchs: userResearchsDoc?.data() as UserResearchs,
+				userPlanets,
+				userRewards:
+					userRewardsSnapshot?.docs.map((doc) => ({ id: doc.id, ...doc.data() } as UserReward)) || [],
+				userTasks: userTasksDoc?.data() as UserTasks,
+				selectedPlanet: homeWorld || null,
+				planets: planetsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Planet)),
+				loading: false,
+			}));
+		} catch (error) {
+			console.error('Error setting up game state:', error);
+			logout();
+		}
+	}, [user, gameConfigDoc, userDoc, userResearchsDoc, planetsSnapshot, userTasksDoc, userRewardsSnapshot]);
 
-				const userPlanets = planets.data.filter((p) => p.owner_id === authedUser.id);
-				const homeWorld = userPlanets.find((p) => p.is_homeworld === true);
+	// Handle active players
+	useEffect(() => {
+		if (!user) return;
 
-				setState((prev) => ({
-					...prev,
-					currentUser: currentUser.data,
-					gameConfig: gameConfig.data.config_data,
-					version: gameConfig.data.version,
-					userResearchs: userResearchs.data,
-					userPlanets: userPlanets,
-					userRewards: userRewards.data || [],
-					userTasks: userTasks.data || null,
-					selectedPlanet: homeWorld || null,
-					planets: planets.data,
-					loading: false,
-				}));
-			} catch (error) {
-				logout();
-				console.error('Error fetching initial data:', error);
-			}
-		};
-
-		fetchInitialData();
-
-		const channel = supabase.channel('online-users', {
-			config: {
-				presence: {
-					key: authedUser.id,
-				},
-			},
+		const activePlayers = collection(db, 'active_players');
+		const unsubscribe = onSnapshot(activePlayers, (snapshot) => {
+			setState((prev) => ({
+				...prev,
+				activePlayers: snapshot.docs.map((doc) => doc.id),
+			}));
 		});
 
-		channel
-			.on('presence', { event: 'sync' }, () => {
-				const presenceState = channel.presenceState();
-				const onlineUsers = Object.keys(presenceState);
-				setState((prev) => ({
-					...prev,
-					activePlayers: onlineUsers,
-				}));
-			})
-			.subscribe(async (status) => {
-				if (status === 'SUBSCRIBED') {
-					await channel.track({ online_at: new Date().toISOString() });
-				}
-			});
+		// Set user as active
+		const userRef = doc(db, 'active_players', user.uid);
+		setDoc(userRef, {
+			last_active: serverTimestamp(),
+			user_id: user.uid,
+		});
 
 		return () => {
-			channel.unsubscribe();
+			unsubscribe();
+			// Remove user from active players on unmount
+			deleteDoc(userRef);
 		};
-	}, [authedUser]);
+	}, [user]);
 
+	// Keep the existing resource calculation effect
 	useEffect(() => {
-		const fetchPlanetData = async () => {
-			if (state.selectedPlanet) {
-				let planetStructures: PlanetStructures | null = null;
-				let planetResources:
-					| (PlanetResources & { energy_production: number; energy_consumption: number })
-					| null = null;
-				const { data: planetStructuresData } = await supabase
-					.from('planet_structures')
-					.select('*')
-					.eq('planet_id', state.selectedPlanet.id)
-					.single();
-
-				if (planetStructuresData) {
-					planetStructures = planetStructuresData;
-				}
-
-				const { data: planetResourcesData } = await supabase
-					.from('planet_resources')
-					.select('*')
-					.eq('planet_id', state.selectedPlanet.id)
-					.single();
-
-				if (planetResourcesData) {
-					planetResources = {
-						...planetResourcesData,
-						energy_production: 0,
-						energy_consumption: 0,
-					};
-				}
-
-				setState((prev) => ({
-					...prev,
-					planetStructures,
-					planetResources,
-				}));
-			}
-		};
-
-		fetchPlanetData();
-	}, [state.selectedPlanet]);
-
-	// Setup subscriptions and resource calculation interval for selected planet
-	useEffect(() => {
-		if (!state.selectedPlanet?.id || !state.gameConfig || !state.planetStructures || !state.userResearchs) {
+		if (!state.selectedPlanet?.id || !state.gameConfig || !state.userResearchs) {
 			return;
 		}
 
@@ -354,28 +149,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
 			clearInterval(state.resourcesIntervalId);
 		}
 
-		// Setup planet subscriptions
-		const unsubscribe = setupPlanetSubscriptions(state, state.selectedPlanet.id, setState);
-
 		// Setup resource calculation interval
 		const calculateResources = () => {
-			const planetResources = calculatePlanetResources(
+			const updatedPlanet = planetCalculations.calculatePlanetResources(
 				state.gameConfig!,
-				state.planetStructures!,
-				state.planetResources!,
-				state.userResearchs!,
-				state.selectedPlanet!.biome
+				state.selectedPlanet!,
+				state.userResearchs!
 			);
-			const energyBalance = calculateEnergyBalance(
+			const energyBalance = planetCalculations.calculateEnergyBalance(
 				state.gameConfig!,
 				state.userResearchs!,
-				state.planetStructures!.structures
+				state.selectedPlanet!.structures
 			);
 
 			setState((prev) => ({
 				...prev,
 				currentResources: {
-					...planetResources,
+					metal: updatedPlanet.resources.metal,
+					deuterium: updatedPlanet.resources.deuterium,
+					microchips: updatedPlanet.resources.microchips,
+					energy: updatedPlanet.resources.energy,
 					energy_production: energyBalance.production,
 					energy_consumption: energyBalance.consumption,
 				},
@@ -391,15 +184,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 		return () => {
 			clearInterval(intervalId); // Clear using the captured intervalId
-			unsubscribe();
 		};
-	}, [
-		state.selectedPlanet?.id,
-		state.gameConfig,
-		state.planetStructures,
-		state.userResearchs,
-		state.planetResources,
-	]);
+	}, [state.selectedPlanet?.id, state.gameConfig, state.userResearchs]);
 
 	const selectPlanet = (planet: Planet) => {
 		setState((prev) => ({

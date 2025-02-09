@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +10,14 @@ import { getPublicImageUrl } from '@/lib/images';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { doc } from 'firebase/firestore';
+import { useDocument } from 'react-firebase-hooks/firestore';
+import { db } from '@/lib/firebase';
 
 export default function CreateUser() {
 	const router = useRouter();
 	const { authedUser } = useAuth();
+	const [userDoc] = useDocument(authedUser ? doc(db, 'users', authedUser.uid) : null);
 	const [name, setName] = useState('');
 	const [selectedAvatar, setSelectedAvatar] = useState('0');
 	const [currentPage, setCurrentPage] = useState(0);
@@ -33,16 +36,11 @@ export default function CreateUser() {
 		}
 
 		// Check if user already exists in users table
-		const checkUser = async () => {
-			const { data: existingUser } = await supabase.from('users').select().eq('id', authedUser.id).single();
 
-			if (existingUser) {
-				router.push('/secure-communications');
-			}
-		};
-
-		checkUser();
-	}, [authedUser, router]);
+		if (userDoc?.exists()) {
+			router.push('/secure-communications');
+		}
+	}, [authedUser, router, userDoc]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -53,7 +51,7 @@ export default function CreateUser() {
 
 		setLoading(true);
 		try {
-			await api.users.register(name, selectedAvatar);
+			await api.createUser(name, parseInt(selectedAvatar));
 			router.push('/secure-communications');
 		} catch (error: any) {
 			console.error('Error creating user:', error);

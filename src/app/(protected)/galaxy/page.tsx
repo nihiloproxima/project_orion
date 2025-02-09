@@ -12,7 +12,7 @@ export default function GalaxyObservation() {
 	const [currentGalaxy, setCurrentGalaxy] = useState(0);
 
 	// Filter planets by current galaxy
-	const galaxyPlanets = state.planets?.filter((p) => p.coordinate_z === currentGalaxy) || [];
+	const galaxyPlanets = state.planets?.filter((p) => p.position.galaxy === currentGalaxy) || [];
 
 	return (
 		<div className="flex flex-col h-[calc(100vh-8rem)] overflow-hidden">

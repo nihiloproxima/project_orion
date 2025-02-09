@@ -23,6 +23,7 @@ import {
 	MessageSquare,
 } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
+import { auth } from '@/lib/firebase';
 
 // Create a reusable NavLink component
 const NavLink = ({ item, badge }: { item: any; badge?: number }) => (
@@ -97,7 +98,7 @@ export function Sidebar() {
 				hasBadge: true,
 			},
 			{
-				to: `/user/${state?.currentUser?.id}`,
+				to: `/user/${auth.currentUser?.uid}`,
 				icon: User,
 				label: 'USER_PROFILE',
 				color: 'blue',

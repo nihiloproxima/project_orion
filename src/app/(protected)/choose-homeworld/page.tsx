@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,11 +8,15 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { Planet } from '@/models/planet';
 import { api } from '@/lib/api';
 import GalaxyMap from '@/components/ThreeMap/GalaxyMap';
+import { GalaxySelector } from '@/components/GalaxySelector';
 
 export default function ChooseHomeworldPage() {
 	const { state, selectPlanet } = useGame();
 	const { unclaimedPlanets, loading } = usePlanets();
 	const router = useRouter();
+	const [currentGalaxy, setCurrentGalaxy] = useState(0);
+
+	const galaxyPlanets = unclaimedPlanets.filter((p) => p.position.galaxy === currentGalaxy) || [];
 
 	// Redirect to dashboard if user already has a planet
 	useEffect(() => {
@@ -23,7 +27,7 @@ export default function ChooseHomeworldPage() {
 
 	const handlePlanetSelect = async (planet: Planet) => {
 		try {
-			await api.users.chooseHomeworld(planet.id);
+			await api.selectHomeworld(planet.id);
 			selectPlanet(planet);
 			router.push('/dashboard');
 		} catch (error) {
@@ -43,20 +47,18 @@ export default function ChooseHomeworldPage() {
 						<CardTitle className="text-2xl font-bold neon-text text-center">
 							SELECT YOUR HOMEWORLD
 						</CardTitle>
+						<GalaxySelector currentGalaxy={currentGalaxy} onGalaxyChange={setCurrentGalaxy} />
 					</CardHeader>
 					<CardContent className="p-6">
 						<p className="text-center text-muted-foreground mb-6">
 							Choose your starting planet carefully, Commander. This decision will shape your destiny.
-							{unclaimedPlanets.filter((p) => p.coordinate_z == 0).length} unclaimed worlds await your
-							command.
 						</p>
 
 						<div className="flex justify-center w-full h-[calc(100vh-20rem)]">
 							<GalaxyMap
 								mode="homeworld"
 								onPlanetSelect={handlePlanetSelect}
-								allowedPlanets={unclaimedPlanets.filter((p) => p.coordinate_z == 0).map((p) => p.id)}
-								galaxyFilter={0}
+								allowedPlanets={galaxyPlanets.map((p) => p.id)}
 							/>
 						</div>
 					</CardContent>

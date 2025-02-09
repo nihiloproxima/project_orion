@@ -1,19 +1,20 @@
+import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import {
 	CreditsReward,
 	DebrisField,
-	DefenseType,
 	MissionType,
 	Outpost,
 	Planet,
-	ReputationReward,
 	ResourcesReward,
+	ResourceType,
 	ShipType,
 	StructureType,
 	TechnologyId,
+	XpReward,
 } from '.';
 
 export type TaskId = string;
-export type TaskType = 'ship' | 'mission' | 'research' | 'structure_construction' | 'defense';
+export type TaskType = 'ship' | 'mission' | 'research' | 'structure_construction' | 'delivery';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
 
 export interface Task {
@@ -21,15 +22,7 @@ export interface Task {
 	type: TaskType;
 	context: string;
 	status: TaskStatus;
-	rewards: Array<ResourcesReward | CreditsReward | ReputationReward>;
-}
-
-export interface DefenseTask extends Task {
-	id: string;
-	type: 'defense';
-	defense_type: DefenseType;
-	goal: number;
-	progress: number;
+	rewards: Array<ResourcesReward | CreditsReward | XpReward>;
 }
 
 export interface BuildStructureTask extends Task {
@@ -62,9 +55,25 @@ export interface ShipTask extends Task {
 	progress: number;
 }
 
+export interface DeliveryTask extends Task {
+	id: string;
+	type: 'delivery';
+	resource_type: ResourceType;
+	goal: number;
+	progress: number;
+	outpost_id: Outpost['id'];
+}
+
 export interface UserTasks {
-	user_id: string;
 	tasks: Array<Task>;
-	updated_at: number;
-	created_at: number;
+	next_refresh_at: number;
+}
+
+export function parseUserTasks(doc: DocumentSnapshot): UserTasks {
+	const data = doc.data();
+
+	return {
+		tasks: data?.tasks || [],
+		next_refresh_at: data?.next_refresh_at || Timestamp.now(),
+	};
 }
