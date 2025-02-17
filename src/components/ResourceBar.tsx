@@ -177,11 +177,6 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 								}`}
 							/>
 						</div>
-						<span className="text-xs font-medium">
-							{Number(
-								state.currentResources.energy_production / state.currentResources.energy_consumption
-							).toFixed(2)}
-						</span>
 					</div>
 				</div>
 

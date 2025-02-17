@@ -1,89 +1,5 @@
-import { DefenseType, ResearchCategory, ShipType, StructureType } from '../models';
+import { ResearchCategory, StructureType } from '../models';
 import { TechnologyId } from '../models';
-import { getPublicImageUrl } from './images';
-
-export const SHIP_ASSETS: Record<ShipType, { name: string }> = {
-	colony_ship: {
-		name: 'Colony Ship',
-	},
-	transport_ship: {
-		name: 'Transport Ship',
-	},
-	spy_probe: {
-		name: 'Spy Probe',
-	},
-	recycler_ship: {
-		name: 'Recycler Ship',
-	},
-	cruiser: {
-		name: 'Cruiser',
-	},
-	destroyer: {
-		name: 'Destroyer',
-	},
-};
-
-export const DEFENSE_CATEGORIES: Record<string, { name: string; description: string; types: DefenseType[] }> = {
-	basic: {
-		name: 'BASIC_DEFENSES',
-		description: 'Standard defensive structures',
-		types: ['light_laser', 'missile_launcher', 'heavy_laser'] as DefenseType[],
-	},
-	advanced: {
-		name: 'ADVANCED_DEFENSES',
-		description: 'Advanced weapon systems',
-		types: ['gauss_cannon', 'ion_cannon', 'plasma_turret'] as DefenseType[],
-	},
-	shields: {
-		name: 'SHIELD_SYSTEMS',
-		description: 'Planetary shield protection',
-		types: ['small_shield_dome', 'large_shield_dome'] as DefenseType[],
-	},
-};
-
-export const DEFENSE_ASSETS: Record<DefenseType, { name: string; image: string; description: string }> = {
-	missile_launcher: {
-		name: 'Missile Launcher',
-		image: getPublicImageUrl('defenses', 'missile_launcher.webp'),
-		description: 'Basic defensive structure capable of launching conventional missiles at attacking ships.',
-	},
-	light_laser: {
-		name: 'Light Laser',
-		image: getPublicImageUrl('defenses', 'light_laser.webp'),
-		description:
-			'Portable quick-firing laser turret that can be rapidly deployed with ground troops, effective against smaller ships.',
-	},
-	heavy_laser: {
-		name: 'Heavy Laser',
-		image: getPublicImageUrl('defenses', 'heavy_laser.webp'),
-		description: 'Powerful laser cannon capable of dealing significant damage to medium-sized vessels.',
-	},
-	gauss_cannon: {
-		name: 'Gauss Cannon',
-		image: getPublicImageUrl('defenses', 'gauss_cannon.webp'),
-		description: 'Electromagnetic weapon that fires high-velocity projectiles.',
-	},
-	ion_cannon: {
-		name: 'Ion Cannon',
-		image: getPublicImageUrl('defenses', 'ion_cannon.webp'),
-		description: 'Advanced weapon that disrupts ship systems with ionic energy.',
-	},
-	plasma_turret: {
-		name: 'Plasma Turret',
-		image: getPublicImageUrl('defenses', 'plasma_turret.webp'),
-		description: 'High-energy plasma weapon effective against heavily armored targets.',
-	},
-	small_shield_dome: {
-		name: 'Small Shield Dome',
-		image: getPublicImageUrl('defenses', 'small_shield_dome.webp'),
-		description: 'Protective energy field that absorbs a portion of incoming damage.',
-	},
-	large_shield_dome: {
-		name: 'Large Shield Dome',
-		image: getPublicImageUrl('defenses', 'large_shield_dome.webp'),
-		description: 'Advanced shield system providing comprehensive planetary protection.',
-	},
-};
 
 export const STRUCTURE_INFO: Record<
 	StructureType,
@@ -135,14 +51,6 @@ export const STRUCTURE_INFO: Record<
 		name: 'Shipyard',
 		description:
 			'Builds and maintains your fleet of spacecraft. Each level unlocks new ship types and increases ship production speed.',
-		productionType: 'none',
-		hasStorage: false,
-	},
-	defense_factory: {
-		type: 'defense_factory',
-		name: 'Defense Factory',
-		description:
-			'Manufactures planetary defense systems and weaponry. Each level reduces defense construction time and unlocks new defense types.',
 		productionType: 'none',
 		hasStorage: false,
 	},
@@ -229,7 +137,7 @@ export const TECHNOLOGIES: Record<
 		image: 'nanite_constructors.png',
 		description:
 			'Microscopic robots assist in construction, increasing building speed with each level of research.',
-		category: 'infrastructure',
+		category: 'structure',
 	},
 	deuterium_production_boost: {
 		name: 'Cryogenic Efficiency',
@@ -247,7 +155,7 @@ export const TECHNOLOGIES: Record<
 		name: 'Advanced AI',
 		image: 'advanced_ai.png',
 		description: 'Advanced AI systems that automate experiments and analyze data patterns to accelerate research.',
-		category: 'infrastructure',
+		category: 'structure',
 	},
 	metal_production_boost: {
 		name: 'Enhanced Mining',

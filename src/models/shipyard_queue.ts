@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { Planet } from './planet';
 import { Ship } from './ship';
 
@@ -6,8 +6,6 @@ export interface ShipyardQueueCommand {
 	ship: Partial<Ship>;
 	construction_start_time: Timestamp;
 	construction_finish_time: Timestamp;
-	current_item_start_time: Timestamp;
-	current_item_finish_time: Timestamp;
 	resources_cost: {
 		metal: number;
 		deuterium: number;

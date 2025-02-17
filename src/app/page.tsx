@@ -217,15 +217,14 @@ export default function Home() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<Image
-								src="/images/planet-colonization.webp"
+								src="/images/homepage_colony.png"
 								width={400}
 								height={200}
 								alt="Planet Colonization"
 								className="rounded-lg w-full object-cover h-48"
 							/>
 							<p className="text-muted-foreground">
-								Colonize diverse planets, establish mining operations, and build a thriving civilization
-								across the stars.
+								Colonize diverse planets and build a thriving civilization across the stars.
 							</p>
 						</CardContent>
 					</Card>
@@ -247,15 +246,14 @@ export default function Home() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<Image
-								src="/images/space-battle.webp"
+								src="/images/homepage_combat.png"
 								width={400}
 								height={200}
 								alt="Space Battle"
 								className="rounded-lg w-full object-cover h-48"
 							/>
 							<p className="text-muted-foreground">
-								Command powerful fleets in tactical space battles, research advanced weapons, and defend
-								your territory.
+								Command powerful fleets in tactical space battles and defend your territory.
 							</p>
 						</CardContent>
 					</Card>
@@ -277,7 +275,7 @@ export default function Home() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<Image
-								src="/images/trade-network.webp"
+								src="/images/homepage_economy.png"
 								width={400}
 								height={200}
 								alt="Trade Network"

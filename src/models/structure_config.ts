@@ -4,14 +4,11 @@ import { TechnologyId } from './researchs_config';
 export interface StructureConfig {
 	type: StructureType;
 
-	cost: Array<{
-		metal_base: number;
-		level: number;
-		multiplier: number;
-		reducer: number;
-		offset: number;
-		minus: number;
-	}>;
+	cost: {
+		base: number;
+		per_level: number | null;
+		power: number | null;
+	};
 
 	prerequisites: {
 		structures: {

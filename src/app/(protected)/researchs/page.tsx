@@ -33,21 +33,17 @@ import { TECHNOLOGIES } from '../../../lib/constants';
 import { TechnologyId } from '../../../models';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
-import { calculateResearchTime } from '@/utils/researchs_calculations';
+import researchsCalculations from '@/utils/researchs_calculations';
 import { getPublicImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
 import { useState } from 'react';
-
+import { Technology } from '../../../models/user_researchs';
+import utils from '@/lib/utils';
 interface ResearchCardProps {
 	id: TechnologyId;
 	config: ResearchConfig;
-	tech: {
-		level: number;
-		is_researching: boolean;
-		research_start_time: number | null;
-		research_finish_time: number | null;
-	};
+	tech: Technology;
 	onStartResearch: (id: TechnologyId) => void;
 	canStartNewResearch: boolean;
 	isPlanetResearching: boolean;
@@ -72,7 +68,7 @@ function ResearchCard({
 
 	const assetConfig = TECHNOLOGIES[id as keyof typeof TECHNOLOGIES];
 	const costMultiplier = Math.pow(2, tech.level);
-	const researchTime = calculateResearchTime(state.gameConfig!, state.userResearchs!, id);
+	const researchTime = researchsCalculations.calculateResearchTimeMs(state.gameConfig!, state.userResearchs!, id);
 
 	const costs = {
 		metal: config.cost.base_metal * costMultiplier,
@@ -90,23 +86,6 @@ function ResearchCard({
 		config.prerequisites.every(
 			(prereq) => (state.userResearchs?.technologies[prereq.technology_id]?.level || 0) >= prereq.required_level
 		);
-
-	// Helper function to format time (similar to the one in Structures.tsx)
-	const formatResearchTime = (seconds: number) => {
-		const days = Math.floor(seconds / (60 * 60 * 24));
-		const hours = Math.floor((seconds % (60 * 60 * 24)) / (60 * 60));
-		const minutes = Math.floor((seconds % (60 * 60)) / 60);
-		const remainingSeconds = Math.floor(seconds % 60);
-
-		return [
-			days > 0 && `${days}d`,
-			hours > 0 && `${hours}h`,
-			minutes > 0 && `${minutes}m`,
-			remainingSeconds > 0 && `${remainingSeconds}s`,
-		]
-			.filter(Boolean)
-			.join(' ');
-	};
 
 	const getButtonText = () => {
 		if (tech.level >= config.max_level) return 'MAX LEVEL';
@@ -127,10 +106,6 @@ function ResearchCard({
 			if (effect.per_level) {
 				if (effect.type === 'resource_boost') {
 					description += ` Each level increases ${effect.resource_type} production by ${effect.value}%.`;
-				} else if (effect.type === 'construction_speed') {
-					description += ` Each level increases construction speed by ${effect.value}%.`;
-				} else if (effect.type === 'research_speed') {
-					description += ` Each level increases research speed by ${effect.value}%.`;
 				}
 			}
 		});
@@ -242,14 +217,14 @@ function ResearchCard({
 				<CardContent className="space-y-4 pt-4 border-t border-primary/20">
 					{tech.is_researching ? (
 						<Timer
-							startTime={tech.research_start_time!}
-							finishTime={tech.research_finish_time!}
+							startTime={tech.research_start_time!.toMillis()}
+							finishTime={tech.research_finish_time!.toMillis()}
 							variant="primary"
 						/>
 					) : (
 						<div className="p-3 bg-black/30 rounded-lg border border-primary/20">
 							<h4 className="font-medium text-primary mb-2">Research Time</h4>
-							<div className="text-gray-200 text-sm">{formatResearchTime(researchTime)}</div>
+							<div className="text-gray-200 text-sm">{utils.formatTimerTime(researchTime / 1000)}</div>
 						</div>
 					)}
 
@@ -360,7 +335,7 @@ export default function Researchs() {
 	}
 
 	// Check if laboratory exists
-	const hasLaboratory = state.planetStructures?.structures.some((s) => s.type === 'research_lab' && s.level >= 1);
+	const hasLaboratory = state.selectedPlanet?.structures.some((s) => s.type === 'research_lab' && s.level >= 1);
 
 	if (!hasLaboratory) {
 		return (
@@ -382,7 +357,7 @@ export default function Researchs() {
 		if (!state.selectedPlanet?.id) return;
 
 		try {
-			await api.researchs.startResearch(technologyId, state.selectedPlanet.id);
+			await api.startResearch(technologyId, state.selectedPlanet.id);
 		} catch (error) {
 			console.error('Error starting research:', error);
 		}

@@ -1,181 +1,168 @@
-import { GameConfig, ResourceType, StructureType, UserResearchs } from '../models';
-import { calculateProductionBonus, getTechnologyBonus } from './researchs_calculations';
+import { GameConfig, Planet, ResourceType, StructureType, UserResearchs } from '../models';
+import _ from 'lodash';
+import planetCalculations from './planet_calculations';
+import utils from '@/lib/utils';
 
-interface HourlyProductionResult {
-	resource: ResourceType | null;
-	amount: number;
-	energyConsumption: number;
-}
+const structuresCalculations = {
+	structureHourlyProduction: (params: {
+		gameConfig: GameConfig;
+		planet: Planet;
+		userResearchs: UserResearchs;
+		structureType: StructureType;
+		structureLevel: number;
+	}): { resourceType: ResourceType; amount: number } => {
+		const structureConfig = params.gameConfig.structures.find((s) => s.type === params.structureType);
+		if (!structureConfig || !structureConfig.production.resource)
+			return {
+				resourceType: 'metal',
+				amount: 0,
+			};
 
-export type StorageCapacities = {
-	[key in ResourceType]?: number;
+		const baseProduction = _.toFinite(structureConfig.production.base);
+		const perLevel = _.toFinite(structureConfig.production.per_level);
+		const productionBoost = planetCalculations.calculateResearchProductionBoost(
+			params.gameConfig,
+			params.userResearchs,
+			structureConfig.production.resource
+		);
+		const biomeProductionBoost =
+			1 + (params.gameConfig.biomes[params.planet.biome]?.[structureConfig.production.resource] ?? 0) / 100;
+
+		const productionPerSecond =
+			(baseProduction + perLevel * params.structureLevel) *
+			productionBoost *
+			biomeProductionBoost *
+			params.gameConfig.speed.resources;
+
+		const result = productionPerSecond * 3600;
+
+		return {
+			resourceType: structureConfig.production.resource,
+			amount: result,
+		};
+	},
+
+	structureEnergyConsumption: (params: {
+		gameConfig: GameConfig;
+		structureType: StructureType;
+		structureLevel: number;
+	}) => {
+		const structureConfig = utils.getStructureConfig(params.gameConfig, params.structureType);
+		if (!structureConfig.energy_consumption) return 0;
+
+		const consumption =
+			_.toFinite(structureConfig.energy_consumption.base) +
+			_.toFinite(structureConfig.energy_consumption.per_level) * params.structureLevel;
+
+		return consumption;
+	},
+
+	structureEnergyProduction: (params: {
+		gameConfig: GameConfig;
+		planet: Planet;
+		userResearchs: UserResearchs;
+		structureType: StructureType;
+		structureLevel: number;
+	}) => {
+		if (params.structureType !== 'energy_plant') return 0;
+
+		const structureConfig = utils.getStructureConfig(params.gameConfig, params.structureType);
+
+		const baseProduction = _.toFinite(structureConfig.production.base);
+		const perLevel = _.toFinite(structureConfig.production.per_level);
+		const productionBoost = planetCalculations.calculateResearchProductionBoost(
+			params.gameConfig,
+			params.userResearchs,
+			structureConfig.production.resource!
+		);
+		const biomeProductionBoost =
+			1 + (params.gameConfig.biomes[params.planet.biome]?.[structureConfig.production.resource!] ?? 0) / 100;
+
+		const production =
+			(baseProduction + perLevel * params.structureLevel) *
+			productionBoost *
+			biomeProductionBoost *
+			params.gameConfig.speed.resources;
+
+		return production;
+	},
+
+	structureStorageCapacities: (params: {
+		gameConfig: GameConfig;
+		structureType: StructureType;
+		structureLevel: number;
+	}) => {
+		const structureConfig = utils.getStructureConfig(params.gameConfig, params.structureType);
+		if (!structureConfig.storage.resource) return;
+
+		const capacity =
+			_.toFinite(structureConfig.storage.base) +
+			_.toFinite(structureConfig.storage.per_level) * params.structureLevel;
+
+		return {
+			resourceType: structureConfig.storage.resource,
+			capacity: capacity,
+		};
+	},
+
+	upgradeStructureCost: (params: {
+		base: number;
+		per_level: number | null;
+		power: number | null;
+		level: number;
+		reductionCoef: number;
+	}) => {
+		if (params.per_level) {
+			return _.floor((params.base + params.per_level * params.level) * params.reductionCoef, -1);
+		}
+
+		if (params.power) {
+			return _.floor(Math.pow(params.base * params.level, params.power) * params.reductionCoef, -1);
+		}
+
+		return _.floor(params.base * params.reductionCoef, -1);
+	},
+
+	canUpgradeStructure: (
+		gameConfig: GameConfig,
+		planet: Planet,
+		newStructureType: StructureType,
+		currentLevel: number,
+		levelsToAdd: number
+	): {
+		allowed: boolean;
+		metal_cost: number;
+		reason?: string;
+	} => {
+		const structureConfig = utils.getStructureConfig(gameConfig, newStructureType);
+
+		const targetLevels = _.range(currentLevel + 1, currentLevel + levelsToAdd + 1);
+		const metalCost = targetLevels.reduce((total: number, targetLevel: number) => {
+			return (
+				total +
+				structuresCalculations.upgradeStructureCost({
+					base: structureConfig.cost.base,
+					per_level: structureConfig.cost.per_level,
+					power: structureConfig.cost.power,
+					level: targetLevel,
+					reductionCoef: 1,
+				})
+			);
+		}, 0);
+
+		if (planet.resources.metal < metalCost) {
+			return {
+				allowed: false,
+				metal_cost: metalCost,
+				reason: `Not enough metal. Expected ${metalCost}, have ${planet.resources.metal}`,
+			};
+		}
+
+		return {
+			allowed: true,
+			metal_cost: metalCost,
+		};
+	},
 };
 
-export function calculateStructureHourlyProduction(
-	gameConfig: GameConfig,
-	userResearchs: UserResearchs,
-	structureType: StructureType,
-	level: number
-): HourlyProductionResult {
-	const structure = gameConfig.structures.find((s) => s.type === structureType);
-
-	if (!structure) {
-		return {
-			resource: null,
-			amount: 0,
-			energyConsumption: 0,
-		};
-	}
-
-	// Calculate base production per hour
-	let hourlyProduction = 0;
-	if (structure.production.resource && structure.production.base && structure.production.percent_increase_per_level) {
-		const productionBonus = calculateProductionBonus(gameConfig, userResearchs, structure.production.resource);
-		const levelCoef = 1 + (structure.production.percent_increase_per_level * level) / 100;
-		const production = structure.production.base * levelCoef * productionBonus * gameConfig.speed.resources;
-		hourlyProduction = production * 3600; // Convert per-second to per-hour
-	}
-
-	// Calculate energy consumption
-	const energyConsumption = calculateStructureEnergyConsumption(gameConfig, structureType, level);
-
-	return {
-		resource: structure.production.resource,
-		amount: Math.floor(hourlyProduction),
-		energyConsumption: energyConsumption,
-	};
-}
-
-export function calculateStructureStorageCapacities(
-	gameConfig: GameConfig,
-	structureType: StructureType,
-	level: number = 0
-): StorageCapacities {
-	const structure = gameConfig.structures.find((s) => s.type === structureType);
-	if (!structure) {
-		return { metal: 0, microchips: 0, deuterium: 0, energy: 0 };
-	}
-
-	// Default storage values
-	const capacities: StorageCapacities = {
-		metal: 0,
-		microchips: 0,
-		deuterium: 0,
-		energy: 0,
-	};
-
-	// Calculate storage capacity if it's a storage structure
-	if (structure.storage.resource && structure.storage.base && structure.storage.multiplier_per_level) {
-		const storage = structure.storage.base * Math.pow(structure.storage.multiplier_per_level, level - 1);
-		capacities[structure.storage.resource]! += storage;
-	}
-
-	return capacities;
-}
-
-export function calculateUpgradeCost(
-	config: GameConfig,
-	structureType: StructureType,
-	currentLevel: number
-): {
-	metal: number;
-	deuterium: number;
-	microchips: number;
-} {
-	const structureConfig = config.structures.find((s) => s.type === structureType);
-
-	if (!structureConfig) {
-		throw new Error(`Structure ${structureType} does not exist`);
-	}
-	const levelScaling = Math.pow(2, currentLevel);
-
-	const result = {
-		metal: structureConfig.cost.resources.metal * levelScaling,
-		deuterium: structureConfig.cost.resources.deuterium * levelScaling,
-		microchips: structureConfig.cost.resources.microchips * levelScaling,
-	};
-
-	return result;
-}
-
-export function calculateConstructionTime(
-	config: GameConfig,
-	userResearchs: UserResearchs,
-	structureType: StructureType,
-	currentLevel: number
-) {
-	const structureConfig = config.structures.find((s) => s.type === structureType);
-
-	if (!structureConfig) {
-		throw new Error(`Structure ${structureType} does not exist`);
-	}
-
-	const constructionSpeedCoef = getTechnologyBonus(config, userResearchs, 'construction_speed');
-
-	// Base construction time in milliseconds
-	const baseTimeMs = structureConfig.time.base_seconds * 1000;
-
-	// Scale time with level based on config percentage increase
-	const levelScaling = Math.pow(2, currentLevel);
-
-	// Apply construction speed bonus (lower is faster)
-	let finalTimeMs = (baseTimeMs * levelScaling * constructionSpeedCoef) / config.speed.construction;
-
-	// Cap at max time if configured
-	if (structureConfig.time.max_seconds) {
-		finalTimeMs = Math.min(finalTimeMs, structureConfig.time.max_seconds * 1000);
-	}
-
-	return Math.round(finalTimeMs);
-}
-
-export function calculateStructureEnergyConsumption(
-	gameConfig: GameConfig,
-	structureType: StructureType,
-	currentLevel: number
-) {
-	if (currentLevel === 0) return 0;
-
-	const structureConfig = gameConfig.structures.find((s) => s.type === structureType);
-
-	if (!structureConfig) {
-		throw new Error(`Structure ${structureType} does not exist`);
-	}
-
-	return (
-		structureConfig.energy_consumption.base *
-		(1 + (structureConfig.energy_consumption.percent_increase_per_level * currentLevel) / 100)
-	);
-}
-
-export function calculateStructureEnergyProduction(
-	gameConfig: GameConfig,
-	userResearchs: UserResearchs,
-	structureType: StructureType,
-	currentLevel: number
-) {
-	const structureConfig = gameConfig.structures.find((s) => s.type === structureType);
-
-	if (!structureConfig) {
-		throw new Error(`Structure ${structureType} does not exist`);
-	}
-
-	const researchConfig = gameConfig.researchs.find((r) => r.id === 'energy_efficiency');
-	if (!researchConfig) return 0;
-
-	const researchLevel = userResearchs.technologies[researchConfig.id].level;
-	const researchBonus = 1 + (researchConfig.effects[0].value * researchLevel) / 100;
-
-	if (
-		!structureConfig.production.base ||
-		!structureConfig.production.percent_increase_per_level ||
-		structureConfig.production.resource !== 'energy'
-	) {
-		return 0;
-	}
-
-	const perLevelCoef = 1 + (structureConfig.production.percent_increase_per_level * currentLevel) / 100;
-	const result = structureConfig.production.base * perLevelCoef * researchBonus;
-
-	return result;
-}
+export default structuresCalculations;

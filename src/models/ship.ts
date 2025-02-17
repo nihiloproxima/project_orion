@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { CrewMember } from './crew_member';
 import { TechnologyId } from './researchs_config';
 
@@ -9,6 +9,7 @@ export type MissionType = 'transport' | 'colonize' | 'attack' | 'spy' | 'recycle
 export interface Ship {
 	id: string;
 	name: string;
+	type: ShipType;
 	asset: number;
 	stats: {
 		speed: number;
@@ -102,6 +103,7 @@ export function parseShip(doc: DocumentSnapshot): Ship {
 	return {
 		id: data.id || '',
 		name: data.name || '',
+		type: data.type || '',
 		asset: data.asset || '',
 		stats: data.stats || {},
 		components: data.components || {},

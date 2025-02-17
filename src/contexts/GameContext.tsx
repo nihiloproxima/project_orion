@@ -1,12 +1,12 @@
 'use client';
 
-import { auth, db } from '@/lib/firebase';
-import { doc, collection, onSnapshot, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db, withIdConverter } from '@/lib/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
 import { GameConfig, Planet, User, UserResearchs, UserTasks, UserReward } from '../models/';
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { useDocument, useCollection } from 'react-firebase-hooks/firestore';
+import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
 import { useAuth } from './AuthContext';
 import planetCalculations from '@/utils/planet_calculations';
 
@@ -15,7 +15,6 @@ interface GameState {
 	currentUser: User | null;
 	gameConfig: GameConfig | null;
 	loading: boolean;
-	planets: Planet[];
 	userTasks: UserTasks | null;
 	selectedPlanet: Planet | null;
 	userPlanets: Planet[];
@@ -48,7 +47,6 @@ const initialState: GameState = {
 	currentUser: null,
 	userRewards: [],
 	gameConfig: null,
-	planets: [],
 	userTasks: null,
 	selectedPlanet: null,
 	userPlanets: [],
@@ -66,77 +64,51 @@ const initialState: GameState = {
 
 export function GameProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<GameState>(initialState);
-	const [user] = useAuthState(auth);
+	const [authedUser] = useAuthState(auth);
 	const { logout } = useAuth();
 
 	// Use react-firebase-hooks for main data
-	const [gameConfigDoc] = useDocument(doc(db, 'configs', 'game'));
-	const [userDoc] = useDocument(user ? doc(db, 'users', user.uid) : null);
-	const [userResearchsDoc] = useDocument(user ? doc(db, `users/${user.uid}/private/researchs`) : null);
-	const [planetsSnapshot] = useCollection(
-		gameConfigDoc ? collection(db, `seasons/${gameConfigDoc.data()?.season.current}/planets`) : null
+	const [gameConfig] = useDocumentData(doc(db, 'config/game'));
+	const [user] = useDocumentData(authedUser ? doc(db, 'users', authedUser.uid).withConverter(withIdConverter) : null);
+	const [userResearchs] = useDocumentData(authedUser ? doc(db, `users/${authedUser.uid}/private/researchs`) : null);
+	const [userPlanets] = useCollectionData(
+		gameConfig && authedUser
+			? query(
+					collection(db, `seasons/${gameConfig.season.current}/planets`).withConverter(withIdConverter),
+					where('owner_id', '==', authedUser.uid)
+			  )
+			: null
 	);
-	const [userTasksDoc] = useDocument(user ? doc(db, `users/${user.uid}/private/tasks`) : null);
-	const [userRewardsSnapshot] = useCollection(user ? collection(db, `users/${user.uid}/rewards`) : null);
+	const [userTasks] = useDocumentData(authedUser ? doc(db, `users/${authedUser.uid}/private/tasks`) : null);
+	const [userRewards] = useCollectionData(authedUser ? collection(db, `users/${authedUser.uid}/rewards`) : null);
 
 	// Initial data setup when auth changes
 	useEffect(() => {
-		if (!user || !gameConfigDoc?.exists() || !planetsSnapshot) {
+		if (!user || !gameConfig) {
 			setState(initialState);
 			return;
 		}
 
 		try {
-			const userPlanets = planetsSnapshot.docs
-				.map((doc) => ({ id: doc.id, ...doc.data() } as Planet))
-				.filter((p) => p.owner_id === user.uid);
-			const homeWorld = userPlanets.find((p) => p.is_homeworld);
+			const homeWorld = userPlanets?.find((p) => p.is_homeworld);
 
 			setState((prev) => ({
 				...prev,
-				currentUser: userDoc?.data() as User,
-				gameConfig: gameConfigDoc.data()?.config_data,
-				version: gameConfigDoc.data()?.version,
-				userResearchs: userResearchsDoc?.data() as UserResearchs,
-				userPlanets,
-				userRewards:
-					userRewardsSnapshot?.docs.map((doc) => ({ id: doc.id, ...doc.data() } as UserReward)) || [],
-				userTasks: userTasksDoc?.data() as UserTasks,
+				currentUser: user as User,
+				gameConfig: gameConfig as GameConfig,
+				version: gameConfig.version,
+				userResearchs: userResearchs as UserResearchs,
+				userPlanets: userPlanets as Planet[],
+				userRewards: userRewards?.map((doc) => ({ id: doc.id, ...doc } as UserReward)) || [],
+				userTasks: userTasks as UserTasks,
 				selectedPlanet: homeWorld || null,
-				planets: planetsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Planet)),
 				loading: false,
 			}));
 		} catch (error) {
 			console.error('Error setting up game state:', error);
 			logout();
 		}
-	}, [user, gameConfigDoc, userDoc, userResearchsDoc, planetsSnapshot, userTasksDoc, userRewardsSnapshot]);
-
-	// Handle active players
-	useEffect(() => {
-		if (!user) return;
-
-		const activePlayers = collection(db, 'active_players');
-		const unsubscribe = onSnapshot(activePlayers, (snapshot) => {
-			setState((prev) => ({
-				...prev,
-				activePlayers: snapshot.docs.map((doc) => doc.id),
-			}));
-		});
-
-		// Set user as active
-		const userRef = doc(db, 'active_players', user.uid);
-		setDoc(userRef, {
-			last_active: serverTimestamp(),
-			user_id: user.uid,
-		});
-
-		return () => {
-			unsubscribe();
-			// Remove user from active players on unmount
-			deleteDoc(userRef);
-		};
-	}, [user]);
+	}, [authedUser, user, gameConfig, userResearchs, userTasks, userRewards, userPlanets]);
 
 	// Keep the existing resource calculation effect
 	useEffect(() => {
@@ -185,7 +157,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 		return () => {
 			clearInterval(intervalId); // Clear using the captured intervalId
 		};
-	}, [state.selectedPlanet?.id, state.gameConfig, state.userResearchs]);
+	}, [state.selectedPlanet, gameConfig, userResearchs]);
 
 	const selectPlanet = (planet: Planet) => {
 		setState((prev) => ({

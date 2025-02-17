@@ -1,18 +1,18 @@
-import { BaseMail } from "@/models/mail";
+import { BaseMail } from '@/models/mail';
 
 export const generateOnboardingMails = (ownerId: string): BaseMail[] => {
-  const now = Date.now();
+	const now = Date.now();
 
-  return [
-    {
-      id: "welcome_1",
-      type: "game_message",
-      category: "messages",
-      created_at: now,
-      owner_id: ownerId,
-      sender_name: "Supreme Council",
-      title: "Commander Assignment Protocol",
-      content: `Greetings, Commander.
+	return [
+		{
+			id: 'welcome_1',
+			type: 'game_message',
+			category: 'messages',
+			created_at: now,
+			owner_id: ownerId,
+			sender_name: 'Supreme Council',
+			title: 'Commander Assignment Protocol',
+			content: `Greetings, Commander.
 
 On behalf of the Galactic Council, I extend my congratulations on your graduation from the Elite Commander Academy. Your exceptional performance has not gone unnoticed.
 
@@ -21,22 +21,23 @@ As per protocol, you are now required to select your first command post. Choose 
 The Council awaits your decision.
 
 [CLICK TO CHOOSE YOUR HOMEWORLD]`,
-      read: false,
-      archived: false,
-      data: {
-        action: "choose_homeworld",
-        priority: "high",
-      },
-    },
-    {
-      id: "welcome_2",
-      type: "private_message",
-      category: "messages",
-      created_at: now - 1000,
-      owner_id: ownerId,
-      sender_name: "Mom",
-      title: "Important Reminders for My Space Commander!",
-      content: `Sweetie! 💖
+			read: false,
+			archived: false,
+			data: {
+				action: 'choose_homeworld',
+				priority: 'high',
+			},
+			ttl: 1000 * 60 * 60 * 24 * 30,
+		},
+		{
+			id: 'welcome_2',
+			type: 'private_message',
+			category: 'messages',
+			created_at: now - 1000,
+			owner_id: ownerId,
+			sender_name: 'Mom',
+			title: 'Important Reminders for My Space Commander!',
+			content: `Sweetie! 💖
 
 I know you're about to command your very own planet, but don't forget:
 
@@ -52,19 +53,20 @@ PS: Your father says to remember the trick about reversing the polarity - whatev
 
 Lots of love and virtual hugs! 🤗
 Mom`,
-      read: false,
-      archived: false,
-      data: {},
-    },
-    {
-      id: "welcome_3",
-      type: "private_message",
-      category: "messages",
-      created_at: now - 2000,
-      owner_id: ownerId,
-      sender_name: "Jake from the Academy",
-      title: "You Actually Made It!",
-      content: `Hey Commander Hotshot! 🚀
+			read: false,
+			archived: false,
+			data: {},
+			ttl: 1000 * 60 * 60 * 24 * 30,
+		},
+		{
+			id: 'welcome_3',
+			type: 'private_message',
+			category: 'messages',
+			created_at: now - 2000,
+			owner_id: ownerId,
+			sender_name: 'Jake from the Academy',
+			title: 'You Actually Made It!',
+			content: `Hey Commander Hotshot! 🚀
 
 Can't believe they actually let YOU graduate! Remember when you accidentally activated the emergency evacuation system during naptime in Stellar Navigation 101? The look on Professor Zorblax's face when his hover-chair shot him straight into the ceiling... PRICELESS! 😂
 
@@ -80,12 +82,13 @@ Your partner in crime,
 Jake
 
 P.P.S. But really, proud of you buddy! 🎉`,
-      read: false,
-      archived: false,
-      data: {
-        friendship_level: "best_buddies",
-        blackmail_material: "abundant",
-      },
-    },
-  ];
+			read: false,
+			archived: false,
+			data: {
+				friendship_level: 'best_buddies',
+				blackmail_material: 'abundant',
+			},
+			ttl: 1000 * 60 * 60 * 24 * 30,
+		},
+	];
 };

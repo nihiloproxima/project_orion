@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { usePlanets } from '@/hooks/usePlanets';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Planet } from '@/models/planet';
 import { api } from '@/lib/api';
@@ -12,11 +11,18 @@ import { GalaxySelector } from '@/components/GalaxySelector';
 
 export default function ChooseHomeworldPage() {
 	const { state, selectPlanet } = useGame();
-	const { unclaimedPlanets, loading } = usePlanets();
 	const router = useRouter();
 	const [currentGalaxy, setCurrentGalaxy] = useState(0);
+	const [planets, setPlanets] = useState<Planet[]>([]);
 
-	const galaxyPlanets = unclaimedPlanets.filter((p) => p.position.galaxy === currentGalaxy) || [];
+	useEffect(() => {
+		const getPlanets = async () => {
+			const data = await api.getPlanets(currentGalaxy);
+			setPlanets(data.planets);
+		};
+
+		getPlanets();
+	}, [currentGalaxy]);
 
 	// Redirect to dashboard if user already has a planet
 	useEffect(() => {
@@ -35,7 +41,7 @@ export default function ChooseHomeworldPage() {
 		}
 	};
 
-	if (loading) {
+	if (planets.length === 0) {
 		return <LoadingScreen message="SCANNING STAR SYSTEMS..." />;
 	}
 
@@ -58,7 +64,8 @@ export default function ChooseHomeworldPage() {
 							<GalaxyMap
 								mode="homeworld"
 								onPlanetSelect={handlePlanetSelect}
-								allowedPlanets={galaxyPlanets.map((p) => p.id)}
+								allowedPlanets={planets.filter((p) => p.owner_id === null).map((p) => p.id)}
+								galaxyFilter={currentGalaxy}
 							/>
 						</div>
 					</CardContent>

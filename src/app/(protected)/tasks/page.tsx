@@ -24,22 +24,13 @@ import {
 	Microchip,
 	Info,
 } from 'lucide-react';
-import {
-	Task,
-	TaskStatus,
-	BuildStructureTask,
-	ResearchTask,
-	ShipTask,
-	MissionTask,
-	DefenseTask,
-} from '@/models/user_tasks';
+import { Task, TaskStatus, BuildStructureTask, ResearchTask, MissionTask } from '@/models/user_tasks';
 import { motion } from 'framer-motion';
 import { containerVariants, itemVariants } from '@/lib/animations';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState, useMemo } from 'react';
-import { DEFENSE_ASSETS, SHIP_ASSETS } from '@/lib/constants';
 import { STRUCTURE_INFO } from '@/lib/constants';
 import { TECHNOLOGIES } from '@/lib/constants';
 import { Progress } from '@/components/ui/progress';
@@ -96,7 +87,7 @@ function TaskCard({ task, onTogglePin }: { task: TaskWithPin; onTogglePin: (task
 
 	const handleClaimReward = async () => {
 		try {
-			await api.users.claimTaskRewards(task.id);
+			await api.claimTaskRewards(task.id);
 			toast({
 				title: 'Reward Claimed',
 				description: 'Task rewards have been added to your account',
@@ -131,36 +122,6 @@ function TaskCard({ task, onTogglePin }: { task: TaskWithPin; onTogglePin: (task
 						<p>
 							Research {techInfo.name} to level {researchTask.required_level}
 						</p>
-					</div>
-				);
-			case 'ship':
-				const shipTask = task as ShipTask;
-				return (
-					<div>
-						<p>
-							Build {shipTask.goal} {SHIP_ASSETS[shipTask.ship_type].name}
-						</p>
-						<div className="relative mt-2">
-							<Progress value={(shipTask.progress / shipTask.goal) * 100} />
-							<div className="absolute inset-0 flex items-center justify-center text-xs">
-								{shipTask.progress}/{shipTask.goal}
-							</div>
-						</div>
-					</div>
-				);
-			case 'defense':
-				const defenseTask = task as DefenseTask;
-				return (
-					<div>
-						<p>
-							Build {defenseTask.goal} {DEFENSE_ASSETS[defenseTask.defense_type].name}
-						</p>
-						<div className="relative mt-2">
-							<Progress value={(defenseTask.progress / defenseTask.goal) * 100} />
-							<div className="absolute inset-0 flex items-center justify-center text-xs">
-								{defenseTask.progress}/{defenseTask.goal}
-							</div>
-						</div>
 					</div>
 				);
 			case 'mission':
@@ -277,13 +238,11 @@ function TaskCard({ task, onTogglePin }: { task: TaskWithPin; onTogglePin: (task
 														<span className="text-sm">{reward.credits} Credits</span>
 													</div>
 												);
-											case 'reputation':
+											case 'xp':
 												return (
 													<div key={index} className="flex items-center gap-2">
 														<Star className="h-4 w-4 text-blue-500" />
-														<span className="text-sm">
-															{reward.reputation_points} Reputation
-														</span>
+														<span className="text-sm">{reward.xp} Reputation</span>
 													</div>
 												);
 											case 'resources':

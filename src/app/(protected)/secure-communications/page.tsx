@@ -92,11 +92,11 @@ export default function Reports() {
 		try {
 			// Check if this is a game message
 			const mailToDelete = mails.find((m) => m.id === id);
-			if (mailToDelete?.type === 'game_message') {
+			if (mailToDelete?.type === 'game_message' || mailToDelete?.id.startsWith('welcome')) {
 				return; // Prevent deletion of game messages
 			}
 
-			await api.mails.deleteMail(id);
+			await api.updateMail({ mail_id: id, deleted: true });
 			if (selectedMail?.id === id) {
 				setSelectedMail(null);
 				setIsViewingMail(false);
@@ -108,8 +108,9 @@ export default function Reports() {
 	};
 
 	const markAsRead = async (id: string) => {
+		if (id.startsWith('welcome')) return;
 		try {
-			await api.mails.markAsRead(id);
+			await api.updateMail({ mail_id: id, read: true });
 			setMails((current) => current.map((m) => (m.id === id ? { ...m, read: true } : m)));
 		} catch (error) {
 			console.error('Error marking mail as read:', error);

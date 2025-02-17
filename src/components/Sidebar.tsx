@@ -11,14 +11,11 @@ import {
 	Computer,
 	Building,
 	FlaskConical,
-	Rocket,
 	Eye,
 	User,
 	ArrowRight,
 	Trophy,
 	MailIcon,
-	Shield,
-	CheckCircle2,
 	Factory,
 	MessageSquare,
 } from 'lucide-react';
@@ -90,13 +87,13 @@ export function Sidebar() {
 				label: 'SECURE_COMS',
 				color: 'blue',
 			},
-			{
-				to: '/tasks',
-				icon: CheckCircle2,
-				label: 'TASKS',
-				color: 'blue',
-				hasBadge: true,
-			},
+			// {
+			// 	to: '/tasks',
+			// 	icon: CheckCircle2,
+			// 	label: 'TASKS',
+			// 	color: 'blue',
+			// 	hasBadge: true,
+			// },
 			{
 				to: `/user/${auth.currentUser?.uid}`,
 				icon: User,
@@ -136,21 +133,9 @@ export function Sidebar() {
 				color: 'green',
 			},
 			{
-				to: '/defenses',
-				icon: Shield,
-				label: 'DEFENSES',
-				color: 'blue',
-			},
-			{
 				to: '/shipyard',
 				icon: Factory,
 				label: 'SHIPYARD',
-				color: 'blue',
-			},
-			{
-				to: '/fleet',
-				icon: Rocket,
-				label: 'FLEET',
 				color: 'blue',
 			},
 		],
@@ -182,7 +167,7 @@ export function Sidebar() {
 					<h2 className="text-xl font-bold text-primary tracking-wider effect">Project Orion</h2>
 				</div>
 				<div className="text-xs text-primary/70 mt-2 typing-effect-delay">
-					<span className="inline-block w-2 h-2 bg-primary/80  mr-2" />v{state.version}
+					<span className="inline-block w-2 h-2 bg-primary/80  mr-2" />v{state.gameConfig?.version}
 				</div>
 			</div>
 

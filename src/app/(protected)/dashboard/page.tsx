@@ -1,8 +1,7 @@
 'use client';
 
-import { MessageSquare, Rocket, Users, MapPin, Ruler, TreePine } from 'lucide-react';
+import { MessageSquare, Users, MapPin, Ruler, TreePine } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { ChatMessage, Ship } from '../../../models';
 import { containerVariants, itemVariants } from '@/lib/animations';
 import { useEffect, useRef, useState } from 'react';
 
@@ -12,27 +11,27 @@ import { ScrollArea } from '../../../components/ui/scroll-area';
 import { api } from '../../../lib/api';
 import { getPublicImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';
-import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
 import { useRouter } from 'next/navigation'; // Changed from next/router
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../components/ui/collapsible';
 import { Button } from '../../../components/ui/button';
-import { ResourceType } from '@/models/planets_resources';
 import { Input } from '../../../components/ui/input';
 import { DialogFooter } from '../../../components/ui/dialog';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { collection, query, limit, orderBy, where } from 'firebase/firestore';
+import { db, withIdConverter } from '@/lib/firebase';
+import { ChatMessage, ResourceType } from '@/models';
 
 export default function Dashboard() {
 	const router = useRouter();
 	const { state } = useGame();
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
+	const [messages] = useCollectionData<ChatMessage>(
+		query(collection(db, 'chat').withConverter(withIdConverter), orderBy('created_at', 'desc'), limit(100))
+	);
 	const [newMessage, setNewMessage] = useState('');
 	const scrollAreaRef = useRef<HTMLDivElement>(null);
-	const [stationedShips, setStationedShips] = useState<number>(0);
-	const [allShips, setAllShips] = useState<Ship[]>([]);
-	const [unreadMails, setUnreadMails] = useState<number>(0);
 	const [showOnlineCommanders, setShowOnlineCommanders] = useState(false);
-	const [commanders, setCommanders] = useState<{ id: string; name: string; avatar: string | null }[]>([]);
 	const [planetInfo, setPlanetInfo] = useState<{
 		name: string;
 		size: string;
@@ -49,43 +48,6 @@ export default function Dashboard() {
 	const [showRenameDialog, setShowRenameDialog] = useState(false);
 
 	useEffect(() => {
-		// Initial fetch of messages
-		const fetchMessages = async () => {
-			const { data } = await supabase
-				.from('chat_messages')
-				.select('*')
-				.order('created_at', { ascending: false })
-				.limit(50);
-
-			if (data) {
-				setMessages(data.reverse());
-			}
-		};
-
-		fetchMessages();
-
-		// Subscribe to new messages
-		const subscription = supabase
-			.channel('chat_messages')
-			.on(
-				'postgres_changes',
-				{
-					event: 'INSERT',
-					schema: 'public',
-					table: 'chat_messages',
-				},
-				(payload) => {
-					setMessages((prev) => [...prev, payload.new as ChatMessage]);
-				}
-			)
-			.subscribe();
-
-		return () => {
-			subscription.unsubscribe();
-		};
-	}, []);
-
-	useEffect(() => {
 		// Scroll to bottom when new messages arrive
 		if (scrollAreaRef.current) {
 			const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
@@ -100,7 +62,7 @@ export default function Dashboard() {
 		if (!newMessage.trim()) return;
 
 		try {
-			await api.chat.sendMessage('global', newMessage);
+			await api.sendMessage('global', newMessage);
 			setNewMessage('');
 		} catch (error) {
 			console.error('Failed to send message:', error);
@@ -108,7 +70,6 @@ export default function Dashboard() {
 	};
 
 	useEffect(() => {
-		console.log(state);
 		if (!state.loading) {
 			if (state.currentUser) {
 				if (!state.selectedPlanet && state.userPlanets.length === 0) {
@@ -120,154 +81,13 @@ export default function Dashboard() {
 		}
 	}, [state.loading, state.currentUser, state.selectedPlanet, state.userPlanets.length, router]);
 
-	useEffect(() => {
-		const fetchActivePlayers = async () => {
-			const { data } = await supabase.from('users').select('id, name, avatar').in('id', state.activePlayers);
-			setCommanders(data || []);
-		};
-
-		fetchActivePlayers();
-	}, [state.activePlayers]);
-
-	useEffect(() => {
-		const fetchStationedShips = async () => {
-			if (!state.selectedPlanet?.id) return;
-
-			const { data, error } = await supabase
-				.from('ships')
-				.select('*')
-				.eq('current_planet_id', state.selectedPlanet.id)
-				.eq('status', 'stationed')
-				.is('mission_type', null);
-
-			if (error) {
-				console.error('Error fetching stationed ships:', error);
-				return;
-			}
-
-			setStationedShips(data?.length || 0);
-		};
-
-		fetchStationedShips();
-
-		// Subscribe to changes
-		const subscription = supabase
-			.channel(`stationed_ships_${state.selectedPlanet?.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'ships',
-					filter: `current_planet_id=eq.${state.selectedPlanet?.id}`,
-				},
-				() => {
-					// Refetch ships when there are changes
-					fetchStationedShips();
-				}
-			)
-			.subscribe();
-
-		return () => {
-			subscription.unsubscribe();
-		};
-	}, [state.selectedPlanet?.id]);
-
-	useEffect(() => {
-		const fetchAllShips = async () => {
-			const { data, error } = await supabase.from('ships').select('*').eq('owner_id', state.currentUser?.id);
-
-			if (error) {
-				console.error('Error fetching ships:', error);
-				return;
-			}
-
-			setAllShips(data || []);
-		};
-
-		fetchAllShips();
-
-		const subscription = supabase
-			.channel('user_ships')
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'ships',
-					filter: `owner_id=eq.${state.currentUser?.id}`,
-				},
-				() => {
-					fetchAllShips();
-				}
-			)
-			.subscribe();
-
-		return () => {
-			subscription.unsubscribe();
-		};
-	}, [state.currentUser?.id]);
-
-	useEffect(() => {
-		const fetchUnreadMails = async () => {
-			if (!state.currentUser?.id) return;
-
-			const { data, error } = await supabase
-				.from('mails')
-				.select('id', { count: 'exact' })
-				.eq('owner_id', state.currentUser.id)
-				.eq('read', false);
-
-			if (error) {
-				console.error('Error fetching unread mails:', error);
-				return;
-			}
-
-			setUnreadMails(data?.length || 0);
-		};
-
-		fetchUnreadMails();
-
-		// Subscribe to mail changes
-		const subscription = supabase
-			.channel('user_mails')
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'mails',
-					filter: `owner_id=eq.${state.currentUser?.id}`,
-				},
-				() => {
-					fetchUnreadMails();
-				}
-			)
-			.subscribe();
-
-		return () => {
-			subscription.unsubscribe();
-		};
-	}, [state.currentUser?.id]);
-
-	const calculateFleetStats = () => {
-		const stats = {
-			total: allShips.length,
-			inCombat: allShips.filter((ship) => ship.status === 'traveling' && ship.mission_type === 'attack').length,
-			inOrbit: allShips.filter((ship) => ship.status === 'traveling' && ship.mission_type !== 'attack').length,
-			stationed: stationedShips,
-		};
-
-		return stats;
-	};
-
 	// Example planet data fetching, replace with actual data retrieval logic
 	useEffect(() => {
 		const fetchPlanetInfo = async () => {
 			setPlanetInfo({
 				name: state.selectedPlanet?.name || 'Unknown',
 				size: state.selectedPlanet?.size_km.toString() || 'Unknown',
-				coordinates: `${state.selectedPlanet?.coordinate_x}, ${state.selectedPlanet?.coordinate_y}, ${state.selectedPlanet?.coordinate_z}`,
+				coordinates: `${state.selectedPlanet?.position.x}, ${state.selectedPlanet?.position.y}, ${state.selectedPlanet?.position.galaxy}`,
 				biome: state.selectedPlanet?.biome || 'Unknown',
 			});
 
@@ -285,8 +105,6 @@ export default function Dashboard() {
 		return null; // Return null while redirecting
 	}
 
-	const fleetStats = calculateFleetStats();
-
 	return (
 		<motion.div className="space-y-8" variants={containerVariants} initial="hidden" animate="show">
 			<motion.div className="flex justify-between items-center" variants={itemVariants}>
@@ -301,20 +119,13 @@ export default function Dashboard() {
 			{/* Stats Grid */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{[
-					{
-						title: 'FLEET STATUS',
-						icon: <Rocket className="h-4 w-4 text-primary" />,
-						value: `${fleetStats.total} Ships`,
-						subtext: `${fleetStats.inCombat} in combat, ${fleetStats.inOrbit} in orbit, ${fleetStats.stationed} stationed`,
-						onClick: undefined,
-					},
-					{
-						title: 'UNREAD MESSAGES',
-						icon: <MessageSquare className="h-4 w-4 text-primary" />,
-						value: `${unreadMails} Messages`,
-						subtext: 'Unread communications',
-						onClick: () => router.push('/secure-communications'),
-					},
+					// {
+					// 	title: 'UNREAD MESSAGES',
+					// 	icon: <MessageSquare className="h-4 w-4 text-primary" />,
+					// 	value: `${unreadMails} Messages`,
+					// 	subtext: 'Unread communications',
+					// 	onClick: () => router.push('/secure-communications'),
+					// },
 					{
 						title: 'ACTIVE COMMANDERS',
 						icon: <Users className="h-4 w-4 text-primary" />,
@@ -330,9 +141,7 @@ export default function Dashboard() {
 						whileTap={{ scale: 0.98 }}
 					>
 						<Card
-							className={`bg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300 ${
-								stat.onClick ? 'cursor-pointer' : ''
-							}`}
+							className={`cursor-pointerbg-card/50 backdrop-blur-sm neon-border hover:shadow-[0_0_20px_rgba(32,224,160,0.3)] transition-all duration-300`}
 							onClick={stat.onClick}
 						>
 							<CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -446,48 +255,49 @@ export default function Dashboard() {
 					<CardContent className="flex-1 flex flex-col overflow-hidden">
 						<ScrollArea className="flex-1" ref={scrollAreaRef}>
 							<div className="space-y-4 font-mono pr-4">
-								{messages.map((msg) => (
-									<div key={msg.id} className="text-sm break-words flex items-start gap-2">
-										{msg.sender_avatar ? (
-											<Image
-												src={getPublicImageUrl('avatars', msg.sender_avatar + '.webp')}
-												width={100}
-												height={100}
-												alt={msg.sender_name || 'User'}
-												className="w-6 h-6 flex-shrink-0 object-cover"
-											/>
-										) : (
-											<div className="w-6 h-6 rounded-full bg-primary/10 flex-shrink-0 flex items-center justify-center text-[10px] uppercase">
-												{msg.sender_name?.[0] || '?'}
+								{messages &&
+									messages.map((msg: ChatMessage) => (
+										<div key={msg.id} className="text-sm break-words flex items-start gap-2">
+											{msg.sender?.avatar ? (
+												<Image
+													src={getPublicImageUrl('avatars', msg.sender.avatar + '.webp')}
+													width={100}
+													height={100}
+													alt={msg.sender?.name || 'User'}
+													className="w-6 h-6 flex-shrink-0 object-cover"
+												/>
+											) : (
+												<div className="w-6 h-6 rounded-full bg-primary/10 flex-shrink-0 flex items-center justify-center text-[10px] uppercase">
+													{msg.sender?.name?.[0] || '?'}
+												</div>
+											)}
+											<div>
+												<span className="text-primary whitespace-nowrap">
+													[{msg.created_at.toDate().toLocaleTimeString()}]
+												</span>{' '}
+												<Link
+													href={msg.type === 'user_message' ? `/user/${msg.sender?.id}` : '#'}
+													className={`text-secondary ${
+														msg.type === 'system_message' ? 'text-red-500' : ''
+													} ${msg.type === 'user_message' ? 'hover:underline' : ''}`}
+													onClick={(e) => {
+														if (msg.type !== 'user_message') {
+															e.preventDefault();
+														}
+													}}
+												>
+													{msg.sender?.name}:
+												</Link>{' '}
+												<span
+													className={`text-muted-foreground ${
+														msg.type === 'system_message' ? 'text-red-400' : ''
+													}`}
+												>
+													{msg.text}
+												</span>
 											</div>
-										)}
-										<div>
-											<span className="text-primary whitespace-nowrap">
-												[{new Date(msg.created_at).toLocaleTimeString()}]
-											</span>{' '}
-											<Link
-												href={msg.type === 'user_message' ? `/user/${msg.sender_id}` : '#'}
-												className={`text-secondary ${
-													msg.type === 'system_message' ? 'text-red-500' : ''
-												} ${msg.type === 'user_message' ? 'hover:underline' : ''}`}
-												onClick={(e) => {
-													if (msg.type !== 'user_message') {
-														e.preventDefault();
-													}
-												}}
-											>
-												{msg.sender_name}:
-											</Link>{' '}
-											<span
-												className={`text-muted-foreground ${
-													msg.type === 'system_message' ? 'text-red-400' : ''
-												}`}
-											>
-												{msg.text}
-											</span>
 										</div>
-									</div>
-								))}
+									))}
 							</div>
 						</ScrollArea>
 						<form onSubmit={handleSendMessage} className="border border-primary/30 rounded p-2 mt-4">
@@ -503,11 +313,7 @@ export default function Dashboard() {
 				</Card>
 			</motion.div>
 
-			<OnlineCommandersDialog
-				open={showOnlineCommanders}
-				onOpenChange={setShowOnlineCommanders}
-				commanders={commanders}
-			/>
+			<OnlineCommandersDialog open={showOnlineCommanders} onOpenChange={setShowOnlineCommanders} />
 
 			<BiomesDialog open={showAllBiomes} onOpenChange={setShowAllBiomes} />
 
@@ -516,15 +322,20 @@ export default function Dashboard() {
 	);
 }
 
-function OnlineCommandersDialog({
-	open,
-	onOpenChange,
-	commanders,
-}: {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	commanders: { id: string; name: string; avatar: string | null }[];
-}) {
+function OnlineCommandersDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+	const { state } = useGame();
+
+	const [commanders] = useCollectionData(
+		state.activePlayers?.length > 0
+			? query(
+					collection(db, 'users').withConverter(withIdConverter),
+					where('__name__', 'in', state.activePlayers)
+			  )
+			: null
+	);
+
+	if (!commanders) return null;
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[425px]">
@@ -642,7 +453,7 @@ function RenamePlanetDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 		if (!state.selectedPlanet?.id) return;
 
 		try {
-			await api.users.renamePlanet(state.selectedPlanet.id, newPlanetName);
+			await api.renamePlanet(state.selectedPlanet.id, newPlanetName);
 			onOpenChange(false);
 			setNewPlanetName('');
 			console.log('Planet renamed successfully');

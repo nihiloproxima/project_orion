@@ -1,5 +1,5 @@
 import { BaseMail, CombatMail, MissionMail, SpyMail } from '@/models/mail';
-import { Beaker, Bell, Building, Eye, MessageSquare, Rocket, Shield, Ship, Sword } from 'lucide-react';
+import { Beaker, Bell, Building, Eye, MessageSquare, Rocket, Ship, Sword } from 'lucide-react';
 
 import { Button } from './ui/button';
 import Image from 'next/image';
@@ -103,29 +103,6 @@ export function MailContent({ mail }: MailContentProps) {
 									/>
 									<span className="capitalize">{ship.type.replace(/_/g, ' ')}:</span>
 									<span>{ship.count}</span>
-								</div>
-							))}
-						</div>
-					</div>
-				)}
-				{spyData.defenses.length > 0 && (
-					<div className="space-y-4">
-						<h3 className="font-semibold text-primary flex items-center gap-2">
-							<Shield className="h-4 w-4" />
-							Defenses Detected
-						</h3>
-						<div className="grid grid-cols-2 gap-4 text-sm">
-							{spyData.defenses.map((defense: { type: string; amount: number }) => (
-								<div key={defense.type} className="flex items-center gap-2">
-									<Image
-										src={getPublicImageUrl('defenses', `${defense.type}.webp`)}
-										width={24}
-										height={24}
-										alt={defense.type}
-										className="w-6 h-6"
-									/>
-									<span className="capitalize">{defense.type.replace(/_/g, ' ')}:</span>
-									<span>{defense.amount}</span>
 								</div>
 							))}
 						</div>

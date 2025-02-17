@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState, useMemo, useContext } from 'react';
 
 import { FleetMovement } from '@/models';
 import { Planet } from '@/models';
-import { formatTimeString } from '@/lib/utils';
+import utils from '@/lib/utils';
 import _ from 'lodash';
 import { useGame } from '@/contexts/GameContext';
 import { DebrisFieldEffect } from './DebrisField';
@@ -16,6 +16,7 @@ import { AnomalyMarker } from './AnomalyMarker';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
 import { collection, query, where } from 'firebase/firestore';
+import { api } from '@/lib/api';
 
 // Add a new context at the top level to manage open cards
 const OpenCardsContext = React.createContext<{
@@ -509,7 +510,7 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 								→ {fleetMovement.destination.planet_id}
 							</span>
 							<span className="text-neutral-400 text-[10px]">
-								Arrival: {formatTimeString(fleetMovement.arrival_time.toMillis() - Date.now())}
+								Arrival: {utils.formatTimeString(fleetMovement.arrival_time.toMillis() - Date.now())}
 							</span>
 							{fleetMovement.mission_type && (
 								<span className="text-neutral-400 text-[10px] capitalize">
@@ -655,6 +656,7 @@ const GalaxyMap = ({
 	const { state } = useGame();
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const controlsRef = useRef(null);
+	const [planets, setPlanets] = useState<Planet[]>([]);
 	const [animating, setAnimating] = useState(false);
 	const [openCards, setOpenCards] = useState<Set<string>>(new Set());
 	const [debrisFields] = useCollectionData(
@@ -667,9 +669,11 @@ const GalaxyMap = ({
 	const [fleetMovements] = useCollectionData(
 		state.currentUser?.id && state.gameConfig
 			? query(
-					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`),
+					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`).withConverter(
+						withIdConverter
+					),
 					where('owner_id', '==', state.currentUser?.id)
-			  ).withConverter(withIdConverter)
+			  )
 			: null
 	);
 	const [hostileFleetMovements] = useCollectionData(
@@ -680,6 +684,16 @@ const GalaxyMap = ({
 			  ).withConverter(withIdConverter)
 			: null
 	);
+
+	useEffect(() => {
+		const getPlanets = async () => {
+			const data = await api.getPlanets(galaxyFilter);
+			console.log(`planets`, data.planets);
+			setPlanets(data.planets);
+		};
+
+		getPlanets();
+	}, [galaxyFilter]);
 
 	// Add effect to handle focused planet changes
 	useEffect(() => {
@@ -769,21 +783,21 @@ const GalaxyMap = ({
 					))}
 
 					{/* Fleet movements */}
-					{_.concat(fleetMovements, hostileFleetMovements).map((fleetMovement) => (
-						<FleetMovementTracker key={fleetMovement.id} fleetMovement={fleetMovement} />
-					))}
-					{state.planets
-						?.filter((planet) => galaxyFilter === undefined || planet.position.galaxy === galaxyFilter)
-						.map((planet) => (
-							<PlanetObject
-								key={planet.id}
-								planet={planet}
-								isHighlighted={highlightedPlanets.includes(planet.id)}
-								isSelectable={mode === 'view-only' || allowedPlanets.includes(planet.id)}
-								onSelect={() => onPlanetSelect?.(planet)}
-								mode={mode}
-							/>
+					{fleetMovements &&
+						_.concat(fleetMovements, hostileFleetMovements).map((fleetMovement) => (
+							<FleetMovementTracker key={fleetMovement.id} fleetMovement={fleetMovement} />
 						))}
+
+					{planets.map((planet) => (
+						<PlanetObject
+							key={planet.id}
+							planet={planet}
+							isHighlighted={highlightedPlanets.includes(planet.id)}
+							isSelectable={mode === 'view-only' || allowedPlanets.includes(planet.id)}
+							onSelect={() => onPlanetSelect?.(planet)}
+							mode={mode}
+						/>
+					))}
 					<OrbitControls
 						ref={controlsRef}
 						enableRotate={false}

@@ -19,7 +19,7 @@ export function GalaxySelector({ currentGalaxy, onGalaxyChange }: GalaxySelector
 			</Button>
 
 			<div className="flex flex-col items-center">
-				<span className="text-sm text-muted-foreground">Current Galaxy</span>
+				<span className="text-sm text-muted-foreground">Galaxy</span>
 				<span className="text-xl font-bold text-primary">{currentGalaxy}</span>
 			</div>
 

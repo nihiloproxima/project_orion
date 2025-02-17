@@ -24,6 +24,17 @@ async function post(group: string, endpoint: string, data: Record<string, any>) 
 }
 
 export const api = {
+	getPlanets: async (galaxy: number) => {
+		return post('game', 'getPlanets', {
+			galaxy: galaxy,
+		});
+	},
+	renameShip: async (shipId: string, newName: string) => {
+		return post('game', 'renameShip', {
+			ship_id: shipId,
+			name: newName,
+		});
+	},
 	startResearch: async (technologyId: string, planetId: string) => {
 		return post('game', 'startResearch', {
 			technology_id: technologyId,
@@ -35,7 +46,7 @@ export const api = {
 	},
 	createUser: (name: string, avatar: number) => post('game', 'createUser', { name, avatar }),
 	updateUser: (name: string, avatar: number) => post('game', 'updateUser', { name, avatar }),
-	selectHomeworld: (planetId: string) => post('game', 'chooseHomeworld', { planet_id: planetId }),
+	selectHomeworld: (planetId: string) => post('game', 'selectHomeworld', { planet_id: planetId }),
 	claimTaskRewards: (taskId: string) => post('game', 'claimTaskRewards', { task_id: taskId }),
 	collectReward: (rewardId: string) => post('game', 'collectReward', { reward_id: rewardId }),
 	renamePlanet: (planetId: string, newName: string) =>
@@ -44,7 +55,7 @@ export const api = {
 		return post('game', 'upgradeStructure', {
 			planet_id: planetId,
 			structure_type: structureType,
-			upgrade_count: upgradeCount,
+			upgrades_count: upgradeCount,
 		});
 	},
 	getRankings: async (params: {
