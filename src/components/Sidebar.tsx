@@ -18,6 +18,7 @@ import {
 	MailIcon,
 	Factory,
 	MessageSquare,
+	ArrowLeftRight,
 } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 import { auth } from '@/lib/firebase';
@@ -118,6 +119,12 @@ export function Sidebar() {
 				label: 'FLEET_MOVEMENTS',
 				color: 'blue',
 			},
+			{
+				to: '/trading',
+				icon: ArrowLeftRight,
+				label: 'TRADING',
+				color: 'green',
+			},
 		],
 		PLANET: [
 			{
@@ -147,7 +154,7 @@ export function Sidebar() {
 			// 	color: 'blue',
 			// },
 			{
-				to: 'https://discord.gg/VhyygmeE',
+				to: 'https://discord.gg/yabgbdGJGs',
 				icon: MessageSquare,
 				label: 'DISCORD',
 				color: 'blue',

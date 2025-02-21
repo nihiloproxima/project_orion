@@ -12,7 +12,6 @@ import Image from 'next/image';
 import { Input } from '../../../../components/ui/input';
 import { User } from '../../../../models/user';
 import { api } from '../../../../lib/api';
-import { getPublicImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../../contexts/GameContext';
 import { useParams } from 'next/navigation';
@@ -93,7 +92,7 @@ export default function UserProfilePage() {
 						<div className="absolute -bottom-16 left-8 flex items-end gap-6">
 							<div className="relative">
 								<Image
-									src={getPublicImageUrl('avatars', user.avatar + '.webp')}
+									src={`/images/avatars/${user.avatar}.webp`}
 									alt={user.name}
 									width={192}
 									height={192}
@@ -196,7 +195,7 @@ export default function UserProfilePage() {
 								onClick={() => handleAvatarSelect(avatarName)}
 							>
 								<Image
-									src={getPublicImageUrl('avatars', avatarName)}
+									src={`/images/avatars/${avatarName}.webp`}
 									alt={`Avatar ${index}`}
 									width={192}
 									height={192}

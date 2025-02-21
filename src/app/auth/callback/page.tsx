@@ -1,53 +1,44 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "../../../lib/supabase";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth, db } from '@/lib/firebase';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function AuthCallback() {
-  const router = useRouter();
+	const router = useRouter();
 
-  useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-        if (error) throw error;
-        if (!session) throw new Error("No session found");
+	useEffect(() => {
+		const handleCallback = async () => {
+			try {
+				const currentUser = auth.currentUser;
+				if (!currentUser) throw new Error('No user found');
 
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) throw new Error("User not found");
+				// Check if user exists in users collection
+				const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
 
-        // Check if user exists in users table
-        const { data: existingUser } = await supabase
-          .from("users")
-          .select()
-          .eq("id", user.id)
-          .single();
+				if (!userDoc.exists()) {
+					// New user - redirect to create profile
+					router.push('/create-user');
+				} else {
+					const userData = userDoc.data();
+					if (!userData.home_planet_id) {
+						// User exists but needs homeworld
+						router.push('/secure-communications');
+					} else {
+						// Complete user - go to dashboard
+						router.push('/dashboard');
+					}
+				}
+			} catch (error) {
+				console.error('Auth callback error:', error);
+				router.push('/auth/login');
+			}
+		};
 
-        if (!existingUser) {
-          // New user - redirect to create profile
-          router.push("/create-user");
-        } else if (!existingUser.home_planet_id) {
-          // User exists but needs homeworld
-          router.push("/secure-communications");
-        } else {
-          // Complete user - go to dashboard
-          router.push("/dashboard");
-        }
-      } catch (error) {
-        console.error("Auth callback error:", error);
-        router.push("/auth/login");
-      }
-    };
+		handleCallback();
+	}, [router]);
 
-    handleCallback();
-  }, [router]);
-
-  return <LoadingScreen message="INITIALIZING..." />;
+	return <LoadingScreen message="INITIALIZING..." />;
 }

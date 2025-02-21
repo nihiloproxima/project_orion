@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
-import { getPublicImageUrl } from '@/lib/images';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
@@ -94,7 +93,7 @@ export default function CreateUser() {
 										}`}
 									>
 										<Image
-											src={getPublicImageUrl('avatars', avatar)}
+											src={`/images/avatars/${avatar}.webp`}
 											alt={`Avatar ${index}`}
 											fill
 											className="object-cover"

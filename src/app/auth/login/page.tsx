@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
@@ -43,19 +42,6 @@ export default function Login() {
 
 	const handleDiscordSignIn = async () => {
 		try {
-			const { error } = await supabase.auth.signInWithOAuth({
-				provider: 'discord',
-				options: {
-					redirectTo: `${window.location.origin}/auth/callback`,
-					queryParams: {
-						access_type: 'offline',
-						prompt: 'consent',
-					},
-				},
-			});
-
-			if (error) throw error;
-
 			// Auth callback page will handle the rest of the flow
 		} catch (error: any) {
 			setError(error.message || 'Discord authentication failed');
@@ -65,18 +51,7 @@ export default function Login() {
 
 	const handleGoogleSignIn = async () => {
 		try {
-			const { error } = await supabase.auth.signInWithOAuth({
-				provider: 'google',
-				options: {
-					redirectTo: `${window.location.origin}/auth/callback`,
-					queryParams: {
-						access_type: 'offline',
-						prompt: 'consent',
-					},
-				},
-			});
-
-			if (error) throw error;
+			// Auth callback page will handle the rest of the flow
 		} catch (error: any) {
 			setError(error.message || 'Google authentication failed');
 			console.error('Google auth failed:', error);

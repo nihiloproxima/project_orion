@@ -2,17 +2,16 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Trophy, Shield, Swords, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
+import { Trophy, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { Button } from '../../../components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../../../components/ui/tabs';
 import { LoadingScreen } from '../../../components/LoadingScreen';
 import Image from 'next/image';
-import { getPublicImageUrl } from '@/lib/images';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
-type RankingType = 'global' | 'defense' | 'attack';
+type RankingType = 'players' | 'alliances';
 
 interface RankingEntry {
 	user_id: string;
@@ -45,13 +44,12 @@ const USERS_PER_PAGE = 10;
 
 export default function Rankings() {
 	const [rankingsCache, setRankingsCache] = useState<Record<RankingType, Record<number, RankingEntry[]>>>({
-		global: {},
-		defense: {},
-		attack: {},
+		players: {},
+		alliances: {},
 	});
 	const [loading, setLoading] = useState(true);
 	const [currentPage, setCurrentPage] = useState(1);
-	const [rankingType, setRankingType] = useState<RankingType>('global');
+	const [rankingType, setRankingType] = useState<RankingType>('players');
 
 	const fetchRankings = useCallback(
 		async (type: RankingType, page: number) => {
@@ -60,8 +58,7 @@ export default function Rankings() {
 			}
 
 			try {
-				const response = await api.rankings.getRankings({
-					type,
+				const response = await api.getRankings({
 					page,
 				});
 
@@ -82,16 +79,11 @@ export default function Rankings() {
 		[rankingsCache]
 	);
 
-	// Load initial rankings for all types
 	useEffect(() => {
 		const loadInitialRankings = async () => {
 			try {
 				setLoading(true);
-				await Promise.all([
-					fetchRankings('global', 1),
-					fetchRankings('defense', 1),
-					fetchRankings('attack', 1),
-				]);
+				await fetchRankings('players', 1);
 			} catch (error) {
 				console.error('Error loading initial rankings:', error);
 			} finally {
@@ -102,7 +94,6 @@ export default function Rankings() {
 		loadInitialRankings();
 	}, [fetchRankings]);
 
-	// Load rankings when page or type changes
 	useEffect(() => {
 		fetchRankings(rankingType, currentPage);
 	}, [currentPage, rankingType, fetchRankings]);
@@ -127,23 +118,18 @@ export default function Rankings() {
 	}
 
 	const rankingConfig = {
-		global: {
-			title: 'GALACTIC DOMINANCE INDEX',
-			description: 'Overall commander performance metrics',
-			icon: <Globe className="h-8 w-8" />,
+		players: {
+			title: 'COMMANDER RANKINGS',
+			description: 'Individual commander performance metrics',
+			icon: <Trophy className="h-8 w-8" />,
 			label: 'Total Score',
 		},
-		defense: {
-			title: 'FORTRESS COMMANDER RANKINGS',
-			description: 'Defensive strategy effectiveness ratings',
-			icon: <Shield className="h-8 w-8" />,
-			label: 'Defense Score',
-		},
-		attack: {
-			title: 'FLEET ADMIRAL RANKINGS',
-			description: 'Offensive campaign success metrics',
-			icon: <Swords className="h-8 w-8" />,
-			label: 'Attack Score',
+		alliances: {
+			title: 'ALLIANCE RANKINGS',
+			description: 'Combined alliance power metrics',
+			icon: <Users className="h-8 w-8" />,
+			label: 'Alliance Score',
+			comingSoon: true,
 		},
 	};
 
@@ -152,24 +138,21 @@ export default function Rankings() {
 			<div>
 				<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
 					<Trophy className="h-8 w-8" />
-					COMMANDER RANKINGS
+					GALACTIC RANKINGS
 				</h1>
-				<p className="text-muted-foreground">Strategic performance metrics of galactic commanders</p>
+				<p className="text-muted-foreground">Strategic performance metrics of commanders and alliances</p>
 			</div>
 
 			<Tabs value={rankingType} onValueChange={(v) => setRankingType(v as RankingType)}>
-				<TabsList className="grid w-full grid-cols-3 mb-6">
-					<TabsTrigger value="global" className="flex items-center gap-2">
-						<Globe className="h-4 w-4" />
-						Global
+				<TabsList className="grid w-full grid-cols-2 mb-6">
+					<TabsTrigger value="players" className="flex items-center gap-2">
+						<Trophy className="h-4 w-4" />
+						Commanders
 					</TabsTrigger>
-					<TabsTrigger value="defense" className="flex items-center gap-2">
-						<Shield className="h-4 w-4" />
-						Defense
-					</TabsTrigger>
-					<TabsTrigger value="attack" className="flex items-center gap-2">
-						<Swords className="h-4 w-4" />
-						Attack
+					<TabsTrigger value="alliances" className="flex items-center gap-2" disabled>
+						<Users className="h-4 w-4" />
+						Alliances
+						<span className="text-xs bg-primary/20 px-2 py-0.5 rounded-full">Coming Soon</span>
 					</TabsTrigger>
 				</TabsList>
 
@@ -227,10 +210,7 @@ export default function Rankings() {
 
 											<div className="relative w-12 h-12">
 												<Image
-													src={getPublicImageUrl(
-														'avatars',
-														`${entry.avatar || 'default'}.webp`
-													)}
+													src={`/images/avatars/${entry.avatar}.webp`}
 													alt={entry.name}
 													width={48}
 													height={48}

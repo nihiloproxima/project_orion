@@ -1,6 +1,8 @@
-import { supabase } from "@/lib/supabase";
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 
-export const getPublicImageUrl = (bucketName: string, filePath: string) => {
-  const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-  return data.publicUrl;
+export const getPublicImageUrl = async (bucketName: string, filePath: string) => {
+	const storage = getStorage();
+	const fileRef = ref(storage, `${bucketName}/${filePath}`);
+	const publicUrl = await getDownloadURL(fileRef);
+	return publicUrl;
 };

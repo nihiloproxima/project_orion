@@ -19,6 +19,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		const initSocket = async () => {
 			if (!authedUser) return console.log('No authed user');
+			console.log(`socket`, process.env.NEXT_PUBLIC_WEBSOCKET_URL!);
 
 			const token = await authedUser.getIdToken();
 

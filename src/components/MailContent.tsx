@@ -3,7 +3,6 @@ import { Beaker, Bell, Building, Eye, MessageSquare, Rocket, Ship, Sword } from 
 
 import { Button } from './ui/button';
 import Image from 'next/image';
-import { getPublicImageUrl } from '@/lib/images';
 import { useRouter } from 'next/navigation';
 
 interface MailContentProps {
@@ -95,7 +94,7 @@ export function MailContent({ mail }: MailContentProps) {
 							{spyData.ships.map((ship: { type: string; count: number }) => (
 								<div key={ship.type} className="flex items-center gap-2">
 									<Image
-										src={getPublicImageUrl('ships', `${ship.type}.webp`)}
+										src={`/images/ships/${ship.type}.webp`}
 										width={24}
 										height={24}
 										alt={ship.type}

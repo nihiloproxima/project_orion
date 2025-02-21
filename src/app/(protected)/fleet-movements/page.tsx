@@ -14,178 +14,47 @@ import {
 import { AlertTriangle, ArrowRight, Flame, Gift, Hammer, Microchip, Rocket, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '../../../components/ui/button';
 import { FleetMovement } from '../../../models/fleet_movement';
 import Image from 'next/image';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
-import { getPublicImageUrl } from '@/lib/images';
-import { supabase } from '../../../lib/supabase';
 import { useGame } from '../../../contexts/GameContext';
 import { useToast } from '@/hooks/use-toast';
+import { withIdConverter } from '@/lib/firebase';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { collection, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const FleetMovements = () => {
 	const { state } = useGame();
-	const [movements, setMovements] = useState<FleetMovement[]>([]);
-	const [hostileMovements, setHostileMovements] = useState<FleetMovement[]>([]);
-	const [allyMovements, setAllyMovements] = useState<FleetMovement[]>([]);
+	const [movements] = useCollectionData(
+		state.gameConfig && state.currentUser
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`).withConverter(
+						withIdConverter
+					),
+					where('owner_id', '==', state.currentUser?.id)
+			  )
+			: null
+	);
+	const [hostileMovements] = useCollectionData(
+		state.gameConfig && state.currentUser
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`).withConverter(
+						withIdConverter
+					),
+					where('destination.user_id', '==', state.currentUser?.id)
+			  )
+			: null
+	);
 	const [expandedMovement, setExpandedMovement] = useState<string | null>(null);
 	const [missionFilter, setMissionFilter] = useState<string>('all');
 	const [sortBy, setSortBy] = useState<string>('arrival');
 	const [displayMode, setDisplayMode] = useState<'grid' | 'rows'>('grid');
 	const { toast } = useToast();
-
-	// Fetch initial fleet movements
-	useEffect(() => {
-		const fetchMovements = async () => {
-			// Get own fleet movements
-			const { data: ownMovements } = await supabase
-				.from('fleet_movements')
-				.select('*')
-				.eq('owner_id', state.currentUser?.id);
-
-			// Get incoming movements targeting user's planets
-			const { data: incomingMovements } = await supabase
-				.from('fleet_movements')
-				.select('*')
-				.neq('owner_id', state.currentUser?.id)
-				.in('destination_planet_id', state.userPlanets?.map((p) => p.id) || []);
-
-			// Split incoming movements into hostile and ally
-			const hostile = incomingMovements?.filter((m) => m.mission_type === 'attack') || [];
-			const ally = incomingMovements?.filter((m) => m.mission_type === 'transport') || [];
-
-			setMovements(ownMovements || []);
-			setHostileMovements(hostile);
-			setAllyMovements(ally);
-		};
-
-		fetchMovements();
-	}, [state.currentUser?.id, state.userPlanets]);
-
-	// Subscribe to fleet movement updates
-	useEffect(() => {
-		const movementsSubscription = supabase
-			.channel('fleet_movements')
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'fleet_movements',
-					filter: `owner_id=eq.${state.currentUser?.id}`,
-				},
-				(payload) => {
-					if (payload.eventType === 'DELETE') {
-						setMovements((current) => current.filter((m) => m.id !== payload.old.id));
-					} else {
-						const movement = payload.new as FleetMovement;
-						setMovements((current) => {
-							const updated = [...current];
-							const index = updated.findIndex((m) => m.id === movement.id);
-							if (index >= 0) {
-								updated[index] = movement;
-							} else {
-								updated.push(movement);
-							}
-							return updated;
-						});
-					}
-				}
-			)
-			.subscribe();
-
-		// Subscribe to incoming movements
-		const incomingSubscription = supabase
-			.channel('incoming_movements')
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'fleet_movements',
-					filter: `destination_planet_id=in.(${state.planets
-						?.map((p) => p.id)
-						.join(',')}) and mission_type!='spy'`,
-				},
-				(payload) => {
-					if (payload.eventType === 'DELETE') {
-						setHostileMovements((current) => current.filter((m) => m.id !== payload.old.id));
-						setAllyMovements((current) => current.filter((m) => m.id !== payload.old.id));
-					} else {
-						const movement = payload.new as FleetMovement;
-						if (movement.owner_id !== state.currentUser?.id) {
-							if (movement.mission_type === 'attack') {
-								setHostileMovements((current) => {
-									const updated = [...current];
-									const index = updated.findIndex((m) => m.id === movement.id);
-									if (index >= 0) {
-										updated[index] = movement;
-									} else {
-										updated.push(movement);
-									}
-									return updated;
-								});
-							} else if (movement.mission_type === 'transport') {
-								setAllyMovements((current) => {
-									const updated = [...current];
-									const index = updated.findIndex((m) => m.id === movement.id);
-									if (index >= 0) {
-										updated[index] = movement;
-									} else {
-										updated.push(movement);
-									}
-									return updated;
-								});
-							}
-						}
-					}
-				}
-			)
-			.subscribe();
-
-		return () => {
-			movementsSubscription.unsubscribe();
-			incomingSubscription.unsubscribe();
-		};
-	}, [state.currentUser?.id, state.planets]);
-
-	// Add planet lookup helper
-	const getPlanetName = (x: number, y: number) => {
-		return state.planets?.find((p) => p.coordinate_x === x && p.coordinate_y === y)?.name || `(${x}, ${y})`;
-	};
-
-	// Add sorting function
-	const sortMovements = (movements: FleetMovement[]) => {
-		return [...movements].sort((a, b) => {
-			switch (sortBy) {
-				case 'arrival':
-					return new Date(a.arrival_time).getTime() - new Date(b.arrival_time).getTime();
-				case 'departure':
-					return new Date(a.departure_time).getTime() - new Date(b.departure_time).getTime();
-				case 'ships':
-					return (
-						Object.values(b.ship_counts || {}).reduce((sum, count) => sum + count, 0) -
-						Object.values(a.ship_counts || {}).reduce((sum, count) => sum + count, 0)
-					);
-				case 'resources':
-					return (
-						Object.values(b.resources || {}).reduce((sum, count) => sum + count, 0) -
-						Object.values(a.resources || {}).reduce((sum, count) => sum + count, 0)
-					);
-				default:
-					return 0;
-			}
-		});
-	};
-
-	// Add filter function
-	const filterMovements = (movements: FleetMovement[]) => {
-		if (missionFilter === 'all') return movements;
-		return movements.filter((m) => m.mission_type === missionFilter);
-	};
 
 	// Add controls component
 	const MovementControls = () => (
@@ -245,7 +114,7 @@ const FleetMovements = () => {
 		e.stopPropagation();
 
 		try {
-			await api.fleet.cancelMission(movementId);
+			await api.cancelMission(movementId);
 			toast({
 				title: 'Success',
 				description: 'Mission cancelled successfully.',
@@ -346,7 +215,7 @@ const FleetMovements = () => {
 													count > 0 && (
 														<div key={shipType} className="flex items-center gap-2">
 															<Image
-																src={getPublicImageUrl('ships', shipType + '.webp')}
+																src={`/images/ships/${shipType}.webp`}
 																width={24}
 																height={24}
 																alt={shipType}

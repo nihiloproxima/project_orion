@@ -13,6 +13,7 @@ export interface FleetMovement {
 	ships: Array<Partial<Ship>>;
 	origin: {
 		planet_id: Planet['id'];
+		planet_name: string;
 		coordinates: {
 			x: number;
 			y: number;
@@ -21,6 +22,8 @@ export interface FleetMovement {
 	};
 	destination: {
 		planet_id: Planet['id'];
+		planet_name: string;
+		user_id: string | null;
 		name: string;
 		coordinates: {
 			x: number;

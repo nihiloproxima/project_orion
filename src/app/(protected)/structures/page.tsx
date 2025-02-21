@@ -20,7 +20,6 @@ import { STRUCTURE_INFO, TECHNOLOGIES } from '@/lib/constants';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
 import utils from '@/lib/utils';
-import { getPublicImageUrl } from '@/lib/images';
 import millify from 'millify';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
@@ -115,7 +114,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 					className="w-2/5 aspect-square"
 				>
 					<Image
-						src={getPublicImageUrl('structures', info.type + '.webp')}
+						src={`/images/structures/${info.type}.webp`}
 						alt={info.name}
 						width={100}
 						height={100}

@@ -34,7 +34,6 @@ import { TechnologyId } from '../../../models';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
 import researchsCalculations from '@/utils/researchs_calculations';
-import { getPublicImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
 import { useState } from 'react';
@@ -134,7 +133,7 @@ function ResearchCard({
 						<Image
 							width={100}
 							height={100}
-							src={getPublicImageUrl('researchs', id + '.webp')}
+							src={`/images/researchs/${id}.webp`}
 							alt={assetConfig?.name}
 							className={`w-full h-full object-cover rounded-lg ${
 								(!prerequisitesMet ||

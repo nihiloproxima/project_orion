@@ -9,7 +9,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollArea } from '../../../components/ui/scroll-area';
 import { api } from '../../../lib/api';
-import { getPublicImageUrl } from '@/lib/images';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
 import { useRouter } from 'next/navigation'; // Changed from next/router
@@ -260,7 +259,7 @@ export default function Dashboard() {
 										<div key={msg.id} className="text-sm break-words flex items-start gap-2">
 											{msg.sender?.avatar ? (
 												<Image
-													src={getPublicImageUrl('avatars', msg.sender.avatar + '.webp')}
+													src={`/images/avatars/${msg.sender?.avatar}.webp`}
 													width={100}
 													height={100}
 													alt={msg.sender?.name || 'User'}
@@ -355,7 +354,7 @@ function OnlineCommandersDialog({ open, onOpenChange }: { open: boolean; onOpenC
 							>
 								{commander.avatar ? (
 									<Image
-										src={getPublicImageUrl('avatars', commander.avatar + '.webp')}
+										src={`/images/avatars/${commander.avatar}.webp`}
 										width={40}
 										height={40}
 										alt={commander.name}

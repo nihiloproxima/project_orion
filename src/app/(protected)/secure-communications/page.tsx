@@ -4,14 +4,15 @@ import { BaseMail, MailType } from '@/models/mail';
 import { Bell, Eye, Mail, MessageSquare, Rocket, Sword, Trash2, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
-
 import { Button } from '@/components/ui/button';
-import { LoadingScreen } from '@/components/LoadingScreen';
 import { MailContent } from '@/components/MailContent';
 import { generateOnboardingMails } from '@/lib/onboarding-mails';
-import { supabase } from '@/lib/supabase';
 import { useGame } from '@/contexts/GameContext';
 import { api } from '@/lib/api';
+import { withIdConverter } from '@/lib/firebase';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { collection, limit, orderBy, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 type FilterCategory = 'all' | MailType;
 
@@ -24,59 +25,27 @@ const MAIL_CATEGORIES = [
 	{ type: 'game_message', icon: Bell, label: 'Game Messages' },
 ] as const;
 
-export default function Reports() {
+const ITEMS_PER_PAGE = 20;
+
+export default function SecureCommunications() {
 	const { state } = useGame();
-	const [mails, setMails] = useState<BaseMail[]>([]);
+	const [mails] = useCollectionData(
+		state.gameConfig && state.currentUser
+			? query(
+					collection(db, `users/${state.currentUser?.id}/mails`).withConverter(withIdConverter),
+					where('season_id', '==', state.gameConfig.season.current),
+					orderBy('created_at', 'desc'),
+					limit(ITEMS_PER_PAGE)
+			  )
+			: null
+	);
+	const onboardingMails = generateOnboardingMails(state.currentUser?.id || '');
 	const [selectedMail, setSelectedMail] = useState<BaseMail | null>(null);
-	const [loading, setLoading] = useState(true);
 	const [activeCategory, setActiveCategory] = useState<FilterCategory>('all');
 	const [isViewingMail, setIsViewingMail] = useState(false);
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
-	const ITEMS_PER_PAGE = 20;
 	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-	useEffect(() => {
-		const fetchMails = async () => {
-			try {
-				if (!state.selectedPlanet) {
-					const onboardingMails = generateOnboardingMails(state.currentUser?.id || '');
-					setMails(onboardingMails);
-					setLoading(false);
-					return;
-				}
-
-				let query = supabase
-					.from('mails')
-					.select('*')
-					.eq('owner_id', state.currentUser?.id)
-					.order('created_at', { ascending: false })
-					.range(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE - 1);
-
-				if (activeCategory !== 'all') {
-					query = query.eq('type', activeCategory);
-				}
-
-				const { data, error } = await query;
-
-				if (error) throw error;
-
-				setHasMore(data.length === ITEMS_PER_PAGE);
-
-				if (page === 0) {
-					setMails(data || []);
-				} else {
-					setMails((prev) => [...prev, ...(data || [])]);
-				}
-			} catch (error) {
-				console.error('Error fetching mails:', error);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		fetchMails();
-	}, [state.currentUser?.id, activeCategory, page, state.selectedPlanet]);
 
 	useEffect(() => {
 		setPage(0);
@@ -91,7 +60,7 @@ export default function Reports() {
 	const deleteMail = async (id: string) => {
 		try {
 			// Check if this is a game message
-			const mailToDelete = mails.find((m) => m.id === id);
+			const mailToDelete = mails?.find((m) => m.id === id);
 			if (mailToDelete?.type === 'game_message' || mailToDelete?.id.startsWith('welcome')) {
 				return; // Prevent deletion of game messages
 			}
@@ -101,7 +70,6 @@ export default function Reports() {
 				setSelectedMail(null);
 				setIsViewingMail(false);
 			}
-			setMails(mails.filter((mail) => mail.id !== id));
 		} catch (error) {
 			console.error('Error deleting mail:', error);
 		}
@@ -111,14 +79,13 @@ export default function Reports() {
 		if (id.startsWith('welcome')) return;
 		try {
 			await api.updateMail({ mail_id: id, read: true });
-			setMails((current) => current.map((m) => (m.id === id ? { ...m, read: true } : m)));
 		} catch (error) {
 			console.error('Error marking mail as read:', error);
 		}
 	};
 
 	const getUnreadCount = (category: FilterCategory) => {
-		return mails.filter((m) => !m.read && (category === 'all' || m.type === category)).length;
+		return mails?.filter((m) => !m.read && (category === 'all' || m.type === category)).length || 0;
 	};
 
 	const handleMailClick = (mail: BaseMail) => {
@@ -129,11 +96,9 @@ export default function Reports() {
 		}
 	};
 
-	if (loading) {
-		return <LoadingScreen message="LOADING MAILS..." />;
-	}
-
-	const displayedMails = mails.filter((mail) => activeCategory === 'all' || mail.type === activeCategory);
+	const displayedMails = !state.selectedPlanet
+		? onboardingMails
+		: mails?.filter((mail) => activeCategory === 'all' || mail.type === activeCategory) || [];
 
 	return (
 		<div className="space-y-6">
@@ -243,9 +208,8 @@ export default function Reports() {
 														variant="outline"
 														className="w-full mt-4"
 														onClick={() => setPage((p) => p + 1)}
-														disabled={loading}
 													>
-														{loading ? 'Loading...' : 'Load More'}
+														Load More
 													</Button>
 												)}
 											</>
