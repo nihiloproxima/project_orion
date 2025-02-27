@@ -28,8 +28,9 @@ import structuresCalculations from '@/utils/structures_calculations';
 
 function StructureCard({ structure }: { structure: Structure }) {
 	const { state } = useGame();
+	const [selectedLevels, setSelectedLevels] = useState(1);
 
-	if (!state.currentResources || !state.gameConfig || !state.userResearchs) {
+	if (!state.currentResources || !state.gameConfig || !state.userResearchs || !state.selectedPlanet) {
 		return <LoadingScreen message="Loading structures..." />;
 	}
 
@@ -42,6 +43,11 @@ function StructureCard({ structure }: { structure: Structure }) {
 	};
 
 	const structureConfig = utils.getStructureConfig(state.gameConfig!, structure.type);
+	if (!structureConfig) {
+		console.error(`Structure config not found for type: ${structure.type}`);
+		return null;
+	}
+
 	const info = STRUCTURE_INFO[structure.type];
 
 	const currentHourlyProduction = structuresCalculations.structureHourlyProduction({
@@ -57,7 +63,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 		planet: state.selectedPlanet!,
 		userResearchs: state.userResearchs!,
 		structureType: structure.type,
-		structureLevel: structure.level + 1,
+		structureLevel: structure.level + selectedLevels,
 	});
 
 	const energyConsumption = structuresCalculations.structureEnergyConsumption({
@@ -69,7 +75,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 		structuresCalculations.structureEnergyConsumption({
 			gameConfig: state.gameConfig!,
 			structureType: structure.type,
-			structureLevel: structure.level + 1,
+			structureLevel: structure.level + selectedLevels,
 		})
 	);
 
@@ -82,13 +88,14 @@ function StructureCard({ structure }: { structure: Structure }) {
 			structureLevel: structure.level,
 		})
 	);
+
 	const futureEnergyProduction = Math.floor(
 		structuresCalculations.structureEnergyProduction({
 			gameConfig: state.gameConfig!,
 			planet: state.selectedPlanet!,
 			userResearchs: state.userResearchs!,
 			structureType: structure.type,
-			structureLevel: structure.level + 1,
+			structureLevel: structure.level + selectedLevels,
 		})
 	);
 
@@ -97,10 +104,11 @@ function StructureCard({ structure }: { structure: Structure }) {
 		structureType: structure.type,
 		structureLevel: structure.level,
 	});
+
 	const futureStorageCapacities = structuresCalculations.structureStorageCapacities({
 		gameConfig: state.gameConfig!,
 		structureType: structure.type,
-		structureLevel: structure.level + 1,
+		structureLevel: structure.level + selectedLevels,
 	});
 
 	// Skip rendering if structure has no production and no storage
@@ -213,6 +221,8 @@ function StructureCard({ structure }: { structure: Structure }) {
 					onUpgrade={onUpgrade}
 					config={structureConfig!}
 					energyConsumption={energyConsumption}
+					selectedLevels={selectedLevels}
+					setSelectedLevels={setSelectedLevels}
 				/>
 			</CardContent>
 		</Card>
@@ -225,24 +235,29 @@ function StructureContent({
 	onUpgrade,
 	config,
 	energyConsumption,
+	selectedLevels,
+	setSelectedLevels,
 }: {
 	structure: Structure;
 	info: (typeof STRUCTURE_INFO)[StructureType];
 	onUpgrade: (structure: Structure, amount: number) => Promise<void>;
 	config: StructureConfig;
 	energyConsumption: number;
+	selectedLevels: number;
+	setSelectedLevels: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	const { state } = useGame();
-	const [selectedLevels, setSelectedLevels] = useState(1);
 	const [maxAffordableLevels, setMaxAffordableLevels] = useState(0);
 
 	useEffect(() => {
+		if (!state.currentResources) return;
+
 		let levels = 0;
 		while (true) {
 			if (levels >= 10000) break;
 
 			const { cost } = calculateMultiLevelCosts(levels + 1);
-			if (cost > state.currentResources!.metal) break;
+			if (cost > state.currentResources.metal) break;
 			levels++;
 		}
 
@@ -250,7 +265,10 @@ function StructureContent({
 	}, [state.currentResources]);
 
 	const calculateMultiLevelCosts = (levels: number) => {
-		const structureConfig = utils.getStructureConfig(state.gameConfig!, structure.type);
+		if (!state.gameConfig) return { cost: 0, time: 0 };
+
+		const structureConfig = utils.getStructureConfig(state.gameConfig, structure.type);
+		if (!structureConfig) return { cost: 0, time: 0 };
 
 		const targetLevels = _.range(structure.level + 1, structure.level + levels + 1);
 		const metalCost = targetLevels.reduce((total: number, targetLevel: number) => {
@@ -430,11 +448,17 @@ function StructureContent({
 export default function Structures() {
 	const { state } = useGame();
 	const [gridCols, setGridCols] = useState(() => {
-		const saved = localStorage.getItem('structuresGridCols');
-		return saved ? parseInt(saved) : 2;
+		if (typeof window !== 'undefined') {
+			const saved = localStorage.getItem('structuresGridCols');
+			return saved ? parseInt(saved) : 2;
+		}
+		return 2;
 	});
 
-	const currentEnergyRatio = state.currentResources.energy_production / state.currentResources.energy_consumption;
+	const currentEnergyRatio =
+		state.currentResources?.energy_production && state.currentResources?.energy_consumption
+			? state.currentResources.energy_production / state.currentResources.energy_consumption
+			: 1;
 
 	const gridColsClass = {
 		1: 'grid-cols-1',

@@ -29,6 +29,13 @@ export const api = {
 			galaxy: galaxy,
 		});
 	},
+	buildShip: async (planetId: string, blueprintId: string, componentsIds: string[]) => {
+		return post('game', 'buildShip', {
+			planet_id: planetId,
+			blueprint_id: blueprintId,
+			components_ids: componentsIds,
+		});
+	},
 	renameShip: async (shipId: string, newName: string) => {
 		return post('game', 'renameShip', {
 			ship_id: shipId,
