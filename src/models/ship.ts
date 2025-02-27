@@ -50,10 +50,10 @@ export interface ShipBlueprint {
 	description: string;
 	base_stats: ShipStats;
 	required_components: {
-		engine: boolean;
-		hull: boolean;
-		weapon: boolean;
-		shield_generator: boolean;
+		engine: boolean; // boolean of engine components required
+		hull: boolean; // boolean of hull components required
+		weapon: boolean; // boolean of weapon components required
+		shield_generator: boolean; // boolean of shield generator components required
 	};
 	base_cost: {
 		credits: number;
@@ -63,6 +63,7 @@ export interface ShipBlueprint {
 			deuterium?: number;
 		};
 	};
+	construction_seconds: number;
 	requirements: {
 		shipyard_level: number;
 		technologies: Array<{
@@ -74,7 +75,15 @@ export interface ShipBlueprint {
 }
 
 export type ComponentType = 'engine' | 'hull' | 'weapon' | 'shield_generator';
-export type ComponentEffect = 'rapid_fire' | 'stealth' | 'quick_maneuver' | 'precision' | 'escape';
+export type ComponentEffect =
+	| 'rapid_fire' // Increase fire rate (%)
+	| 'stealth' // Allow to avoid detection by enemy ships
+	| 'lucky_find' // Increase loot rarity (%)
+	| 'prospector' // find more resources on expeditions (%)
+	| 'salvager' // find more components on expeditions (%)
+	| 'harvester' // increase loot quantity (%)
+	| 'deuterium_saver' // reduce deuterium requirements for expeditions (%)
+	| 'backfire'; // attack ennemy when receiving a hit (bool)
 
 export interface ShipComponent {
 	id: string;

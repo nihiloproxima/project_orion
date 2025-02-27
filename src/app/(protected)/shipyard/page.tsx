@@ -356,7 +356,7 @@ function ShipBuilder({ onClose }: { onClose: () => void }) {
 														)}
 													</div>
 													{Object.entries(selectedComponent.stats)
-														.filter(([_, value]) => value !== 0)
+														.filter(([, value]) => value !== 0)
 														.map(([stat, value]) => (
 															<div key={stat} className="flex justify-between">
 																<span className="capitalize">
