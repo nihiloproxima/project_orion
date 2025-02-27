@@ -1,4 +1,5 @@
 import { useGame } from '../contexts/GameContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import millify from 'millify';
 import { Flame, Hammer, Microchip, Zap, Menu } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -19,27 +20,6 @@ type ResourceConfig = {
 	};
 };
 
-const RESOURCE_CONFIG: ResourceConfig = {
-	metal: {
-		label: 'METAL',
-		icon: Hammer,
-		textColor: 'text-secondary',
-		iconColor: 'text-secondary',
-	},
-	deuterium: {
-		label: 'DEUTERIUM',
-		icon: Flame,
-		textColor: 'text-primary',
-		iconColor: 'text-primary',
-	},
-	microchips: {
-		label: 'MICROCHIPS',
-		icon: Microchip,
-		textColor: 'text-accent',
-		iconColor: 'text-accent',
-	},
-} as const;
-
 interface ResourceBarProps {
 	showMobileSidebar: boolean;
 	setShowMobileSidebar: (show: boolean) => void;
@@ -51,6 +31,7 @@ type Resources = {
 
 export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: ResourceBarProps) {
 	const { state, selectPlanet } = useGame();
+	const { t } = useLanguage();
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [resources, setResources] = useState<Resources>({
 		metal: 0,
@@ -87,6 +68,28 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 		state.gameConfig,
 		state.selectedPlanet.structures
 	);
+
+	// Update resource config to use translations
+	const RESOURCE_CONFIG: ResourceConfig = {
+		metal: {
+			label: t('common', 'resources.metal'),
+			icon: Hammer,
+			textColor: 'text-secondary',
+			iconColor: 'text-secondary',
+		},
+		deuterium: {
+			label: t('common', 'resources.deuterium'),
+			icon: Flame,
+			textColor: 'text-primary',
+			iconColor: 'text-primary',
+		},
+		microchips: {
+			label: t('common', 'resources.microchips'),
+			icon: Microchip,
+			textColor: 'text-accent',
+			iconColor: 'text-accent',
+		},
+	} as const;
 
 	return (
 		<div className="w-full bg-black/80 border-b border-primary/30 backdrop-blur-sm py-2 px-4 sticky top-0 z-[55]">
@@ -154,7 +157,7 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 					))}
 
 					<div className="flex flex-col items-end">
-						<span className="text-xs text-violet-400/70">ENERGY</span>
+						<span className="text-xs text-violet-400/70">{t('common', 'resources.energy')}</span>
 						<div className="flex items-center gap-2">
 							<span
 								className={`font-mono font-bold text-base ${

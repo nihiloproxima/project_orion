@@ -1,0 +1,39 @@
+{
+	"navigation": {
+		"dashboard": "TABLEAU DE BORD",
+		"secure_coms": "COMMUNICATIONS",
+		"user_profile": "PROFIL",
+		"galaxy_map": "CARTE GALACTIQUE",
+		"rankings": "CLASSEMENTS",
+		"fleet_movements": "MOUVEMENTS DE FLOTTE",
+		"trading": "COMMERCE",
+		"structures": "STRUCTURES",
+		"research_lab": "LABORATOIRE",
+		"shipyard": "CHANTIER SPATIAL",
+		"discord": "DISCORD",
+		"terminate_session": "DÉCONNEXION"
+	},
+	"resources": {
+		"metal": "MÉTAL",
+		"deuterium": "DEUTÉRIUM",
+		"microchips": "MICROPUCES",
+		"energy": "ÉNERGIE"
+	},
+	"actions": {
+		"confirm": "Confirmer",
+		"cancel": "Annuler",
+		"select": "Sélectionner",
+		"next": "Suivant",
+		"previous": "Précédent"
+	},
+	"loading": {
+		"initializing_system": "INITIALISATION DU SYSTÈME...",
+		"establishing_connection": "ÉTABLISSEMENT DE LA CONNEXION...",
+		"scanning_star_systems": "ANALYSE DES SYSTÈMES STELLAIRES...",
+		"loading_planet_data": "CHARGEMENT DES DONNÉES PLANÉTAIRES...",
+		"fetching_resources": "RÉCUPÉRATION DES RESSOURCES...",
+		"loading_research_status": "CHARGEMENT DU STATUT DE RECHERCHE...",
+		"checking_structures": "VÉRIFICATION DES STRUCTURES...",
+		"initializing_game_state": "INITIALISATION DE L'ÉTAT DU JEU..."
+	}
+}

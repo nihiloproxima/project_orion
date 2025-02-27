@@ -20,6 +20,8 @@ import { getRequiredPointsForLevel } from '@/utils/user_calculations';
 import { useCollectionDataOnce, useDocumentData } from 'react-firebase-hooks/firestore';
 import { collection, doc, query, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function UserProfilePage() {
 	const params = useParams();
@@ -45,6 +47,7 @@ export default function UserProfilePage() {
 	const paginatedAvatars = avatars.slice(currentPage * avatarsPerPage, (currentPage + 1) * avatarsPerPage);
 
 	const isCurrentUser = state.currentUser?.id === userId;
+	const { t } = useLanguage();
 
 	const handleUpdateName = async () => {
 		if (!user || !newName.trim()) return;
@@ -79,10 +82,23 @@ export default function UserProfilePage() {
 				<div>
 					<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
 						<UserIcon className="h-8 w-8" />
-						COMMANDER PROFILE
+						{t('user', 'profile.title')}
 					</h1>
 					<p className="text-muted-foreground">Viewing commander {user.name}&apos;s service record</p>
 				</div>
+				{isCurrentUser && (
+					<div className="flex items-center gap-4">
+						<LanguageSelector />
+						<Button
+							variant="default"
+							size="icon"
+							className="rounded-full"
+							onClick={() => setIsAvatarDialogOpen(true)}
+						>
+							<ImageIcon className="h-4 w-4" />
+						</Button>
+					</div>
+				)}
 			</motion.div>
 
 			{/* Profile Card */}

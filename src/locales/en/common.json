@@ -1,0 +1,46 @@
+{
+	"navigation": {
+		"dashboard": "DASHBOARD",
+		"secure_coms": "SECURE_COMS",
+		"user_profile": "USER_PROFILE",
+		"galaxy_map": "GALAXY_MAP",
+		"rankings": "RANKINGS",
+		"fleet_movements": "FLEET_MOVEMENTS",
+		"trading": "TRADING",
+		"structures": "STRUCTURES",
+		"research_lab": "RESEARCH_LAB",
+		"shipyard": "SHIPYARD",
+		"discord": "DISCORD",
+		"terminate_session": "TERMINATE_SESSION"
+	},
+	"resources": {
+		"metal": "METAL",
+		"deuterium": "DEUTERIUM",
+		"microchips": "MICROCHIPS",
+		"energy": "ENERGY"
+	},
+	"actions": {
+		"confirm": "Confirm",
+		"cancel": "Cancel",
+		"select": "Select",
+		"next": "Next",
+		"previous": "Previous"
+	},
+	"theme": {
+		"select": "Select Theme",
+		"matrix_green": "Matrix Green",
+		"neon_purple": "Neon Purple",
+		"cyber_blue": "Cyber Blue",
+		"synthwave": "Synthwave"
+	},
+	"loading": {
+		"initializing_system": "INITIALIZING SYSTEM...",
+		"establishing_connection": "ESTABLISHING CONNECTION...",
+		"scanning_star_systems": "SCANNING STAR SYSTEMS...",
+		"loading_planet_data": "LOADING PLANET DATA...",
+		"fetching_resources": "FETCHING RESOURCES...",
+		"loading_research_status": "LOADING RESEARCH STATUS...",
+		"checking_structures": "CHECKING STRUCTURES...",
+		"initializing_game_state": "INITIALIZING GAME STATE..."
+	}
+}

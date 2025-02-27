@@ -1,16 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Terminal } from 'lucide-react';
-
-const DEFAULT_LOADING_MESSAGES = [
-	'INITIALIZING SYSTEM...',
-	'ESTABLISHING CONNECTION...',
-	'SCANNING STAR SYSTEMS...',
-	'LOADING PLANET DATA...',
-	'FETCHING RESOURCES...',
-	'LOADING RESEARCH STATUS...',
-	'CHECKING STRUCTURES...',
-	'INITIALIZING GAME STATE...',
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LoadingScreenProps {
 	message?: string;
@@ -18,18 +8,29 @@ interface LoadingScreenProps {
 	duration?: number; // Duration in milliseconds
 }
 
-export function LoadingScreen({
-	message = 'SYSTEM BOOT SEQUENCE',
-	steps = DEFAULT_LOADING_MESSAGES,
-	duration = 3000,
-}: LoadingScreenProps) {
+export function LoadingScreen({ message, steps, duration = 3000 }: LoadingScreenProps) {
+	const { t } = useLanguage();
+
+	const DEFAULT_LOADING_MESSAGES = [
+		t('common', 'loading.initializing_system'),
+		t('common', 'loading.establishing_connection'),
+		t('common', 'loading.scanning_star_systems'),
+		t('common', 'loading.loading_planet_data'),
+		t('common', 'loading.fetching_resources'),
+		t('common', 'loading.loading_research_status'),
+		t('common', 'loading.checking_structures'),
+		t('common', 'loading.initializing_game_state'),
+	];
+
+	const loadingSteps = steps || DEFAULT_LOADING_MESSAGES;
+
 	const [progress, setProgress] = useState(0);
 	const [currentMessage, setCurrentMessage] = useState(0);
 
 	useEffect(() => {
 		// Calculate intervals based on duration and steps
 		const progressInterval = duration / 100; // Split duration into 100 progress steps
-		const messageInterval = duration / steps.length;
+		const messageInterval = duration / loadingSteps.length;
 
 		// Progress bar animation
 		const progressTimer = setInterval(() => {
@@ -44,14 +45,14 @@ export function LoadingScreen({
 
 		// Cycle through messages
 		const messageTimer = setInterval(() => {
-			setCurrentMessage((prev) => (prev + 1) % steps.length);
+			setCurrentMessage((prev) => (prev + 1) % loadingSteps.length);
 		}, messageInterval);
 
 		return () => {
 			clearInterval(progressTimer);
 			clearInterval(messageTimer);
 		};
-	}, [duration, steps.length]);
+	}, [duration, loadingSteps.length]);
 
 	return (
 		<div className="min-h-screen bg-background cyber-grid flex items-center justify-center">
@@ -61,7 +62,9 @@ export function LoadingScreen({
 				{/* Header */}
 				<div className="flex items-center justify-center gap-2 px-2">
 					<Terminal className="h-6 w-6 sm:h-8 sm:w-8 text-primary animate-pulse" />
-					<h1 className="text-2xl sm:text-4xl font-bold neon-text tracking-wider px-2">{message}</h1>
+					<h1 className="text-2xl sm:text-4xl font-bold neon-text tracking-wider px-2">
+						{message || 'SYSTEM BOOT SEQUENCE'}
+					</h1>
 				</div>
 
 				{/* Matrix-like effect overlay */}
@@ -70,7 +73,7 @@ export function LoadingScreen({
 
 					{/* Scrolling terminal text */}
 					<div className="p-4 space-y-2 text-primary/70">
-						{steps.map((msg, i) => (
+						{loadingSteps.map((msg, i) => (
 							<div
 								key={i}
 								className={`transition-opacity duration-500 ${

@@ -84,4 +84,7 @@ export const api = {
 	updateMail: async (params: { mail_id: string; read?: boolean; deleted?: boolean; archived?: boolean }) => {
 		return post('game', 'updateMail', params);
 	},
+	updateUserLanguage: async (language: string): Promise<void> => {
+		return post('game', 'updateUserLanguage', { language });
+	},
 };

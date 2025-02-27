@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import {
@@ -24,40 +25,45 @@ import { useGame } from '../contexts/GameContext';
 import { auth } from '@/lib/firebase';
 
 // Create a reusable NavLink component
-const NavLink = ({ item, badge }: { item: any; badge?: number }) => (
-	<Link key={item.to} href={item.to}>
-		<Button
-			variant="ghost"
-			className={`w-full justify-start text-${item.color}-400 hover:bg-${item.color}-500/10 
-				border border-transparent hover:border-${item.color}-500/30 
-				group transition-all duration-300 relative
-				${location.pathname === item.to ? `bg-${item.color}-500/10 border-${item.color}-500/30` : ''}`}
-		>
-			<item.icon
-				className={`mr-2 ${location.pathname === item.to ? 'animate-pulse' : 'group-hover:animate-pulse'}`}
-			/>
-			<span
-				className={`font-mono ${
-					location.pathname === item.to
-						? 'text-primary'
-						: 'group-hover:text-primary group-hover:animate-glitch'
-				}`}
+const NavLink = ({ item, badge }: { item: any; badge?: number }) => {
+	const { t } = useLanguage();
+
+	return (
+		<Link key={item.to} href={item.to}>
+			<Button
+				variant="ghost"
+				className={`w-full justify-start text-${item.color}-400 hover:bg-${item.color}-500/10 
+					border border-transparent hover:border-${item.color}-500/30 
+					group transition-all duration-300 relative
+					${location.pathname === item.to ? `bg-${item.color}-500/10 border-${item.color}-500/30` : ''}`}
 			>
-				{`> ${item.label}`}
-			</span>
-			{badge !== undefined && badge > 0 && (
-				<span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5 rounded-full">
-					{badge}
+				<item.icon
+					className={`mr-2 ${location.pathname === item.to ? 'animate-pulse' : 'group-hover:animate-pulse'}`}
+				/>
+				<span
+					className={`font-mono ${
+						location.pathname === item.to
+							? 'text-primary'
+							: 'group-hover:text-primary group-hover:animate-glitch'
+					}`}
+				>
+					{`> ${t('common', `navigation.${item.translationKey}`)}`}
 				</span>
-			)}
-		</Button>
-	</Link>
-);
+				{badge !== undefined && badge > 0 && (
+					<span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-0.5 rounded-full">
+						{badge}
+					</span>
+				)}
+			</Button>
+		</Link>
+	);
+};
 
 export function Sidebar() {
 	const { logout } = useAuth();
 	const { state } = useGame();
 	const { theme, setTheme } = useTheme();
+	const { t } = useLanguage();
 	const router = useRouter();
 
 	// Add this to track completed tasks
@@ -73,56 +79,49 @@ export function Sidebar() {
 	// Add this constant outside the component
 	const NAVIGATION_ITEMS: Record<
 		string,
-		{ to: string; icon: any; label: string; color: string; hasBadge?: boolean }[]
+		{ to: string; icon: any; translationKey: string; color: string; hasBadge?: boolean }[]
 	> = {
 		MAIN: [
 			{
 				to: '/dashboard',
 				icon: Computer,
-				label: 'DASHBOARD',
+				translationKey: 'dashboard',
 				color: 'primary',
 			},
 			{
 				to: '/secure-communications',
 				icon: MailIcon,
-				label: 'SECURE_COMS',
+				translationKey: 'secure_coms',
 				color: 'blue',
 			},
-			// {
-			// 	to: '/tasks',
-			// 	icon: CheckCircle2,
-			// 	label: 'TASKS',
-			// 	color: 'blue',
-			// 	hasBadge: true,
-			// },
 			{
 				to: `/user/${auth.currentUser?.uid}`,
 				icon: User,
-				label: 'USER_PROFILE',
+				translationKey: 'user_profile',
 				color: 'blue',
 			},
 			{
 				to: '/galaxy',
 				icon: Eye,
-				label: 'GALAXY_MAP',
+				translationKey: 'galaxy_map',
 				color: 'purple',
 			},
 			{
 				to: '/rankings',
 				icon: Trophy,
-				label: 'RANKINGS',
+				translationKey: 'rankings',
 				color: 'blue',
 			},
 			{
 				to: '/fleet-movements',
 				icon: ArrowRight,
-				label: 'FLEET_MOVEMENTS',
+				translationKey: 'fleet_movements',
 				color: 'blue',
 			},
 			{
 				to: '/trading',
 				icon: ArrowLeftRight,
-				label: 'TRADING',
+				translationKey: 'trading',
 				color: 'green',
 			},
 		],
@@ -130,33 +129,27 @@ export function Sidebar() {
 			{
 				to: '/structures',
 				icon: Building,
-				label: 'STRUCTURES',
+				translationKey: 'structures',
 				color: 'primary',
 			},
 			{
 				to: '/researchs',
 				icon: FlaskConical,
-				label: 'RESEARCH_LAB',
+				translationKey: 'research_lab',
 				color: 'green',
 			},
 			{
 				to: '/shipyard',
 				icon: Factory,
-				label: 'SHIPYARD',
+				translationKey: 'shipyard',
 				color: 'blue',
 			},
 		],
 		OTHER: [
-			// {
-			// 	to: '/shop',
-			// 	icon: ShoppingCart,
-			// 	label: 'SHOP',
-			// 	color: 'blue',
-			// },
 			{
 				to: 'https://discord.gg/yabgbdGJGs',
 				icon: MessageSquare,
-				label: 'DISCORD',
+				translationKey: 'discord',
 				color: 'blue',
 			},
 		],
@@ -198,7 +191,9 @@ export function Sidebar() {
 							</>
 						)}
 						{!state.selectedPlanet && (
-							<NavLink item={NAVIGATION_ITEMS.MAIN.find((item) => item.label === 'SECURE_COMS')} />
+							<NavLink
+								item={NAVIGATION_ITEMS.MAIN.find((item) => item.translationKey === 'secure_coms')}
+							/>
 						)}
 					</nav>
 				</div>
@@ -209,14 +204,14 @@ export function Sidebar() {
 				<div className="p-2 md:p-4 border-t border-primary/30">
 					<Select defaultValue={theme} onValueChange={setTheme}>
 						<SelectTrigger className="w-full bg-black border-primary/30 text-primary hover:border-primary/60 transition-colors">
-							<SelectValue placeholder="SELECT_THEME" />
+							<SelectValue placeholder={t('common', 'theme.select')} />
 						</SelectTrigger>
 						<SelectContent className="bg-black/95 border-primary/30">
 							{[
-								{ value: 'default', label: 'MATRIX_GREEN', color: 'emerald' },
-								{ value: 'purple', label: 'NEON_PURPLE', color: 'purple' },
-								{ value: 'blue', label: 'CYBER_BLUE', color: 'blue' },
-								{ value: 'synthwave', label: 'SYNTHWAVE', color: 'pink' },
+								{ value: 'default', label: t('common', 'theme.matrix_green'), color: 'emerald' },
+								{ value: 'purple', label: t('common', 'theme.neon_purple'), color: 'purple' },
+								{ value: 'blue', label: t('common', 'theme.cyber_blue'), color: 'blue' },
+								{ value: 'synthwave', label: t('common', 'theme.synthwave'), color: 'pink' },
 							].map((item) => (
 								<SelectItem
 									key={item.value}
@@ -240,7 +235,9 @@ export function Sidebar() {
 						group transition-all duration-300"
 					>
 						<LogOut className="mr-2 group-hover:animate-pulse" />
-						<span className="font-mono group-hover:animate-glitch">{'>'} TERMINATE_SESSION</span>
+						<span className="font-mono group-hover:animate-glitch">
+							{'>'} {t('common', 'navigation.terminate_session')}
+						</span>
 					</Button>
 				</div>
 			</div>
