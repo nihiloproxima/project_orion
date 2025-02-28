@@ -1,0 +1,38 @@
+{
+	"transport_tech": {
+		"name": "Transport Technology",
+		"description": "Advanced logistics and cargo management systems that enable the construction and operation of interstellar transport vessels."
+	},
+	"colonization_tech": {
+		"name": "Life Detection Systems",
+		"description": "Advanced scanners and analysis tools for detecting habitable worlds. Unlocks colony ships and planetary settlement capabilities."
+	},
+	"combat_tech": {
+		"name": "Plasma Propulsion Systems",
+		"description": "Advanced propulsion technology utilizing superheated plasma to generate powerful thrust. Enables the construction of larger military vessels capable of interstellar combat."
+	},
+	"espionage_tech": {
+		"name": "Espionage Technology",
+		"description": "Increases your ability to gather intelligence on other players and their planets. Each level improves the accuracy and detail of espionage reports."
+	},
+	"structures_construction_speed": {
+		"name": "Nanite Constructors",
+		"description": "Microscopic robots assist in construction, increasing building speed with each level of research."
+	},
+	"deuterium_production_boost": {
+		"name": "Cryogenic Efficiency",
+		"description": "Optimizes the cooling systems needed to store and transport deuterium, reducing losses."
+	},
+	"energy_efficiency": {
+		"name": "Energy Efficiency",
+		"description": "Improves the energy production efficiency."
+	},
+	"microchips_production_boost": {
+		"name": "Advanced AI",
+		"description": "Advanced AI systems that automate experiments and analyze data patterns to accelerate research."
+	},
+	"metal_production_boost": {
+		"name": "Enhanced Mining",
+		"description": "Improves resource extraction efficiency."
+	}
+}

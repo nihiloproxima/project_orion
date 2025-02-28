@@ -22,11 +22,13 @@ import { collection, doc, query, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Planet } from '@/models';
 
 export default function UserProfilePage() {
 	const params = useParams();
 	const userId = params.userId as string;
 	const { state } = useGame();
+	const { t } = useLanguage();
 	const [user] = useDocumentData<User>(doc(db, `users/${userId}`).withConverter(withIdConverter));
 	const [isEditing, setIsEditing] = useState(false);
 	const [newName, setNewName] = useState('');
@@ -47,7 +49,6 @@ export default function UserProfilePage() {
 	const paginatedAvatars = avatars.slice(currentPage * avatarsPerPage, (currentPage + 1) * avatarsPerPage);
 
 	const isCurrentUser = state.currentUser?.id === userId;
-	const { t } = useLanguage();
 
 	const handleUpdateName = async () => {
 		if (!user || !newName.trim()) return;
@@ -84,9 +85,7 @@ export default function UserProfilePage() {
 						<UserIcon className="h-8 w-8" />
 						{t('user', 'profile.title')}
 					</h1>
-					<p className="text-muted-foreground">
-						{t('user', 'profile.viewing_record', { name: user.name })}
-					</p>
+					<p className="text-muted-foreground">{t('user', 'profile.viewing_record', { name: user.name })}</p>
 				</div>
 				{isCurrentUser && (
 					<div className="flex items-center gap-4">
@@ -159,7 +158,7 @@ export default function UserProfilePage() {
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2 text-yellow-400">
 									<Trophy className="h-5 w-5" />
-									Reputation Level {user.level}
+									{t('user', 'profile.reputation_level', { level: user.level.toString() })}
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
@@ -167,9 +166,12 @@ export default function UserProfilePage() {
 									<div className="flex justify-between text-sm text-muted-foreground">
 										<span>
 											{user.xp.toLocaleString()} /{' '}
-											{getRequiredPointsForLevel(user.level + 1).toLocaleString()} XP
+											{getRequiredPointsForLevel(user.level + 1).toLocaleString()}{' '}
+											{t('user', 'profile.xp')}
 										</span>
-										<span>Next Level: {user.level + 1}</span>
+										<span>
+											{t('user', 'profile.next_level', { level: (user.level + 1).toString() })}
+										</span>
 									</div>
 									<Progress
 										value={
@@ -188,7 +190,7 @@ export default function UserProfilePage() {
 							<CardHeader>
 								<CardTitle className="flex items-center gap-2 text-primary">
 									<Trophy className="h-5 w-5" />
-									Score
+									{t('user', 'profile.score')}
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
@@ -203,7 +205,7 @@ export default function UserProfilePage() {
 			<Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
 				<DialogContent className="sm:max-w-[600px]">
 					<DialogHeader>
-						<DialogTitle>Select Commander Avatar</DialogTitle>
+						<DialogTitle>{t('user', 'profile.select_avatar')}</DialogTitle>
 					</DialogHeader>
 					<div className="grid grid-cols-3 gap-4 p-4">
 						{paginatedAvatars.map((avatarName, index) => (
@@ -230,17 +232,20 @@ export default function UserProfilePage() {
 							disabled={currentPage === 0}
 						>
 							<ChevronLeft className="h-4 w-4 mr-2" />
-							Previous
+							{t('common', 'previous')}
 						</Button>
 						<span className="text-sm text-muted-foreground">
-							Page {currentPage + 1} of {totalPages}
+							{t('common', 'pagination', {
+								current: (currentPage + 1).toString(),
+								total: totalPages.toString(),
+							})}
 						</span>
 						<Button
 							variant="outline"
 							onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
 							disabled={currentPage === totalPages - 1}
 						>
-							Next
+							{t('common', 'next')}
 							<ChevronRight className="h-4 w-4 ml-2" />
 						</Button>
 					</div>
@@ -253,7 +258,7 @@ export default function UserProfilePage() {
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<Earth className="h-5 w-5" />
-							Controlled Systems ({userPlanets?.length || 0})
+							{t('user', 'profile.controlled_systems', { count: (userPlanets?.length || 0).toString() })}
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
@@ -261,7 +266,7 @@ export default function UserProfilePage() {
 							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
 							variants={containerVariants}
 						>
-							{userPlanets?.map((planet) => (
+							{userPlanets?.map((planet: Planet) => (
 								<motion.div
 									key={planet.id}
 									variants={itemVariants}
@@ -274,11 +279,13 @@ export default function UserProfilePage() {
 										<CardContent className="p-4">
 											<div className="font-bold text-primary">{planet.name}</div>
 											<div className="text-sm text-muted-foreground">
-												[{planet.coordinate_x}, {planet.coordinate_y}]
+												[{planet.position.x}, {planet.position.y}, {planet.position.galaxy}]
 											</div>
-											<div className="text-sm">Size: {planet.size_km.toLocaleString()} km</div>
+											<div className="text-sm">
+												{t('planets', 'size', { size: planet.size_km.toLocaleString() })}
+											</div>
 											<div className="text-sm capitalize">
-												Biome: {planet.biome.replace('_', ' ')}
+												{t('planets', `biome.${planet.biome}`)}
 											</div>
 										</CardContent>
 									</Card>

@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
 
 export type ResourceType = 'metal' | 'microchips' | 'deuterium' | 'energy';
 export type PlanetBiome = 'desert' | 'ocean' | 'jungle' | 'ice' | 'volcanic';

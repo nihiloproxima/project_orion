@@ -1,1 +1,80 @@
-{}
+{
+	"metal_mine": {
+		"name": "Mine de Métal",
+		"description": "Extrait et traite le minerai de métal des gisements planétaires. Chaque niveau augmente la production de métal."
+	},
+	"deuterium_synthesizer": {
+		"name": "Synthétiseur de Deutérium",
+		"description": "Extrait l'hydrogène et synthétise le carburant deutérium. Chaque niveau augmente la production de deutérium."
+	},
+	"energy_plant": {
+		"name": "Centrale Énergétique",
+		"description": "Génère de l'énergie pour alimenter vos opérations planétaires. Chaque niveau augmente la production d'énergie."
+	},
+	"research_lab": {
+		"name": "Laboratoire de Recherche",
+		"description": "Mène des recherches scientifiques pour débloquer de nouvelles technologies. Chaque niveau augmente la vitesse de recherche."
+	},
+	"microchip_factory": {
+		"name": "Usine de Microprocesseurs",
+		"description": "Fabrique des microprocesseurs avancés et des circuits. Chaque niveau augmente la production de microprocesseurs."
+	},
+	"shipyard": {
+		"name": "Chantier Spatial",
+		"description": "Construit et entretient votre flotte de vaisseaux spatiaux. Chaque niveau débloque de nouveaux types de vaisseaux et augmente la vitesse de production."
+	},
+	"metal_hangar": {
+		"name": "Hangar de Métal",
+		"description": "Installation de stockage à grande échelle pour le métal traité. Chaque niveau augmente la capacité de stockage de métal."
+	},
+	"deuterium_tank": {
+		"name": "Réservoir de Deutérium",
+		"description": "Installation de stockage pressurisée pour le carburant deutérium. Chaque niveau augmente la capacité de stockage de deutérium."
+	},
+	"microchip_vault": {
+		"name": "Chambre Forte de Microprocesseurs",
+		"description": "Installation de stockage sécurisée pour les microélectroniques sensibles. Chaque niveau augmente la capacité de stockage de microprocesseurs."
+	},
+	"title": "STRUCTURES PLANÉTAIRES",
+	"subtitle": "Gérez et améliorez votre infrastructure planétaire",
+	"grid_view": {
+		"title": "Affichage en grille",
+		"single": "Colonne unique",
+		"two": "Deux colonnes",
+		"three": "Trois colonnes",
+		"four": "Quatre colonnes"
+	},
+	"energy_warning": {
+		"title": "Votre planète connaît une pénurie d'énergie ! La production de ressources est réduite en raison d'une alimentation insuffisante.",
+		"subtitle": "Envisagez de construire ou d'améliorer des centrales électriques pour rétablir l'efficacité de production complète."
+	},
+	"card": {
+		"level": "Niveau",
+		"max_level": "Niveau maximum",
+		"construction": "Construction",
+		"upgrade_costs": "Coûts d'amélioration",
+		"levels": "niveaux",
+		"construction_time": "Temps de construction",
+		"energy": {
+			"production": "Production d'énergie",
+			"consumption": "Consommation d'énergie"
+		},
+		"production": "Production",
+		"storage": "Stockage",
+		"under_construction": "En construction",
+		"prerequisites": {
+			"not_met": "Prérequis non satisfaits",
+			"required": "Requis"
+		},
+		"max_level_reached": "Niveau maximum atteint",
+		"button": {
+			"prerequisites_not_met": "Prérequis non satisfaits",
+			"not_enough_resources": "Ressources insuffisantes",
+			"max_level_reached": "Niveau maximum atteint",
+			"confirm_upgrade": "Confirmer l'amélioration",
+			"level": "niveau",
+			"levels": "niveaux"
+		}
+	},
+	"loading": "Chargement des structures..."
+}

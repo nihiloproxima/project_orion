@@ -7,6 +7,8 @@ import enUser from './en/user.json';
 import enTrading from './en/trading.json';
 import enRankings from './en/rankings.json';
 import enHome from './en/home.json';
+import enTechnologies from './en/technologies.json';
+import enPlanets from './en/planets.json';
 
 import frCommon from './fr/common.json';
 import frAuth from './fr/auth.json';
@@ -17,6 +19,8 @@ import frUser from './fr/user.json';
 import frTrading from './fr/trading.json';
 import frRankings from './fr/rankings.json';
 import frHome from './fr/home.json';
+import frTechnologies from './fr/technologies.json';
+import frPlanets from './fr/planets.json';
 
 export type Locale = 'en' | 'fr';
 
@@ -31,6 +35,8 @@ export const resources = {
 		trading: enTrading,
 		rankings: enRankings,
 		home: enHome,
+		technologies: enTechnologies,
+		planets: enPlanets,
 	},
 	fr: {
 		common: frCommon,
@@ -42,6 +48,8 @@ export const resources = {
 		trading: frTrading,
 		rankings: frRankings,
 		home: frHome,
+		technologies: frTechnologies,
+		planets: frPlanets,
 	},
 };
 

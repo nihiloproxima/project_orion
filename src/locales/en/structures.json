@@ -1,1 +1,80 @@
-{}
+{
+	"metal_mine": {
+		"name": "Metal Mine",
+		"description": "Mines and processes metal ore from planetary deposits. Each level increases metal production."
+	},
+	"deuterium_synthesizer": {
+		"name": "Deuterium Synthesizer",
+		"description": "Extracts hydrogen and synthesizes deuterium fuel. Each level increases deuterium production."
+	},
+	"energy_plant": {
+		"name": "Energy Plant",
+		"description": "Generates power to fuel your planetary operations. Each level increases energy output."
+	},
+	"research_lab": {
+		"name": "Research Laboratory",
+		"description": "Conducts scientific research to unlock new technologies. Each level increases research speed."
+	},
+	"microchip_factory": {
+		"name": "Microchip Factory",
+		"description": "Manufactures advanced microprocessors and circuitry. Each level increases microchip production."
+	},
+	"shipyard": {
+		"name": "Shipyard",
+		"description": "Builds and maintains your fleet of spacecraft. Each level unlocks new ship types and increases ship production speed."
+	},
+	"metal_hangar": {
+		"name": "Metal Hangar",
+		"description": "Large-scale storage facility for processed metal. Each level increases metal storage capacity."
+	},
+	"deuterium_tank": {
+		"name": "Deuterium Tank",
+		"description": "Pressurized storage facility for deuterium fuel. Each level increases deuterium storage capacity."
+	},
+	"microchip_vault": {
+		"name": "Microchip Vault",
+		"description": "Secure storage facility for sensitive microelectronics. Each level increases microchip storage capacity."
+	},
+	"title": "PLANETARY STRUCTURES",
+	"subtitle": "Manage and upgrade your planetary infrastructure",
+	"grid_view": {
+		"title": "Grid View",
+		"single": "Single Column",
+		"two": "Two Columns",
+		"three": "Three Columns",
+		"four": "Four Columns"
+	},
+	"energy_warning": {
+		"title": "Your planet is experiencing an energy shortage! Resource production is reduced due to insufficient power.",
+		"subtitle": "Consider building or upgrading Power Plants to restore full production efficiency."
+	},
+	"card": {
+		"level": "Level",
+		"max_level": "Maximum level",
+		"construction": "Construction",
+		"upgrade_costs": "Upgrade Costs",
+		"levels": "levels",
+		"construction_time": "Construction Time",
+		"energy": {
+			"production": "Energy Production",
+			"consumption": "Energy Consumption"
+		},
+		"production": "Production",
+		"storage": "Storage",
+		"under_construction": "Under Construction",
+		"prerequisites": {
+			"not_met": "Prerequisites Not Met",
+			"required": "Required"
+		},
+		"max_level_reached": "Maximum level reached",
+		"button": {
+			"prerequisites_not_met": "Prerequisites Not Met",
+			"not_enough_resources": "Not Enough Resources",
+			"max_level_reached": "Maximum Level Reached",
+			"confirm_upgrade": "Confirm Upgrade",
+			"level": "level",
+			"levels": "levels"
+		}
+	},
+	"loading": "Loading structures..."
+}

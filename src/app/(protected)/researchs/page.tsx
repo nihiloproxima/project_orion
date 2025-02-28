@@ -39,7 +39,7 @@ import { useGame } from '../../../contexts/GameContext';
 import { useState } from 'react';
 import { Technology } from '../../../models/user_researchs';
 import utils from '@/lib/utils';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ResearchCardProps {
 	id: TechnologyId;
@@ -64,7 +64,8 @@ function ResearchCard({
 	researchCapacityInfo,
 }: ResearchCardProps) {
 	const { state } = useGame();
-	const { t } = useTranslation();
+	const { t } = useTranslation('technologies');
+	const { t: tResearchs } = useTranslation('researchs');
 
 	if (!state.currentResources) return null;
 
@@ -90,19 +91,19 @@ function ResearchCard({
 		);
 
 	const getButtonText = () => {
-		if (tech.level >= config.max_level) return 'MAX LEVEL';
-		if (tech.is_researching) return 'RESEARCHING';
-		if (isPlanetResearching) return 'PLANET ALREADY RESEARCHING';
+		if (tech.level >= config.max_level) return tResearchs('card.button.max_level');
+		if (tech.is_researching) return tResearchs('card.button.researching');
+		if (isPlanetResearching) return tResearchs('card.button.planet_researching');
 		if (!canStartNewResearch && researchCapacityInfo.current >= researchCapacityInfo.max) {
-			return `RESEARCH CAPACITY REACHED (${researchCapacityInfo.current}/${researchCapacityInfo.max})`;
+			return tResearchs('card.button.capacity_reached');
 		}
-		if (!prerequisitesMet) return 'PREREQUISITES NOT MET';
-		if (!hasEnoughResources) return 'NOT ENOUGH RESOURCES';
-		return 'RESEARCH';
+		if (!prerequisitesMet) return tResearchs('card.button.prerequisites_not_met');
+		if (!hasEnoughResources) return tResearchs('card.button.not_enough_resources');
+		return tResearchs('card.button.research');
 	};
 
 	const getEffectDescription = () => {
-		let description = assetConfig?.description;
+		let description = t(assetConfig?.descriptionKey);
 
 		config.effects.forEach((effect) => {
 			if (effect.per_level) {
@@ -137,7 +138,7 @@ function ResearchCard({
 							width={100}
 							height={100}
 							src={`/images/researchs/${id}.webp`}
-							alt={assetConfig?.name}
+							alt={assetConfig?.nameKey}
 							className={`w-full h-full object-cover rounded-lg ${
 								(!prerequisitesMet ||
 									!hasEnoughResources ||
@@ -155,7 +156,7 @@ function ResearchCard({
 					>
 						<div className="flex flex-col gap-2">
 							<CardTitle className="text-xl font-bold neon-text tracking-wide uppercase hover:scale-105 transition-transform">
-								{assetConfig?.name}
+								{t(assetConfig?.nameKey)}
 							</CardTitle>
 							<div className="flex flex-col gap-1 text-sm">
 								{assetConfig.unlocks?.ships && (
@@ -198,7 +199,7 @@ function ResearchCard({
 									{config.prerequisites
 										.map(
 											(prereq) =>
-												`${TECHNOLOGIES[prereq.technology_id as TechnologyId].name} ${
+												`${t(TECHNOLOGIES[prereq.technology_id as TechnologyId].nameKey)} ${
 													prereq.required_level
 												}`
 										)
@@ -225,7 +226,7 @@ function ResearchCard({
 						/>
 					) : (
 						<div className="p-3 bg-black/30 rounded-lg border border-primary/20">
-							<h4 className="font-medium text-primary mb-2">Research Time</h4>
+							<h4 className="font-medium text-primary mb-2">{tResearchs('card.research_time')}</h4>
 							<div className="text-gray-200 text-sm">{utils.formatTimerTime(researchTime / 1000)}</div>
 						</div>
 					)}
@@ -235,7 +236,9 @@ function ResearchCard({
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<div className="w-full p-3 bg-black/30 rounded-lg border border-primary/20">
-										<h4 className="font-medium text-primary mb-2">Resource Cost</h4>
+										<h4 className="font-medium text-primary mb-2">
+											{tResearchs('card.resource_cost')}
+										</h4>
 										<div className="grid grid-cols-2 gap-4">
 											{config.cost.base_metal > 0 && (
 												<div className="flex items-center gap-2">
@@ -315,7 +318,7 @@ function ResearchCard({
 
 export default function Researchs() {
 	const { state } = useGame();
-	const { t } = useTranslation();
+	const { t } = useTranslation('researchs');
 	const [gridCols, setGridCols] = useState(() => {
 		const saved = localStorage.getItem('structuresGridCols');
 		return saved ? parseInt(saved) : 2;
@@ -334,7 +337,7 @@ export default function Researchs() {
 	};
 
 	if (!state.gameConfig || !state.userResearchs) {
-		return <LoadingScreen message="Loading research lab..." />;
+		return <LoadingScreen message={t('loading')} />;
 	}
 
 	// Check if laboratory exists
@@ -345,11 +348,11 @@ export default function Researchs() {
 			<div className="flex flex-col items-center justify-center h-[80vh] space-y-6 text-center">
 				<AlertTriangle className="w-16 h-16 text-red-500 animate-pulse" />
 				<div className="space-y-2">
-					<h2 className="text-2xl font-bold text-red-500">{t('common', 'errors.no_laboratory.title')}</h2>
+					<h2 className="text-2xl font-bold text-red-500">{t('errors.no_laboratory.title')}</h2>
 					<div className="font-mono text-sm text-gray-200 max-w-md">
-						<p className="mb-2">{t('common', 'errors.no_laboratory.code')}</p>
-						<p>{t('common', 'errors.no_laboratory.message')}</p>
-						<p>{t('common', 'errors.no_laboratory.action')}</p>
+						<p className="mb-2">{t('errors.no_laboratory.code')}</p>
+						<p>{t('errors.no_laboratory.message')}</p>
+						<p>{t('errors.no_laboratory.action')}</p>
 					</div>
 				</div>
 			</div>
@@ -397,17 +400,17 @@ export default function Researchs() {
 					<div>
 						<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
 							<Beaker className="h-8 w-8" />
-							RESEARCH LABORATORY
+							{t('title')}
 						</h1>
 						<div className="flex items-center gap-2 text-gray-200">
 							<FolderTree className="h-5 w-5" />
-							<p>Browse and unlock advanced technologies</p>
+							<p>{t('subtitle')}</p>
 						</div>
 					</div>
 
 					<div className="flex items-center gap-4">
 						<div className="text-sm text-primary">
-							Research Capacity: {activeResearchCount}/{state.userResearchs.capacity}
+							{t('research_capacity')}: {activeResearchCount}/{state.userResearchs.capacity}
 						</div>
 
 						<DropdownMenu>
@@ -418,16 +421,16 @@ export default function Researchs() {
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end">
 								<DropdownMenuItem onClick={() => updateGridCols(1)}>
-									<Grid className="mr-2 h-4 w-4" /> Single Column
+									<Grid className="mr-2 h-4 w-4" /> {t('grid_view.single')}
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={() => updateGridCols(2)}>
-									<Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
+									<Grid2x2 className="mr-2 h-4 w-4" /> {t('grid_view.two')}
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={() => updateGridCols(3)}>
-									<Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
+									<Grid3x3 className="mr-2 h-4 w-4" /> {t('grid_view.three')}
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={() => updateGridCols(4)}>
-									<Grid className="mr-2 h-4 w-4" /> Four Columns
+									<Grid className="mr-2 h-4 w-4" /> {t('grid_view.four')}
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>

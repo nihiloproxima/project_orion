@@ -1,0 +1,10 @@
+{
+	"biome": {
+		"desert": "Désert",
+		"ocean": "Océan",
+		"jungle": "Jungle",
+		"ice": "Glace",
+		"volcanic": "Volcanique"
+	},
+	"size": "Taille: {{size}} km"
+}

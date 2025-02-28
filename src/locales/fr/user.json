@@ -1,6 +1,13 @@
 {
-  "profile": {
-    "title": "PROFIL DU COMMANDANT",
-    "viewing_record": "Consultation du dossier de service du commandant {{name}}"
-  }
+	"profile": {
+		"title": "PROFIL DU COMMANDANT",
+		"viewing_record": "Consultation du dossier de service du commandant {{name}}",
+		"reputation_level": "Niveau de Réputation",
+		"xp": "XP",
+		"next_level": "Niveau Suivant",
+		"level": "Niveau",
+		"score": "Score",
+		"select_avatar": "Sélectionner un Avatar",
+		"controlled_systems": "Systèmes contrôlés ({{count}})"
+	}
 }

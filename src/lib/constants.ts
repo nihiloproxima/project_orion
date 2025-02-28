@@ -5,75 +5,72 @@ export const STRUCTURE_INFO: Record<
 	StructureType,
 	{
 		type: StructureType;
-		name: string;
-		description: string;
+		nameKey: string;
+		descriptionKey: string;
 		productionType: string;
 		hasStorage: boolean;
 	}
 > = {
 	metal_mine: {
 		type: 'metal_mine',
-		name: 'Metal Mine',
-		description: 'Mines and processes metal ore from planetary deposits. Each level increases metal production.',
+		nameKey: 'metal_mine.name',
+		descriptionKey: 'metal_mine.description',
 		productionType: 'metal',
 		hasStorage: false,
 	},
 	deuterium_synthesizer: {
 		type: 'deuterium_synthesizer',
-		name: 'Deuterium Synthesizer',
-		description: 'Extracts hydrogen and synthesizes deuterium fuel. Each level increases deuterium production.',
+		nameKey: 'deuterium_synthesizer.name',
+		descriptionKey: 'deuterium_synthesizer.description',
 		productionType: 'deuterium',
 		hasStorage: false,
 	},
 	energy_plant: {
 		type: 'energy_plant',
-		name: 'Energy Plant',
-		description: 'Generates power to fuel your planetary operations. Each level increases energy output.',
+		nameKey: 'energy_plant.name',
+		descriptionKey: 'energy_plant.description',
 		productionType: 'energy',
 		hasStorage: false,
 	},
 	research_lab: {
 		type: 'research_lab',
-		name: 'Research Laboratory',
-		description: 'Conducts scientific research to unlock new technologies. Each level increases research speed.',
+		nameKey: 'research_lab.name',
+		descriptionKey: 'research_lab.description',
 		productionType: 'none',
 		hasStorage: false,
 	},
 	microchip_factory: {
 		type: 'microchip_factory',
-		name: 'Microchip Factory',
-		description: 'Manufactures advanced microprocessors and circuitry. Each level increases microchip production.',
+		nameKey: 'microchip_factory.name',
+		descriptionKey: 'microchip_factory.description',
 		productionType: 'microchips',
 		hasStorage: false,
 	},
 	shipyard: {
 		type: 'shipyard',
-		name: 'Shipyard',
-		description:
-			'Builds and maintains your fleet of spacecraft. Each level unlocks new ship types and increases ship production speed.',
+		nameKey: 'shipyard.name',
+		descriptionKey: 'shipyard.description',
 		productionType: 'none',
 		hasStorage: false,
 	},
 	metal_hangar: {
 		type: 'metal_hangar',
-		name: 'Metal Hangar',
-		description: 'Large-scale storage facility for processed metal. Each level increases metal storage capacity.',
+		nameKey: 'metal_hangar.name',
+		descriptionKey: 'metal_hangar.description',
 		productionType: 'metal',
 		hasStorage: true,
 	},
 	deuterium_tank: {
 		type: 'deuterium_tank',
-		name: 'Deuterium Tank',
-		description:
-			'Pressurized storage facility for deuterium fuel. Each level increases deuterium storage capacity.',
+		nameKey: 'deuterium_tank.name',
+		descriptionKey: 'deuterium_tank.description',
 		productionType: 'deuterium',
 		hasStorage: true,
 	},
 	microchip_vault: {
 		type: 'microchip_vault',
-		name: 'Microchip Vault',
-		description:
-			'Secure storage facility for sensitive microelectronics. Each level increases microchip storage capacity.',
+		nameKey: 'microchip_vault.name',
+		descriptionKey: 'microchip_vault.description',
 		productionType: 'microchips',
 		hasStorage: true,
 	},
@@ -82,9 +79,9 @@ export const STRUCTURE_INFO: Record<
 export const TECHNOLOGIES: Record<
 	TechnologyId,
 	{
-		name: string;
+		nameKey: string;
 		image: string;
-		description: string;
+		descriptionKey: string;
 		category: ResearchCategory;
 		unlocks?: {
 			ships?: string[];
@@ -93,74 +90,69 @@ export const TECHNOLOGIES: Record<
 	}
 > = {
 	transport_tech: {
-		name: 'Transport Technology',
+		nameKey: 'transport_tech.name',
 		image: 'transport_tech.png',
-		description:
-			'Advanced logistics and cargo management systems that enable the construction and operation of interstellar transport vessels.',
+		descriptionKey: 'transport_tech.description',
 		category: 'ship',
 		unlocks: {
 			ships: ['Transport Ship'],
 		},
 	},
 	colonization_tech: {
-		name: 'Life Detection Systems',
+		nameKey: 'colonization_tech.name',
 		image: 'colonization_tech.png',
-		description:
-			'Advanced scanners and analysis tools for detecting habitable worlds. Unlocks colony ships and planetary settlement capabilities.',
+		descriptionKey: 'colonization_tech.description',
 		category: 'ship',
 		unlocks: {
 			ships: ['Colony Ship'],
 		},
 	},
 	combat_tech: {
-		name: 'Plasma Propulsion Systems',
+		nameKey: 'combat_tech.name',
 		image: 'combat_tech.png',
-		description:
-			'Advanced propulsion technology utilizing superheated plasma to generate powerful thrust. Enables the construction of larger military vessels capable of interstellar combat.',
+		descriptionKey: 'combat_tech.description',
 		category: 'ship',
 		unlocks: {
 			ships: ['Cruiser'],
 		},
 	},
 	espionage_tech: {
-		name: 'Espionage Technology',
+		nameKey: 'espionage_tech.name',
 		image: 'espionage_tech.png',
-		description:
-			'Increases your ability to gather intelligence on other players and their planets. Each level improves the accuracy and detail of espionage reports.',
+		descriptionKey: 'espionage_tech.description',
 		category: 'ship',
 		unlocks: {
 			ships: ['Spy Probe'],
 		},
 	},
 	structures_construction_speed: {
-		name: 'Nanite Constructors',
+		nameKey: 'structures_construction_speed.name',
 		image: 'nanite_constructors.png',
-		description:
-			'Microscopic robots assist in construction, increasing building speed with each level of research.',
+		descriptionKey: 'structures_construction_speed.description',
 		category: 'structure',
 	},
 	deuterium_production_boost: {
-		name: 'Cryogenic Efficiency',
+		nameKey: 'deuterium_production_boost.name',
 		image: 'cryogenic_efficiency.png',
-		description: 'Optimizes the cooling systems needed to store and transport deuterium, reducing losses.',
+		descriptionKey: 'deuterium_production_boost.description',
 		category: 'resource',
 	},
 	energy_efficiency: {
-		name: 'Energy Efficiency',
+		nameKey: 'energy_efficiency.name',
 		image: 'energy_efficiency.png',
-		description: 'Improves the energy production efficiency.',
+		descriptionKey: 'energy_efficiency.description',
 		category: 'resource',
 	},
 	microchips_production_boost: {
-		name: 'Advanced AI',
+		nameKey: 'microchips_production_boost.name',
 		image: 'advanced_ai.png',
-		description: 'Advanced AI systems that automate experiments and analyze data patterns to accelerate research.',
+		descriptionKey: 'microchips_production_boost.description',
 		category: 'structure',
 	},
 	metal_production_boost: {
-		name: 'Enhanced Mining',
+		nameKey: 'metal_production_boost.name',
 		image: 'enhanced_mining.png',
-		description: 'Improves resource extraction efficiency.',
+		descriptionKey: 'metal_production_boost.description',
 		category: 'resource',
 	},
 };

@@ -1,0 +1,38 @@
+{
+	"transport_tech": {
+		"name": "Technologie de Transport",
+		"description": "Systèmes avancés de logistique et de gestion de cargaison qui permettent la construction et l'exploitation de vaisseaux de transport interstellaires."
+	},
+	"colonization_tech": {
+		"name": "Systèmes de Détection de Vie",
+		"description": "Scanners avancés et outils d'analyse pour détecter des mondes habitables. Débloque les vaisseaux de colonisation et les capacités d'établissement planétaire."
+	},
+	"combat_tech": {
+		"name": "Systèmes de Propulsion à Plasma",
+		"description": "Technologie de propulsion avancée utilisant du plasma surchauffé pour générer une poussée puissante. Permet la construction de vaisseaux militaires plus grands capables de combat interstellaire."
+	},
+	"espionage_tech": {
+		"name": "Technologie d'Espionnage",
+		"description": "Augmente votre capacité à recueillir des renseignements sur d'autres joueurs et leurs planètes. Chaque niveau améliore la précision et le détail des rapports d'espionnage."
+	},
+	"structures_construction_speed": {
+		"name": "Constructeurs Nanites",
+		"description": "Des robots microscopiques qui assistent à la construction, augmentant la vitesse de construction avec chaque niveau de recherche."
+	},
+	"deuterium_production_boost": {
+		"name": "Efficacité Cryogénique",
+		"description": "Optimise les systèmes de refroidissement nécessaires pour stocker et transporter le deutérium, réduisant les pertes."
+	},
+	"energy_efficiency": {
+		"name": "Efficacité Énergétique",
+		"description": "Améliore l'efficacité de la production d'énergie."
+	},
+	"microchips_production_boost": {
+		"name": "IA Avancée",
+		"description": "Systèmes d'IA avancés qui automatisent les expériences et analysent les modèles de données pour accélérer la recherche."
+	},
+	"metal_production_boost": {
+		"name": "Extraction Améliorée",
+		"description": "Améliore l'efficacité de l'extraction des ressources."
+	}
+}

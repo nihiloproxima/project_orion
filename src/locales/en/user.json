@@ -1,6 +1,13 @@
 {
-  "profile": {
-    "title": "COMMANDER PROFILE",
-    "viewing_record": "Viewing commander {{name}}'s service record"
-  }
+	"profile": {
+		"title": "COMMANDER PROFILE",
+		"viewing_record": "Viewing commander {{name}}'s service record",
+		"reputation_level": "Reputation Level",
+		"xp": "XP",
+		"next_level": "Next Level",
+		"level": "Level",
+		"score": "Score",
+		"select_avatar": "Select Avatar",
+		"controlled_systems": "Controlled Systems ({{count}})"
+	}
 }

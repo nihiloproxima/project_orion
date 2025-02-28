@@ -1,1 +1,55 @@
-{}
+{
+	"title": "LABORATOIRE DE RECHERCHE",
+	"subtitle": "Développez des technologies avancées pour améliorer les capacités de votre empire",
+	"research_capacity": "Capacité de recherche",
+	"grid_view": {
+		"title": "Affichage en grille",
+		"single": "Colonne unique",
+		"two": "Deux colonnes",
+		"three": "Trois colonnes",
+		"four": "Quatre colonnes"
+	},
+	"button_text": {
+		"max_level": "NIVEAU MAXIMUM",
+		"researching": "EN COURS DE RECHERCHE",
+		"planet_researching": "PLANÈTE DÉJÀ EN RECHERCHE",
+		"capacity_reached": "CAPACITÉ DE RECHERCHE ATTEINTE ({{current}}/{{max}})",
+		"prerequisites_not_met": "PRÉREQUIS NON SATISFAITS",
+		"not_enough_resources": "RESSOURCES INSUFFISANTES",
+		"research": "RECHERCHER"
+	},
+	"card": {
+		"level": "Niveau",
+		"max_level": "Niveau maximum",
+		"category": "Catégorie",
+		"unlocks": {
+			"ships": "Débloque les vaisseaux",
+			"defense": "Débloque les défenses"
+		},
+		"requires": "Nécessite",
+		"another_research": "Une autre technologie est actuellement en cours de recherche",
+		"research_time": "Temps de recherche",
+		"resource_cost": "Coût en ressources",
+		"button": {
+			"max_level": "NIVEAU MAX",
+			"researching": "EN COURS",
+			"planet_researching": "PLANÈTE DÉJÀ EN RECHERCHE",
+			"capacity_reached": "CAPACITÉ DE RECHERCHE ATTEINTE",
+			"prerequisites": "PRÉREQUIS NON REMPLIS",
+			"resources": "RESSOURCES INSUFFISANTES",
+			"research": "RECHERCHER"
+		},
+		"effects": {
+			"resource_boost": "Chaque niveau augmente la production de {{resource}} de {{value}}%."
+		}
+	},
+	"loading": "CHARGEMENT DES DONNÉES DE RECHERCHE...",
+	"errors": {
+		"no_laboratory": {
+			"title": "Laboratoire non trouvé",
+			"code": "404",
+			"message": "Le laboratoire de recherche n'existe pas.",
+			"action": "Veuillez construire un laboratoire de recherche."
+		}
+	}
+}

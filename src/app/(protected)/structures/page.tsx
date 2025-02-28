@@ -25,13 +25,15 @@ import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
 import { useEffect, useState } from 'react';
 import structuresCalculations from '@/utils/structures_calculations';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function StructureCard({ structure }: { structure: Structure }) {
 	const { state } = useGame();
+	const { t } = useTranslation('structures');
 	const [selectedLevels, setSelectedLevels] = useState(1);
 
 	if (!state.currentResources || !state.gameConfig || !state.userResearchs || !state.selectedPlanet) {
-		return <LoadingScreen message="Loading structures..." />;
+		return <LoadingScreen message={t('loading')} />;
 	}
 
 	const onUpgrade = async (structure: Structure, amount: number = 1) => {
@@ -123,7 +125,7 @@ function StructureCard({ structure }: { structure: Structure }) {
 				>
 					<Image
 						src={`/images/structures/${info.type}.webp`}
-						alt={info.name}
+						alt={info.nameKey}
 						width={100}
 						height={100}
 						className="w-full h-full object-cover rounded-lg"
@@ -137,10 +139,10 @@ function StructureCard({ structure }: { structure: Structure }) {
 					className="flex flex-col gap-2 w-3/5"
 				>
 					<CardTitle className="text-xl font-bold neon-text tracking-wide uppercase hover:scale-105 transition-transform">
-						{info.name}
+						{t(info.nameKey)}
 					</CardTitle>
 
-					<p className="text-sm text-muted-foreground">{info.description}</p>
+					<p className="text-sm text-muted-foreground">{t(info.descriptionKey)}</p>
 
 					{structure && (info.productionType !== 'none' || info.hasStorage) && (
 						<div className="text-sm text-primary/70 font-medium">
@@ -231,7 +233,6 @@ function StructureCard({ structure }: { structure: Structure }) {
 
 function StructureContent({
 	structure,
-	info,
 	onUpgrade,
 	config,
 	energyConsumption,
@@ -247,6 +248,7 @@ function StructureContent({
 	setSelectedLevels: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	const { state } = useGame();
+	const { t } = useTranslation('structures');
 	const [maxAffordableLevels, setMaxAffordableLevels] = useState(0);
 
 	useEffect(() => {
@@ -331,7 +333,9 @@ function StructureContent({
 	if (structure.construction_start_time) {
 		return (
 			<div className="space-y-4">
-				<div className="text-sm text-primary/70">Level {structure.level} - Under Construction</div>
+				<div className="text-sm text-primary/70">
+					{t('card.level')} {structure.level} - {t('card.under_construction')}
+				</div>
 				<Timer
 					startTime={structure.construction_start_time!.toMillis()}
 					finishTime={structure.construction_finish_time!.toMillis()}
@@ -349,30 +353,32 @@ function StructureContent({
 				const structure = state.selectedPlanet?.structures.find((s) => s.type === prereq.type);
 				return !structure || structure.level < prereq.level;
 			})
-			.map((prereq) => `${STRUCTURE_INFO[prereq.type as StructureType].name} Level ${prereq.level}`);
+			.map(
+				(prereq) => `${STRUCTURE_INFO[prereq.type as StructureType].nameKey} ${t('card.level')} ${prereq.level}`
+			);
 
 		const missingTechnologies = config.prerequisites.technologies
 			.filter((prereq) => {
 				const tech = state.userResearchs?.technologies[prereq.id];
 				return !tech || tech.level < prereq.level;
 			})
-			.map((prereq) => `${TECHNOLOGIES[prereq.id].name} Level ${prereq.level}`);
+			.map((prereq) => `${TECHNOLOGIES[prereq.id].nameKey} ${t('card.level')} ${prereq.level}`);
 
 		const missing = [...missingStructures, ...missingTechnologies];
-		return missing.length > 0 ? `Required: ${missing.join(', ')}` : '';
+		return missing.length > 0 ? `${t('card.prerequisites.required')}: ${missing.join(', ')}` : '';
 	};
 
 	return (
 		<div className="space-y-4">
 			<div className="text-sm text-primary/70">
-				Level {structure.level}
+				{t('card.level')} {structure.level}
 				{config.max_level && <span> / {config.max_level}</span>}
 			</div>
 
 			<div className="space-y-2">
 				<div className="text-sm font-medium">
-					{structure.level === 0 ? 'Construction' : 'Upgrade'} Costs
-					{selectedLevels > 1 ? ` (${selectedLevels} levels)` : ''}:
+					{structure.level === 0 ? t('card.construction') : t('card.upgrade_costs')}
+					{selectedLevels > 1 ? ` (${selectedLevels} ${t('card.levels')})` : ''}:
 				</div>
 				<div className="grid grid-cols-2 gap-2 text-sm">
 					{multiLevelCost >= 0 && (
@@ -384,12 +390,13 @@ function StructureContent({
 				</div>
 			</div>
 
-			<div className="text-sm">Construction Time: {utils.formatTimerTime(multiLevelTime)}</div>
+			<div className="text-sm">
+				{t('card.construction_time')}: {utils.formatTimerTime(multiLevelTime)}
+			</div>
 
 			{structure.level === 0 && (
 				<div className="text-sm text-violet-400/70">
-					Energy {info.type === 'energy_plant' ? 'Production' : 'Consumption'}:{' '}
-					{info.type === 'energy_plant' ? -energyConsumption : energyConsumption}
+					{t('card.energy.consumption')}: {energyConsumption}
 				</div>
 			)}
 
@@ -403,7 +410,7 @@ function StructureContent({
 			{isMaxLevel && (
 				<div className="text-sm text-amber-400 flex items-center gap-2">
 					<AlertTriangle className="h-4 w-4" />
-					<span>Maximum level reached</span>
+					<span>{t('card.max_level_reached')}</span>
 				</div>
 			)}
 
@@ -434,12 +441,14 @@ function StructureContent({
 				}`}
 			>
 				{!prerequisitesMet
-					? 'Prerequisites Not Met'
+					? t('card.button.prerequisites_not_met')
 					: !canAfford
-					? 'Not Enough Resources'
+					? t('card.button.not_enough_resources')
 					: isMaxLevel
-					? 'Maximum Level Reached'
-					: `Confirm Upgrade (${selectedLevels} ${selectedLevels === 1 ? 'level' : 'levels'})`}
+					? t('card.button.max_level_reached')
+					: `${t('card.button.confirm_upgrade')} (${selectedLevels} ${
+							selectedLevels === 1 ? t('card.button.level') : t('card.button.levels')
+					  })`}
 			</Button>
 		</div>
 	);
@@ -447,6 +456,7 @@ function StructureContent({
 
 export default function Structures() {
 	const { state } = useGame();
+	const { t } = useTranslation('structures');
 	const [gridCols, setGridCols] = useState(() => {
 		if (typeof window !== 'undefined') {
 			const saved = localStorage.getItem('structuresGridCols');
@@ -473,7 +483,7 @@ export default function Structures() {
 	};
 
 	if (!state.selectedPlanet || !state.gameConfig) {
-		return <LoadingScreen message="Loading structures..." />;
+		return <LoadingScreen message={t('loading')} />;
 	}
 
 	return (
@@ -481,8 +491,8 @@ export default function Structures() {
 			<div className="space-y-6">
 				<div className="flex justify-between items-center">
 					<div>
-						<h1 className="text-3xl font-bold neon-text mb-2">PLANETARY STRUCTURES</h1>
-						<p className="text-muted-foreground">Manage and upgrade your planetary infrastructure</p>
+						<h1 className="text-3xl font-bold neon-text mb-2">{t('title')}</h1>
+						<p className="text-muted-foreground">{t('subtitle')}</p>
 					</div>
 
 					<DropdownMenu>
@@ -493,16 +503,16 @@ export default function Structures() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
 							<DropdownMenuItem onClick={() => updateGridCols(1)}>
-								<Grid className="mr-2 h-4 w-4" /> Single Column
+								<Grid className="mr-2 h-4 w-4" /> {t('grid_view.single')}
 							</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => updateGridCols(2)}>
-								<Grid2x2 className="mr-2 h-4 w-4" /> Two Columns
+								<Grid2x2 className="mr-2 h-4 w-4" /> {t('grid_view.two')}
 							</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => updateGridCols(3)}>
-								<Grid3x3 className="mr-2 h-4 w-4" /> Three Columns
+								<Grid3x3 className="mr-2 h-4 w-4" /> {t('grid_view.three')}
 							</DropdownMenuItem>
 							<DropdownMenuItem onClick={() => updateGridCols(4)}>
-								<Grid className="mr-2 h-4 w-4" /> Four Columns
+								<Grid className="mr-2 h-4 w-4" /> {t('grid_view.four')}
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
@@ -512,13 +522,8 @@ export default function Structures() {
 					<div className="flex items-center gap-2 p-4 border rounded-lg bg-yellow-500/10 border-yellow-500/50">
 						<AlertTriangle className="h-5 w-5 text-yellow-500" />
 						<div className="flex flex-col">
-							<p className="text-sm text-yellow-500">
-								Your planet is experiencing an energy shortage! Resource production is reduced due to
-								insufficient power.
-							</p>
-							<p className="text-sm text-muted-foreground">
-								Consider building or upgrading Power Plants to restore full production efficiency.
-							</p>
+							<p className="text-sm text-yellow-500">{t('energy_warning.title')}</p>
+							<p className="text-sm text-muted-foreground">{t('energy_warning.subtitle')}</p>
 						</div>
 					</div>
 				)}

@@ -26,7 +26,8 @@
 		"cancel": "Cancel",
 		"select": "Select",
 		"next": "Next",
-		"previous": "Previous"
+		"previous": "Previous",
+		"pagination": "Page {{current}} of {{total}}"
 	},
 	"theme": {
 		"select": "Select Theme",

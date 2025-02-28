@@ -1,1 +1,45 @@
-{}
+{
+	"title": "RESEARCH LAB",
+	"subtitle": "Develop advanced technologies to enhance your empire's capabilities",
+	"research_capacity": "Research Capacity",
+	"grid_view": {
+		"title": "Grid View",
+		"single": "Single Column",
+		"two": "Two Columns",
+		"three": "Three Columns",
+		"four": "Four Columns"
+	},
+	"card": {
+		"level": "Level",
+		"max_level": "Maximum level",
+		"category": "Category",
+		"unlocks": {
+			"ships": "Unlocks ships",
+			"defense": "Unlocks defense"
+		},
+		"requires": "Requires",
+		"another_research": "Another technology is currently being researched",
+		"research_time": "Research Time",
+		"resource_cost": "Resource Cost",
+		"button": {
+			"max_level": "MAX LEVEL",
+			"researching": "RESEARCHING",
+			"planet_researching": "PLANET ALREADY RESEARCHING",
+			"capacity_reached": "RESEARCH CAPACITY REACHED ({{current}}/{{max}})",
+			"prerequisites_not_met": "PREREQUISITES NOT MET",
+			"not_enough_resources": "NOT ENOUGH RESOURCES",
+			"research": "RESEARCH"
+		},
+		"effects": {
+			"resource_boost": "Each level increases {{resource}} production by {{value}}%."
+		}
+	},
+	"loading": "LOADING RESEARCH DATA...",
+	"errors": {
+		"no_laboratory": {
+			"title": "Laboratory not found",
+			"code": "404",
+			"message": "The research laboratory does not exist."
+		}
+	}
+}
