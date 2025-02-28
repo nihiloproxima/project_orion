@@ -1,6 +1,5 @@
 'use client';
 
-import _ from 'lodash';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
 import { ChevronLeft, ChevronRight, Earth, Edit, ImageIcon, Trophy, User as UserIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../../components/ui/dialog';
@@ -43,7 +42,7 @@ export default function UserProfilePage() {
 			: null
 	);
 
-	const avatars = Array.from({ length: 9 }, (_, i) => i + '.webp');
+	const avatars = Array.from({ length: 9 }, (_, i) => i);
 	const avatarsPerPage = 9;
 	const totalPages = Math.ceil(avatars.length / avatarsPerPage);
 	const paginatedAvatars = avatars.slice(currentPage * avatarsPerPage, (currentPage + 1) * avatarsPerPage);
@@ -61,11 +60,11 @@ export default function UserProfilePage() {
 		}
 	};
 
-	const handleAvatarSelect = async (avatarName: string) => {
+	const handleAvatarSelect = async (avatarName: number) => {
 		if (!user) return;
 
 		try {
-			await api.updateUser(user.name, _.toInteger(avatarName.split('.')[0]));
+			await api.updateUser(user.name, avatarName);
 			setIsAvatarDialogOpen(false);
 		} catch (error) {
 			console.error('Error updating avatar:', error);
@@ -103,7 +102,7 @@ export default function UserProfilePage() {
 			</motion.div>
 
 			{/* Profile Card */}
-			<motion.div variants={cardVariants} whileHover="hover" whileTap="tap">
+			<motion.div variants={cardVariants} whileHover="hover">
 				<Card className="border-2 shadow-2xl shadow-primary/20 overflow-hidden">
 					<div className="relative h-48 bg-gradient-to-b from-primary/20 to-background">
 						<div className="absolute -bottom-16 left-8 flex items-end gap-6">
@@ -194,7 +193,7 @@ export default function UserProfilePage() {
 								</CardTitle>
 							</CardHeader>
 							<CardContent>
-								<div className="text-3xl font-bold">{user.score}</div>
+								<div className="text-3xl font-bold">{user.score || 0}</div>
 							</CardContent>
 						</Card>
 					</CardContent>
@@ -232,10 +231,10 @@ export default function UserProfilePage() {
 							disabled={currentPage === 0}
 						>
 							<ChevronLeft className="h-4 w-4 mr-2" />
-							{t('common', 'previous')}
+							{t('common', 'actions.previous')}
 						</Button>
 						<span className="text-sm text-muted-foreground">
-							{t('common', 'pagination', {
+							{t('common', 'actions.pagination', {
 								current: (currentPage + 1).toString(),
 								total: totalPages.toString(),
 							})}
@@ -245,7 +244,7 @@ export default function UserProfilePage() {
 							onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
 							disabled={currentPage === totalPages - 1}
 						>
-							{t('common', 'next')}
+							{t('common', 'actions.next')}
 							<ChevronRight className="h-4 w-4 ml-2" />
 						</Button>
 					</div>
@@ -253,7 +252,7 @@ export default function UserProfilePage() {
 			</Dialog>
 
 			{/* Planets Section */}
-			<motion.div variants={cardVariants} whileHover="hover" whileTap="tap">
+			<motion.div variants={cardVariants} whileHover="hover">
 				<Card className="border-2 shadow-2xl shadow-primary/20">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">

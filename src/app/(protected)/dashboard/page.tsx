@@ -22,11 +22,13 @@ import { collection, query, limit, orderBy, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
 import { ChatMessage, ResourceType } from '@/models';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatDistanceToNow } from 'date-fns';
+import { enUS, fr } from 'date-fns/locale';
 
 export default function Dashboard() {
 	const router = useRouter();
 	const { state } = useGame();
-	const { t } = useTranslation('dashboard');
+	const { t, locale } = useTranslation('dashboard');
 
 	const [messages] = useCollectionData<ChatMessage>(
 		query(collection(db, 'chat').withConverter(withIdConverter), orderBy('created_at', 'desc'), limit(100))
@@ -101,6 +103,16 @@ export default function Dashboard() {
 
 		fetchPlanetInfo();
 	}, [state.selectedPlanet, state.gameConfig]);
+
+	// Helper function to get the appropriate date-fns locale
+	const getDateLocale = () => {
+		switch (locale) {
+			case 'fr':
+				return fr;
+			default:
+				return enUS;
+		}
+	};
 
 	if (state.userPlanets.length === 0) {
 		router.push('/secure-communications');
@@ -262,7 +274,7 @@ export default function Dashboard() {
 						<ScrollArea className="flex-1" ref={scrollAreaRef}>
 							<div className="space-y-4 font-mono pr-4">
 								{messages &&
-									messages.map((msg: ChatMessage) => (
+									[...messages].reverse().map((msg: ChatMessage) => (
 										<div key={msg.id} className="text-sm break-words flex items-start gap-2">
 											{msg.sender?.avatar ? (
 												<Image
@@ -279,7 +291,12 @@ export default function Dashboard() {
 											)}
 											<div>
 												<span className="text-primary whitespace-nowrap">
-													[{msg.created_at.toDate().toLocaleTimeString()}]
+													[
+													{formatDistanceToNow(msg.created_at.toDate(), {
+														addSuffix: true,
+														locale: getDateLocale(),
+													})}
+													]
 												</span>{' '}
 												<Link
 													href={msg.type === 'user_message' ? `/user/${msg.sender?.id}` : '#'}
