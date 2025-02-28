@@ -1,0 +1,40 @@
+{
+	"title": "Project Orion",
+	"subtitle": "Forge your galactic empire in a universe of endless possibilities. Build powerful fleets, establish trade networks, and engage in epic space battles for supremacy.",
+	"players_online": "commanders online",
+	"begin_journey": "BEGIN YOUR JOURNEY",
+	"return_to_dashboard": "RETURN TO DASHBOARD",
+	"features": {
+		"expansion": {
+			"title": "Strategic Expansion",
+			"description": "Colonize diverse planets and build a thriving civilization across the stars.",
+			"image_alt": "Planet Colonization"
+		},
+		"combat": {
+			"title": "Advanced Combat",
+			"description": "Command powerful fleets in tactical space battles and defend your territory.",
+			"image_alt": "Space Battle"
+		},
+		"economy": {
+			"title": "Economic Mastery",
+			"description": "Develop trade routes, manage resources, and build a powerful economic empire.",
+			"image_alt": "Trade Network"
+		}
+	},
+	"update": {
+		"title": "LATEST UPDATE: {{version}}",
+		"features_title": "NEW FEATURES",
+		"improvements_title": "IMPROVEMENTS",
+		"features": {
+			"fleet": "Enhanced fleet visualization and map galaxy interface",
+			"mail": "New mail system for mission reports",
+			"transport": "Ally transport mission system",
+			"queue": "Improved queue management system"
+		},
+		"improvements": {
+			"queue": "Fixed critical queue system issues",
+			"galaxy": "Optimized galaxy map performance",
+			"mission": "Enhanced mission reporting interface"
+		}
+	}
+}

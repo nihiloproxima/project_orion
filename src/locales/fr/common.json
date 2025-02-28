@@ -5,13 +5,15 @@
 		"user_profile": "PROFIL",
 		"galaxy_map": "CARTE GALACTIQUE",
 		"rankings": "CLASSEMENTS",
-		"fleet_movements": "MOUVEMENTS DE FLOTTE",
+		"fleet_movements": "MISSIONS",
 		"trading": "COMMERCE",
 		"structures": "STRUCTURES",
 		"research_lab": "LABORATOIRE",
 		"shipyard": "CHANTIER SPATIAL",
 		"discord": "DISCORD",
-		"terminate_session": "DÉCONNEXION"
+		"terminate_session": "DÉCONNEXION",
+		"login": "CONNEXION",
+		"register": "INSCRIPTION"
 	},
 	"resources": {
 		"metal": "MÉTAL",
@@ -26,6 +28,13 @@
 		"next": "Suivant",
 		"previous": "Précédent"
 	},
+	"theme": {
+		"select": "Sélectionner le thème",
+		"matrix_green": "Vert Matrix",
+		"neon_purple": "Violet Néon",
+		"cyber_blue": "Bleu Cyber",
+		"synthwave": "Synthwave"
+	},
 	"loading": {
 		"initializing_system": "INITIALISATION DU SYSTÈME...",
 		"establishing_connection": "ÉTABLISSEMENT DE LA CONNEXION...",
@@ -35,5 +44,17 @@
 		"loading_research_status": "CHARGEMENT DU STATUT DE RECHERCHE...",
 		"checking_structures": "VÉRIFICATION DES STRUCTURES...",
 		"initializing_game_state": "INITIALISATION DE L'ÉTAT DU JEU..."
+	},
+	"language": {
+		"select": "Sélectionner la langue"
+	},
+	"errors": {
+		"access_denied": "ACCÈS REFUSÉ",
+		"no_laboratory": {
+			"title": "ACCÈS REFUSÉ",
+			"code": "[CODE D'ERREUR: AUCUN LABORATOIRE DÉTECTÉ]",
+			"message": "Structure de laboratoire requise pour les opérations de recherche.",
+			"action": "Veuillez construire un laboratoire pour accéder aux capacités de recherche."
+		}
 	}
 }

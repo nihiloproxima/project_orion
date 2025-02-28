@@ -1,0 +1,46 @@
+{
+	"title": "CENTRE DE COMMANDE",
+	"welcome": "Bienvenue, Commandant {{name}}. Tous les systèmes sont opérationnels.",
+	"stats": {
+		"active_commanders": {
+			"title": "COMMANDANTS ACTIFS",
+			"subtext": "Actuellement en ligne"
+		},
+		"unread_messages": {
+			"title": "MESSAGES NON LUS",
+			"subtext": "Communications non lues",
+			"value": "{{count}} Messages"
+		}
+	},
+	"planet": {
+		"overview": "APERÇU PLANÉTAIRE",
+		"rename": "Renommer",
+		"designation": "DÉSIGNATION",
+		"coordinates": "COORDONNÉES",
+		"size": "TAILLE",
+		"biome": "BIOME",
+		"biome_characteristics": "CARACTÉRISTIQUES DU BIOME",
+		"view_all_biomes": "Voir tous les biomes",
+		"advantages": "AVANTAGES",
+		"disadvantages": "INCONVÉNIENTS"
+	},
+	"comms": {
+		"title": "COMMUNICATIONS UNIVERSELLES",
+		"enter_message": "Entrez un message..."
+	},
+	"dialogs": {
+		"online_commanders": {
+			"title": "Commandants en ligne"
+		},
+		"biomes": {
+			"title": "Aperçu des biomes planétaires"
+		},
+		"rename_planet": {
+			"title": "Renommer la planète",
+			"current_name": "Nom actuel",
+			"new_name": "Nouveau nom",
+			"enter_new_name": "Entrez le nouveau nom de la planète",
+			"submit": "Renommer la planète"
+		}
+	}
+}

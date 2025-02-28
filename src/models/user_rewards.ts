@@ -1,9 +1,10 @@
 import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { Planet, ResourceType } from './planet';
+import { ShipBlueprint, ShipComponent } from './ship';
 
 export interface UserReward {
 	id: string;
-	data: ResourcesReward | CreditsReward | XpReward;
+	data: ResourcesReward | CreditsReward | XpReward | ExpeditionReward;
 	created_at: Timestamp;
 	updated_at: Timestamp;
 }
@@ -24,6 +25,17 @@ export interface CreditsReward {
 export interface XpReward {
 	type: 'xp';
 	xp: number;
+}
+
+export interface ExpeditionReward {
+	type: 'expedition';
+	resources: {
+		[K in ResourceType]?: number;
+	};
+	credits?: number;
+	xp?: number;
+	blueprint?: ShipBlueprint;
+	component?: ShipComponent;
 }
 
 export function parseUserReward(doc: DocumentSnapshot): UserReward {

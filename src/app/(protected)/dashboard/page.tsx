@@ -11,7 +11,7 @@ import { ScrollArea } from '../../../components/ui/scroll-area';
 import { api } from '../../../lib/api';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
-import { useRouter } from 'next/navigation'; // Changed from next/router
+import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '../../../components/ui/collapsible';
 import { Button } from '../../../components/ui/button';
@@ -21,10 +21,13 @@ import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { collection, query, limit, orderBy, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
 import { ChatMessage, ResourceType } from '@/models';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Dashboard() {
 	const router = useRouter();
 	const { state } = useGame();
+	const { t } = useTranslation('dashboard');
+
 	const [messages] = useCollectionData<ChatMessage>(
 		query(collection(db, 'chat').withConverter(withIdConverter), orderBy('created_at', 'desc'), limit(100))
 	);
@@ -108,10 +111,8 @@ export default function Dashboard() {
 		<motion.div className="space-y-8" variants={containerVariants} initial="hidden" animate="show">
 			<motion.div className="flex justify-between items-center" variants={itemVariants}>
 				<div>
-					<h1 className="text-3xl font-bold neon-text mb-2">COMMAND CENTER</h1>
-					<p className="text-muted-foreground">
-						Welcome, Commander {state.currentUser?.name}. All systems operational.
-					</p>
+					<h1 className="text-3xl font-bold neon-text mb-2">{t('title')}</h1>
+					<p className="text-muted-foreground">{t('welcome', { name: state.currentUser?.name || '' })}</p>
 				</div>
 			</motion.div>
 
@@ -119,17 +120,17 @@ export default function Dashboard() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{[
 					// {
-					// 	title: 'UNREAD MESSAGES',
+					// 	title: t('stats.unread_messages.title'),
 					// 	icon: <MessageSquare className="h-4 w-4 text-primary" />,
-					// 	value: `${unreadMails} Messages`,
-					// 	subtext: 'Unread communications',
+					// 	value: t('stats.unread_messages.value', { count: unreadMails }),
+					// 	subtext: t('stats.unread_messages.subtext'),
 					// 	onClick: () => router.push('/secure-communications'),
 					// },
 					{
-						title: 'ACTIVE COMMANDERS',
+						title: t('stats.active_commanders.title'),
 						icon: <Users className="h-4 w-4 text-primary" />,
 						value: state.activePlayers.length,
-						subtext: 'Currently online',
+						subtext: t('stats.active_commanders.subtext'),
 						onClick: () => setShowOnlineCommanders(true),
 					},
 				].map((stat) => (
@@ -163,13 +164,13 @@ export default function Dashboard() {
 						<CardTitle className="neon-text flex items-center justify-between">
 							<div className="flex items-center gap-2">
 								<MapPin className="h-4 w-4" />
-								PLANETARY OVERVIEW
+								{t('planet.overview')}
 							</div>
 							<button
 								onClick={() => setShowRenameDialog(true)}
 								className="text-sm bg-primary/20 hover:bg-primary/30 px-3 py-1 rounded-md transition-colors"
 							>
-								Rename
+								{t('planet.rename')}
 							</button>
 						</CardTitle>
 					</CardHeader>
@@ -177,24 +178,24 @@ export default function Dashboard() {
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div className="space-y-4">
 								<div>
-									<div className="text-sm text-muted-foreground mb-1">DESIGNATION</div>
+									<div className="text-sm text-muted-foreground mb-1">{t('planet.designation')}</div>
 									<div className="text-xl font-bold">{planetInfo.name}</div>
 								</div>
 								<div>
-									<div className="text-sm text-muted-foreground mb-1">COORDINATES</div>
+									<div className="text-sm text-muted-foreground mb-1">{t('planet.coordinates')}</div>
 									<div className="font-mono">{planetInfo.coordinates}</div>
 								</div>
 							</div>
 							<div className="space-y-4">
 								<div>
-									<div className="text-sm text-muted-foreground mb-1">SIZE</div>
+									<div className="text-sm text-muted-foreground mb-1">{t('planet.size')}</div>
 									<div className="flex items-center gap-2">
 										<Ruler className="h-4 w-4 text-primary" />
 										{planetInfo.size}
 									</div>
 								</div>
 								<div>
-									<div className="text-sm text-muted-foreground mb-1">BIOME</div>
+									<div className="text-sm text-muted-foreground mb-1">{t('planet.biome')}</div>
 									<Collapsible>
 										<CollapsibleTrigger className="flex items-center gap-2 hover:text-primary transition-colors">
 											<TreePine className="h-4 w-4" />
@@ -208,25 +209,31 @@ export default function Dashboard() {
 												className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/20"
 											>
 												<div className="flex justify-between items-center mb-2">
-													<div className="text-sm font-medium">BIOME CHARACTERISTICS</div>
+													<div className="text-sm font-medium">
+														{t('planet.biome_characteristics')}
+													</div>
 													<Button
 														variant="ghost"
 														size="sm"
 														onClick={() => setShowAllBiomes(true)}
 														className="text-xs text-primary hover:text-primary/80"
 													>
-														View All Biomes
+														{t('planet.view_all_biomes')}
 													</Button>
 												</div>
 												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 													<div>
-														<div className="text-xs text-primary mb-1">ADVANTAGES</div>
+														<div className="text-xs text-primary mb-1">
+															{t('planet.advantages')}
+														</div>
 														<div className="text-sm text-muted-foreground">
 															{biomeInfo?.bonuses}
 														</div>
 													</div>
 													<div>
-														<div className="text-xs text-red-400 mb-1">DISADVANTAGES</div>
+														<div className="text-xs text-red-400 mb-1">
+															{t('planet.disadvantages')}
+														</div>
 														<div className="text-sm text-muted-foreground">
 															{biomeInfo?.maluses}
 														</div>
@@ -248,7 +255,7 @@ export default function Dashboard() {
 					<CardHeader className="pb-2">
 						<CardTitle className="neon-text flex items-center gap-2">
 							<MessageSquare className="h-4 w-4" />
-							UNIVERSAL COMMS
+							{t('comms.title')}
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="flex-1 flex flex-col overflow-hidden">
@@ -304,7 +311,7 @@ export default function Dashboard() {
 								type="text"
 								value={newMessage}
 								onChange={(e) => setNewMessage(e.target.value)}
-								placeholder="> Enter message..."
+								placeholder={`> ${t('comms.enter_message')}`}
 								className="w-full bg-transparent border-none focus:outline-none text-primary placeholder:text-primary/50"
 							/>
 						</form>
@@ -323,6 +330,7 @@ export default function Dashboard() {
 
 function OnlineCommandersDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
 	const { state } = useGame();
+	const { t } = useTranslation('dashboard');
 
 	const [commanders] = useCollectionData(
 		state.activePlayers?.length > 0
@@ -341,7 +349,7 @@ function OnlineCommandersDialog({ open, onOpenChange }: { open: boolean; onOpenC
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Users className="h-5 w-5 text-primary" />
-						Online Commanders
+						{t('dialogs.online_commanders.title')}
 					</DialogTitle>
 				</DialogHeader>
 				<ScrollArea className="max-h-[60vh]">
@@ -377,6 +385,7 @@ function OnlineCommandersDialog({ open, onOpenChange }: { open: boolean; onOpenC
 
 function BiomesDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
 	const { state } = useGame();
+	const { t } = useTranslation('dashboard');
 
 	if (!state.gameConfig) return null;
 
@@ -386,7 +395,7 @@ function BiomesDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (op
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<TreePine className="h-5 w-5 text-primary" />
-						Planet Biomes Overview
+						{t('dialogs.biomes.title')}
 					</DialogTitle>
 				</DialogHeader>
 				<ScrollArea className="max-h-[60vh]">
@@ -403,11 +412,11 @@ function BiomesDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (op
 									</CardHeader>
 									<CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
 										<div>
-											<div className="text-xs text-primary mb-1">ADVANTAGES</div>
+											<div className="text-xs text-primary mb-1">{t('planet.advantages')}</div>
 											<div className="text-sm text-muted-foreground">{info.bonuses}</div>
 										</div>
 										<div>
-											<div className="text-xs text-red-400 mb-1">DISADVANTAGES</div>
+											<div className="text-xs text-red-400 mb-1">{t('planet.disadvantages')}</div>
 											<div className="text-sm text-muted-foreground">{info.maluses}</div>
 										</div>
 									</CardContent>
@@ -444,6 +453,7 @@ const formatBiomeInfo = (biomeModifiers: { [key in ResourceType]?: number }) => 
 
 function RenamePlanetDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
 	const { state } = useGame();
+	const { t } = useTranslation('dashboard');
 	const [newPlanetName, setNewPlanetName] = useState('');
 
 	const handleRenamePlanet = async (e: React.FormEvent) => {
@@ -467,24 +477,26 @@ function RenamePlanetDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<MapPin className="h-5 w-5 text-primary" />
-						Rename Planet
+						{t('dialogs.rename_planet.title')}
 					</DialogTitle>
 				</DialogHeader>
 				<form onSubmit={handleRenamePlanet}>
 					<div className="grid gap-4 py-4">
 						<div className="space-y-2">
-							<div className="text-sm text-muted-foreground">Current Name</div>
+							<div className="text-sm text-muted-foreground">
+								{t('dialogs.rename_planet.current_name')}
+							</div>
 							<div className="font-medium">{state.selectedPlanet?.name}</div>
 						</div>
 						<div className="space-y-2">
 							<label htmlFor="name" className="text-sm text-muted-foreground">
-								New Name
+								{t('dialogs.rename_planet.new_name')}
 							</label>
 							<Input
 								id="name"
 								value={newPlanetName}
 								onChange={(e) => setNewPlanetName(e.target.value)}
-								placeholder="Enter new planet name"
+								placeholder={t('dialogs.rename_planet.enter_new_name')}
 								className="col-span-3"
 								autoFocus
 								required
@@ -495,7 +507,7 @@ function RenamePlanetDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 					</div>
 					<DialogFooter>
 						<Button type="submit" disabled={!newPlanetName.trim()}>
-							Rename Planet
+							{t('dialogs.rename_planet.submit')}
 						</Button>
 					</DialogFooter>
 				</form>

@@ -1,0 +1,46 @@
+{
+	"title": "COMMAND CENTER",
+	"welcome": "Welcome, Commander {{name}}. All systems operational.",
+	"stats": {
+		"active_commanders": {
+			"title": "ACTIVE COMMANDERS",
+			"subtext": "Currently online"
+		},
+		"unread_messages": {
+			"title": "UNREAD MESSAGES",
+			"subtext": "Unread communications",
+			"value": "{{count}} Messages"
+		}
+	},
+	"planet": {
+		"overview": "PLANETARY OVERVIEW",
+		"rename": "Rename",
+		"designation": "DESIGNATION",
+		"coordinates": "COORDINATES",
+		"size": "SIZE",
+		"biome": "BIOME",
+		"biome_characteristics": "BIOME CHARACTERISTICS",
+		"view_all_biomes": "View All Biomes",
+		"advantages": "ADVANTAGES",
+		"disadvantages": "DISADVANTAGES"
+	},
+	"comms": {
+		"title": "UNIVERSAL COMMS",
+		"enter_message": "Enter message..."
+	},
+	"dialogs": {
+		"online_commanders": {
+			"title": "Online Commanders"
+		},
+		"biomes": {
+			"title": "Planet Biomes Overview"
+		},
+		"rename_planet": {
+			"title": "Rename Planet",
+			"current_name": "Current Name",
+			"new_name": "New Name",
+			"enter_new_name": "Enter new planet name",
+			"submit": "Rename Planet"
+		}
+	}
+}

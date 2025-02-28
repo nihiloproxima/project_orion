@@ -84,7 +84,9 @@ export default function UserProfilePage() {
 						<UserIcon className="h-8 w-8" />
 						{t('user', 'profile.title')}
 					</h1>
-					<p className="text-muted-foreground">Viewing commander {user.name}&apos;s service record</p>
+					<p className="text-muted-foreground">
+						{t('user', 'profile.viewing_record', { name: user.name })}
+					</p>
 				</div>
 				{isCurrentUser && (
 					<div className="flex items-center gap-4">

@@ -20,7 +20,7 @@ import { Button } from '../../../components/ui/button';
 import { FleetMovement } from '../../../models/fleet_movement';
 import Image from 'next/image';
 import { Timer } from '../../../components/Timer';
-import { api } from '../../../lib/api';
+
 import { useGame } from '../../../contexts/GameContext';
 import { useToast } from '@/hooks/use-toast';
 import { withIdConverter } from '@/lib/firebase';
@@ -41,6 +41,16 @@ const FleetMovements = () => {
 			: null
 	);
 	const [hostileMovements] = useCollectionData(
+		state.gameConfig && state.currentUser
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`).withConverter(
+						withIdConverter
+					),
+					where('destination.user_id', '==', state.currentUser?.id)
+			  )
+			: null
+	);
+	const [allyMovements] = useCollectionData(
 		state.gameConfig && state.currentUser
 			? query(
 					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`).withConverter(
@@ -114,7 +124,8 @@ const FleetMovements = () => {
 		e.stopPropagation();
 
 		try {
-			await api.cancelMission(movementId);
+			// TODO: Implement cancelMission in API
+			// await api.cancelMission(movementId);
 			toast({
 				title: 'Success',
 				description: 'Mission cancelled successfully.',
@@ -127,6 +138,30 @@ const FleetMovements = () => {
 				variant: 'destructive',
 			});
 		}
+	};
+
+	const getPlanetName = (x: number, y: number) => {
+		return `[${x}:${y}]`;
+	};
+
+	const filterMovements = (movementsToFilter: FleetMovement[] | undefined) => {
+		if (!movementsToFilter) return [];
+		if (missionFilter === 'all') return movementsToFilter;
+		return movementsToFilter.filter((m) => m.mission_type === missionFilter);
+	};
+
+	const sortMovements = (movementsToSort: FleetMovement[]) => {
+		return [...movementsToSort].sort((a, b) => {
+			switch (sortBy) {
+				case 'arrival':
+					return a.arrival_time.toMillis() - b.arrival_time.toMillis();
+				case 'departure':
+					return a.departure_time.toMillis() - b.departure_time.toMillis();
+				// Add other sort methods as needed
+				default:
+					return a.arrival_time.toMillis() - b.arrival_time.toMillis();
+			}
+		});
 	};
 
 	const renderMovementCard = (movement: FleetMovement, type: 'own' | 'hostile' | 'ally' = 'own') => {
@@ -189,10 +224,13 @@ const FleetMovements = () => {
 				<CardContent>
 					<div className="grid gap-2">
 						<div className="flex items-center justify-between">
-							<div className="text-sm">Origin: {getPlanetName(movement.origin_x, movement.origin_y)}</div>
+							<div className="text-sm">
+								Origin: {getPlanetName(movement.origin.coordinates.x, movement.origin.coordinates.y)}
+							</div>
 							<ArrowRight className="h-4 w-4" />
 							<div className="text-sm">
-								Destination: {getPlanetName(movement.destination_x, movement.destination_y)}
+								Destination:{' '}
+								{getPlanetName(movement.destination.coordinates.x, movement.destination.coordinates.y)}
 							</div>
 						</div>
 
@@ -201,30 +239,30 @@ const FleetMovements = () => {
 						</div>
 
 						<div className="text-sm">
-							<Timer startTime={movement.departure_time} finishTime={movement.arrival_time} />
+							<Timer
+								startTime={movement.departure_time.toMillis()}
+								finishTime={movement.arrival_time.toMillis()}
+							/>
 						</div>
 
 						{expandedMovement === movement.id && (
 							<>
-								{movement.ship_counts && (
+								{movement.ships && movement.ships.length > 0 && (
 									<div className="text-sm mt-2">
 										<div className="font-semibold mb-1">Fleet:</div>
 										<div className="grid grid-cols-2 gap-2">
-											{Object.entries(movement.ship_counts).map(
-												([shipType, count]) =>
-													count > 0 && (
-														<div key={shipType} className="flex items-center gap-2">
-															<Image
-																src={`/images/ships/${shipType}.webp`}
-																width={24}
-																height={24}
-																alt={shipType}
-																className="w-6 h-6"
-															/>
-															{shipType}: {count}
-														</div>
-													)
-											)}
+											{movement.ships.map((ship, index) => (
+												<div key={index} className="flex items-center gap-2">
+													<Image
+														src={`/images/ships/${ship.type || 'default'}.webp`}
+														width={24}
+														height={24}
+														alt={ship.type || 'Ship'}
+														className="w-6 h-6"
+													/>
+													{ship.type}: {ship.count || 1}
+												</div>
+											))}
 										</div>
 									</div>
 								)}
@@ -282,7 +320,7 @@ const FleetMovements = () => {
 				<p className="text-muted-foreground">Track your fleet operations and monitor hostile activity</p>
 			</div>
 
-			{hostileMovements.length > 0 && (
+			{hostileMovements && hostileMovements.length > 0 && (
 				<div className="space-y-4">
 					<h2 className="text-xl font-bold text-red-500">⚠️ Hostile Fleet Movements</h2>
 					<MovementControls />
@@ -294,7 +332,7 @@ const FleetMovements = () => {
 				</div>
 			)}
 
-			{allyMovements.length > 0 && (
+			{allyMovements && allyMovements.length > 0 && (
 				<div className="space-y-4">
 					<h2 className="text-xl font-bold text-green-500">🤝 Incoming Allied Support</h2>
 					<MovementControls />
@@ -309,7 +347,7 @@ const FleetMovements = () => {
 			<div className="space-y-4">
 				<h2 className="text-xl font-bold">Your Fleet Movements</h2>
 				<MovementControls />
-				{movements.length > 0 ? (
+				{movements && movements.length > 0 ? (
 					<div className={displayMode === 'grid' ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'}>
 						{sortMovements(filterMovements(movements)).map((movement) =>
 							renderMovementCard(movement, 'own')

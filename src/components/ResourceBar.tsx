@@ -1,7 +1,7 @@
 import { useGame } from '../contexts/GameContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import millify from 'millify';
-import { Flame, Hammer, Microchip, Zap, Menu } from 'lucide-react';
+import { Flame, Hammer, Microchip, Zap, Menu, Coins } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 import { ResourceType } from '@/models';
@@ -9,6 +9,9 @@ import { useEffect, useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import planetCalculations, { ResourceGenerationRates } from '@/utils/planet_calculations';
+import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { db } from '@/lib/firebase';
+import { doc } from 'firebase/firestore';
 
 // First, define a resource config object
 type ResourceConfig = {
@@ -33,12 +36,16 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 	const { state, selectPlanet } = useGame();
 	const { t } = useLanguage();
 	const [isExpanded, setIsExpanded] = useState(false);
+	const [userInventory] = useDocumentData(
+		state.currentUser ? doc(db, 'users', state.currentUser.id, 'private', 'inventory') : null
+	);
 	const [resources, setResources] = useState<Resources>({
 		metal: 0,
 		microchips: 0,
 		deuterium: 0,
 		energy: 0,
 	});
+	const [credits, setCredits] = useState(0);
 
 	useEffect(() => {
 		if (state.selectedPlanet === null || !state.currentResources) {
@@ -47,6 +54,12 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 
 		setResources(state.currentResources);
 	}, [state.selectedPlanet, state.currentResources]);
+
+	useEffect(() => {
+		if (userInventory && userInventory.credits !== undefined) {
+			setCredits(userInventory.credits);
+		}
+	}, [userInventory]);
 
 	if (state.selectedPlanet === null || !state.currentResources || !state.gameConfig || !state.userResearchs) {
 		return null;
@@ -129,6 +142,16 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 				</div>
 
 				<div className="hidden sm:flex sm:justify-end sm:gap-6">
+					<div className="flex flex-col items-end">
+						<span className="text-xs text-yellow-400/70">CREDITS</span>
+						<div className="flex items-center gap-2">
+							<span className={`font-mono font-bold text-base  text-yellow-400 `}>
+								{millify(Math.floor(userInventory?.credits || 0))}
+							</span>
+							<Coins className={`h-4 w-4 text-yellow-400`} />
+						</div>
+					</div>
+
 					{Object.entries(RESOURCE_CONFIG).map(([resource, config]) => (
 						<div key={resource} className="flex flex-col items-end">
 							<span className="text-xs ${config.textColor}/70">{config.label}</span>
@@ -185,6 +208,18 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 
 				<div className="block sm:hidden relative">
 					<div className="flex justify-between items-center gap-1">
+						<button
+							onClick={() => setIsExpanded(!isExpanded)}
+							className="flex-1 flex flex-col items-center min-w-0"
+						>
+							<div className="flex items-center gap-1">
+								<Coins className="h-3 w-3 text-yellow-400" />
+								<span className="font-mono font-bold text-xs truncate text-yellow-400">
+									{millify(credits)}
+								</span>
+							</div>
+						</button>
+
 						{Object.entries(RESOURCE_CONFIG).map(([resource, config]) => (
 							<button
 								key={resource}

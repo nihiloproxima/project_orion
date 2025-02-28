@@ -11,7 +11,9 @@
 		"research_lab": "RESEARCH_LAB",
 		"shipyard": "SHIPYARD",
 		"discord": "DISCORD",
-		"terminate_session": "TERMINATE_SESSION"
+		"terminate_session": "TERMINATE_SESSION",
+		"login": "LOGIN",
+		"register": "REGISTER"
 	},
 	"resources": {
 		"metal": "METAL",
@@ -42,5 +44,17 @@
 		"loading_research_status": "LOADING RESEARCH STATUS...",
 		"checking_structures": "CHECKING STRUCTURES...",
 		"initializing_game_state": "INITIALIZING GAME STATE..."
+	},
+	"language": {
+		"select": "Select Language"
+	},
+	"errors": {
+		"access_denied": "ACCESS DENIED",
+		"no_laboratory": {
+			"title": "ACCESS DENIED",
+			"code": "[ERROR CODE: NO_LABORATORY_DETECTED]",
+			"message": "Laboratory structure required for research operations.",
+			"action": "Please construct a laboratory to access research capabilities."
+		}
 	}
 }

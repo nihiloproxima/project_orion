@@ -1,16 +1,12 @@
-import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import { Planet } from './planet';
-import { Ship } from './ship';
+import { Ship, ShipBlueprint } from './ship';
 
 export interface ShipyardQueueCommand {
 	ship: Partial<Ship>;
 	construction_start_time: Timestamp;
 	construction_finish_time: Timestamp;
-	resources_cost: {
-		metal: number;
-		deuterium: number;
-		microchips: number;
-	};
+	base_cost: ShipBlueprint['base_cost'];
 }
 
 export interface ShipyardQueue {
@@ -21,17 +17,22 @@ export interface ShipyardQueue {
 	updated_at: Timestamp;
 }
 
-export function parseShipyardQueue(doc: DocumentSnapshot): ShipyardQueue {
+export function parseShipyardQueue(planetId: Planet['id'], doc: DocumentSnapshot): ShipyardQueue {
 	const data = doc.data();
-	if (!data) {
-		throw new Error('Shipyard queue not found');
-	}
+
+	const defaultData: ShipyardQueue = {
+		planet_id: planetId,
+		commands: [],
+		capacity: 5,
+		created_at: Timestamp.now(),
+		updated_at: Timestamp.now(),
+	};
 
 	return {
-		planet_id: data.planet_id || '',
-		commands: data.commands || [],
-		capacity: data.capacity || 0,
-		created_at: data.created_at || Timestamp.now(),
-		updated_at: data.updated_at || Timestamp.now(),
+		planet_id: data?.planet_id || defaultData.planet_id,
+		commands: data?.commands || defaultData.commands,
+		capacity: data?.capacity || defaultData.capacity,
+		created_at: data?.created_at || defaultData.created_at,
+		updated_at: data?.updated_at || defaultData.updated_at,
 	};
 }

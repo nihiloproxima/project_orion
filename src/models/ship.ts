@@ -5,7 +5,7 @@ import { TechnologyId } from './researchs_config';
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
 export type ShipType = 'colony' | 'transport' | 'spy' | 'recycler' | 'battle_ship';
 export type ShipStatus = 'stationed' | 'traveling' | 'returning';
-export type MissionType = 'transport' | 'colonize' | 'attack' | 'spy' | 'recycle' | 'delivery' | 'move';
+export type MissionType = 'transport' | 'colonize' | 'attack' | 'spy' | 'recycle' | 'delivery' | 'move' | 'expedition';
 export type ShipStats = {
 	speed: number;
 	capacity: number;
@@ -37,6 +37,7 @@ export interface Ship {
 		user_id: string;
 		user_name: string;
 	};
+	status: ShipStatus;
 	created_at: Timestamp;
 	updated_at: Timestamp;
 }
@@ -115,6 +116,7 @@ export function parseShip(doc: DocumentSnapshot): Ship {
 		owner_id: data.owner_id || '',
 		xp: data.xp || 0,
 		level: data.level || 1,
+		status: data.status || 'stationed',
 		created_by: data.created_by || '',
 		created_at: data.created_at || Timestamp.now(),
 		updated_at: data.updated_at || Timestamp.now(),

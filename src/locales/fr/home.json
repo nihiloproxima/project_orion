@@ -1,0 +1,40 @@
+{
+	"title": "Projet Orion",
+	"subtitle": "Forgez votre empire galactique dans un univers de possibilités infinies. Construisez des flottes puissantes, établissez des réseaux commerciaux et engagez-vous dans des batailles spatiales épiques pour la suprématie.",
+	"players_online": "commandants en ligne",
+	"begin_journey": "COMMENCEZ VOTRE VOYAGE",
+	"return_to_dashboard": "RETOUR AU TABLEAU DE BORD",
+	"features": {
+		"expansion": {
+			"title": "Expansion Stratégique",
+			"description": "Colonisez diverses planètes et construisez une civilisation prospère à travers les étoiles.",
+			"image_alt": "Colonisation de Planète"
+		},
+		"combat": {
+			"title": "Combat Avancé",
+			"description": "Commandez des flottes puissantes dans des batailles spatiales tactiques et défendez votre territoire.",
+			"image_alt": "Bataille Spatiale"
+		},
+		"economy": {
+			"title": "Maîtrise Économique",
+			"description": "Développez des routes commerciales, gérez les ressources et construisez un puissant empire économique.",
+			"image_alt": "Réseau Commercial"
+		}
+	},
+	"update": {
+		"title": "DERNIÈRE MISE À JOUR: {{version}}",
+		"features_title": "NOUVELLES FONCTIONNALITÉS",
+		"improvements_title": "AMÉLIORATIONS",
+		"features": {
+			"fleet": "Visualisation améliorée de la flotte et interface de la carte galactique",
+			"mail": "Nouveau système de messagerie pour les rapports de mission",
+			"transport": "Système de mission de transport allié",
+			"queue": "Système de gestion de file d'attente amélioré"
+		},
+		"improvements": {
+			"queue": "Correction des problèmes critiques du système de file d'attente",
+			"galaxy": "Performances optimisées de la carte galactique",
+			"mission": "Interface de rapport de mission améliorée"
+		}
+	}
+}

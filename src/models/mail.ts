@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { ResearchInfo, ResourcesInfo, ShipInfo, StructureInfo } from './report';
 import { MissionType } from './ship';
 
@@ -10,7 +10,6 @@ export interface BaseMail {
 	type: MailType;
 	category: MailCategory;
 	created_at: Timestamp;
-	owner_id: string;
 	sender_id?: string;
 	sender_name: string;
 	title: string;
@@ -133,7 +132,6 @@ export function parseMail(doc: DocumentSnapshot): Mail {
 		type: data.type || 'unknown',
 		category: data.category || 'general',
 		created_at: data.created_at || Timestamp.now(),
-		owner_id: data.owner_id || '',
 		sender_id: data.sender_id || '',
 		sender_name: data.sender_name || '',
 		title: data.title || '',

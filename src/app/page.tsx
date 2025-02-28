@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { useAuth } from '../contexts/AuthContext';
 import { useGame } from '../contexts/GameContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Rocket, Globe2, Cpu, Shield, Users, Zap, BarChart2 } from 'lucide-react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -23,6 +24,7 @@ export default function Home() {
 
 	const { isAuthenticated } = useAuth();
 	const { state } = useGame();
+	const { t } = useLanguage();
 
 	const container = {
 		hidden: { opacity: 0 },
@@ -74,7 +76,7 @@ export default function Home() {
 								className="neon-border hover:bg-primary/20"
 								onClick={() => (window.location.href = '/auth/login')}
 							>
-								LOGIN
+								{t('common', 'navigation.login')}
 							</Button>
 						</Link>
 						<Link href="/auth/register" passHref legacyBehavior>
@@ -83,7 +85,7 @@ export default function Home() {
 								className="bg-primary hover:bg-primary/80 text-primary-foreground"
 								onClick={() => (window.location.href = '/auth/register')}
 							>
-								REGISTER
+								{t('common', 'navigation.register')}
 							</Button>
 						</Link>
 					</div>
@@ -131,7 +133,7 @@ export default function Home() {
 						initial="initial"
 						animate="animate"
 					>
-						Project Orion
+						{t('home', 'title')}
 					</motion.h1>
 
 					<motion.p
@@ -141,8 +143,7 @@ export default function Home() {
 						whileInView="animate"
 						viewport={{ once: true }}
 					>
-						Forge your galactic empire in a universe of endless possibilities. Build powerful fleets,
-						establish trade networks, and engage in epic space battles for supremacy.
+						{t('home', 'subtitle')}
 					</motion.p>
 
 					{/* Enhanced player count display */}
@@ -152,7 +153,7 @@ export default function Home() {
 					>
 						<Users className="w-5 h-5 text-primary animate-pulse" />
 						<span className="neon-text font-mono">{state.activePlayers.length}</span>
-						<span className="typing-text">commanders online</span>
+						<span className="typing-text">{t('home', 'players_online')}</span>
 					</motion.div>
 
 					{/* Enhanced CTA button */}
@@ -173,7 +174,7 @@ export default function Home() {
 										ease: 'easeInOut',
 									}}
 								>
-									{isAuthenticated ? 'RETURN TO DASHBOARD' : 'BEGIN YOUR JOURNEY'}
+									{isAuthenticated ? t('home', 'return_to_dashboard') : t('home', 'begin_journey')}
 									<Rocket className="w-5 h-5" />
 								</motion.span>
 								<motion.div
@@ -212,7 +213,9 @@ export default function Home() {
 						<CardHeader>
 							<div className="flex items-center gap-3">
 								<Globe2 className="w-6 h-6 text-primary" />
-								<CardTitle className="neon-text-secondary">Strategic Expansion</CardTitle>
+								<CardTitle className="neon-text-secondary">
+									{t('home', 'features.expansion.title')}
+								</CardTitle>
 							</div>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -220,12 +223,10 @@ export default function Home() {
 								src="/images/homepage_colony.png"
 								width={400}
 								height={200}
-								alt="Planet Colonization"
+								alt={t('home', 'features.expansion.image_alt')}
 								className="rounded-lg w-full object-cover h-48"
 							/>
-							<p className="text-muted-foreground">
-								Colonize diverse planets and build a thriving civilization across the stars.
-							</p>
+							<p className="text-muted-foreground">{t('home', 'features.expansion.description')}</p>
 						</CardContent>
 					</Card>
 				</motion.div>
@@ -241,7 +242,7 @@ export default function Home() {
 						<CardHeader>
 							<div className="flex items-center gap-3">
 								<Shield className="w-6 h-6 text-accent" />
-								<CardTitle className="neon-text-accent">Advanced Combat</CardTitle>
+								<CardTitle className="neon-text-accent">{t('home', 'features.combat.title')}</CardTitle>
 							</div>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -249,12 +250,10 @@ export default function Home() {
 								src="/images/homepage_combat.png"
 								width={400}
 								height={200}
-								alt="Space Battle"
+								alt={t('home', 'features.combat.image_alt')}
 								className="rounded-lg w-full object-cover h-48"
 							/>
-							<p className="text-muted-foreground">
-								Command powerful fleets in tactical space battles and defend your territory.
-							</p>
+							<p className="text-muted-foreground">{t('home', 'features.combat.description')}</p>
 						</CardContent>
 					</Card>
 				</motion.div>
@@ -270,7 +269,7 @@ export default function Home() {
 						<CardHeader>
 							<div className="flex items-center gap-3">
 								<BarChart2 className="w-6 h-6 text-primary" />
-								<CardTitle className="neon-text">Economic Mastery</CardTitle>
+								<CardTitle className="neon-text">{t('home', 'features.economy.title')}</CardTitle>
 							</div>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -278,12 +277,10 @@ export default function Home() {
 								src="/images/homepage_economy.png"
 								width={400}
 								height={200}
-								alt="Trade Network"
+								alt={t('home', 'features.economy.image_alt')}
 								className="rounded-lg w-full object-cover h-48"
 							/>
-							<p className="text-muted-foreground">
-								Develop trade routes, manage resources, and build a powerful economic empire.
-							</p>
+							<p className="text-muted-foreground">{t('home', 'features.economy.description')}</p>
 						</CardContent>
 					</Card>
 				</motion.div>
@@ -311,7 +308,7 @@ export default function Home() {
 					<CardHeader>
 						<CardTitle className="text-2xl neon-text flex items-center gap-2">
 							<Zap className="w-6 h-6" />
-							LATEST UPDATE: v0.0.1
+							{t('home', 'update.title', { version: 'v0.0.1' })}
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-6 relative z-10">
@@ -319,14 +316,14 @@ export default function Home() {
 							<div className="space-y-4">
 								<h3 className="text-lg font-semibold neon-text-secondary flex items-center gap-2">
 									<Cpu className="w-5 h-5" />
-									NEW FEATURES
+									{t('home', 'update.features_title')}
 								</h3>
 								<ul className="space-y-2">
 									{[
-										'Enhanced fleet visualization and map galaxy interface',
-										'New mail system for mission reports',
-										'Ally transport mission system',
-										'Improved queue management system',
+										t('home', 'update.features.fleet'),
+										t('home', 'update.features.mail'),
+										t('home', 'update.features.transport'),
+										t('home', 'update.features.queue'),
 									].map((feature, index) => (
 										<motion.li
 											key={index}
@@ -345,13 +342,13 @@ export default function Home() {
 							<div className="space-y-4">
 								<h3 className="text-lg font-semibold neon-text-accent flex items-center gap-2">
 									<Shield className="w-5 h-5" />
-									IMPROVEMENTS
+									{t('home', 'update.improvements_title')}
 								</h3>
 								<ul className="space-y-2">
 									{[
-										'Fixed critical queue system issues',
-										'Optimized galaxy map performance',
-										'Enhanced mission reporting interface',
+										t('home', 'update.improvements.queue'),
+										t('home', 'update.improvements.galaxy'),
+										t('home', 'update.improvements.mission'),
 									].map((improvement, index) => (
 										<motion.li
 											key={index}

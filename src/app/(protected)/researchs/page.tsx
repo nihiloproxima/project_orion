@@ -39,6 +39,8 @@ import { useGame } from '../../../contexts/GameContext';
 import { useState } from 'react';
 import { Technology } from '../../../models/user_researchs';
 import utils from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
+
 interface ResearchCardProps {
 	id: TechnologyId;
 	config: ResearchConfig;
@@ -62,6 +64,7 @@ function ResearchCard({
 	researchCapacityInfo,
 }: ResearchCardProps) {
 	const { state } = useGame();
+	const { t } = useTranslation();
 
 	if (!state.currentResources) return null;
 
@@ -312,6 +315,7 @@ function ResearchCard({
 
 export default function Researchs() {
 	const { state } = useGame();
+	const { t } = useTranslation();
 	const [gridCols, setGridCols] = useState(() => {
 		const saved = localStorage.getItem('structuresGridCols');
 		return saved ? parseInt(saved) : 2;
@@ -341,11 +345,11 @@ export default function Researchs() {
 			<div className="flex flex-col items-center justify-center h-[80vh] space-y-6 text-center">
 				<AlertTriangle className="w-16 h-16 text-red-500 animate-pulse" />
 				<div className="space-y-2">
-					<h2 className="text-2xl font-bold text-red-500">ACCESS DENIED</h2>
+					<h2 className="text-2xl font-bold text-red-500">{t('common', 'errors.no_laboratory.title')}</h2>
 					<div className="font-mono text-sm text-gray-200 max-w-md">
-						<p className="mb-2">[ERROR CODE: NO_LABORATORY_DETECTED]</p>
-						<p>Laboratory structure required for research operations.</p>
-						<p>Please construct a laboratory to access research capabilities.</p>
+						<p className="mb-2">{t('common', 'errors.no_laboratory.code')}</p>
+						<p>{t('common', 'errors.no_laboratory.message')}</p>
+						<p>{t('common', 'errors.no_laboratory.action')}</p>
 					</div>
 				</div>
 			</div>
