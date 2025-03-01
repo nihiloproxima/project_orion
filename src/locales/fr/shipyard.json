@@ -1,0 +1,34 @@
+{
+	"title": "CHANTIER SPATIAL",
+	"subtitle": "Construisez et gérez votre flotte de vaisseaux spatiaux",
+	"no_shipyard": {
+		"title": "ACCÈS REFUSÉ",
+		"error_code": "[CODE D'ERREUR: AUCUN CHANTIER SPATIAL DÉTECTÉ]",
+		"message": "Structure de chantier spatial requise pour la construction de vaisseaux.",
+		"action": "Veuillez construire un chantier spatial pour accéder aux capacités de construction de vaisseaux."
+	},
+	"queue": {
+		"title": "File de Production",
+		"capacity": "File de Production ({{current}}/{{capacity}})",
+		"empty": "Aucun vaisseau actuellement en production",
+		"starts_in": "Commence dans: {{time}}",
+		"ready": "Prêt pour la Collecte"
+	},
+	"builder": {
+		"select_blueprint": "Sélectionner un Plan",
+		"resource_requirements": "Ressources Nécessaires",
+		"ship_statistics": "Aperçu des Statistiques du Vaisseau",
+		"cancel": "Annuler",
+		"add_to_queue": "Ajouter à la File de Construction",
+		"not_enough_resources": "Ressources insuffisantes pour construire ce vaisseau",
+		"missing_components": "Composants requis manquants"
+	},
+	"components": {
+		"select": "Sélectionner {{type}}",
+		"none": "Aucun",
+		"effect": "Effet: {{effect}}"
+	},
+	"buttons": {
+		"build_new": "Construire un Nouveau Vaisseau"
+	}
+}

@@ -5,9 +5,11 @@ import { Card } from '../../../components/ui/card';
 import { Eye } from 'lucide-react';
 import GalaxyMap from '@/components/ThreeMap/GalaxyMap';
 import { GalaxySelector } from '@/components/GalaxySelector';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function GalaxyObservation() {
 	const [currentGalaxy, setCurrentGalaxy] = useState(0);
+	const { t } = useTranslation('galaxy');
 
 	return (
 		<div className="flex flex-col h-[calc(100vh-8rem)] overflow-hidden">
@@ -15,9 +17,9 @@ export default function GalaxyObservation() {
 				<div>
 					<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
 						<Eye className="h-8 w-8" />
-						GALAXY OBSERVATION
+						{t('title')}
 					</h1>
-					<p className="text-muted-foreground">Monitor and analyze the galaxy map</p>
+					<p className="text-muted-foreground">{t('subtitle')}</p>
 				</div>
 				<GalaxySelector currentGalaxy={currentGalaxy} onGalaxyChange={setCurrentGalaxy} />
 			</div>

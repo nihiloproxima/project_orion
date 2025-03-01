@@ -1,0 +1,8 @@
+{
+	"title": "OBSERVATION GALACTIQUE",
+	"subtitle": "Surveiller et analyser la carte galactique",
+	"selector": {
+		"title": "Galaxie",
+		"number": "{{number}}"
+	}
+}

@@ -1,1 +1,43 @@
-{}
+{
+	"title": "CLASSEMENTS GALACTIQUES",
+	"subtitle": "Métriques de performance stratégique des commandants et des alliances",
+	"tabs": {
+		"commanders": "Commandants",
+		"alliances": "Alliances",
+		"coming_soon": "Bientôt Disponible"
+	},
+	"players": {
+		"title": "CLASSEMENT DES COMMANDANTS",
+		"description": "Métriques de performance individuelle des commandants",
+		"label": "Score Total"
+	},
+	"alliances": {
+		"title": "CLASSEMENT DES ALLIANCES",
+		"description": "Métriques de puissance combinée des alliances",
+		"label": "Score d'Alliance"
+	},
+	"pagination": {
+		"page": "Page"
+	},
+	"loading": {
+		"message": "ACCÈS À LA BASE DE DONNÉES DES COMMANDANTS...",
+		"steps": {
+			"secure_connection": "ÉTABLISSEMENT D'UNE CONNEXION SÉCURISÉE...",
+			"authenticating": "AUTHENTIFICATION DES IDENTIFIANTS...",
+			"decrypting": "DÉCHIFFREMENT DES DOSSIERS DES COMMANDANTS...",
+			"analyzing": "ANALYSE DES MÉTRIQUES DE PERFORMANCE...",
+			"calculating": "CALCUL DES CLASSEMENTS...",
+			"generating": "GÉNÉRATION DES TABLEAUX DE CLASSEMENT...",
+			"finalizing": "FINALISATION DE L'ACCÈS AUX DONNÉES..."
+		}
+	},
+	"ranks": {
+		"cadet": "Cadet",
+		"lieutenant": "Lieutenant",
+		"commander": "Commandant",
+		"captain": "Capitaine",
+		"admiral": "Amiral",
+		"fleet_admiral": "Amiral de Flotte",
+		"supreme_commander": "Commandant Suprême"
+	}
+}

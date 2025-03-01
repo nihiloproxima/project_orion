@@ -1,0 +1,53 @@
+{
+	"title": "MOUVEMENTS DE FLOTTE",
+	"subtitle": "Suivez vos opérations de flotte et surveillez l'activité hostile",
+	"filter": {
+		"mission": "Filtrer par mission",
+		"all": "Toutes les Missions",
+		"attack": "Attaque",
+		"transport": "Transport",
+		"colonize": "Colonisation"
+	},
+	"sort": {
+		"by": "Trier par",
+		"arrival": "Heure d'arrivée",
+		"departure": "Heure de départ",
+		"ships": "Nombre de vaisseaux",
+		"resources": "Quantité de ressources"
+	},
+	"display": {
+		"mode": "Mode d'affichage",
+		"grid": "Vue en grille",
+		"rows": "Vue en lignes"
+	},
+	"sections": {
+		"hostile": "⚠️ Mouvements de Flotte Hostiles",
+		"allied": "🤝 Support Allié Entrant",
+		"own": "Vos Mouvements de Flotte",
+		"no_movements": "Aucun mouvement de flotte actif"
+	},
+	"mission": {
+		"status": "Statut",
+		"origin": "Origine",
+		"destination": "Destination",
+		"fleet": "Flotte",
+		"cargo": "Cargaison"
+	},
+	"cancel": {
+		"button": "Annuler la Mission",
+		"title": "Annuler la Mission",
+		"description": "Êtes-vous sûr de vouloir annuler ce mouvement de flotte ? Cette action ne peut pas être annulée.",
+		"confirm": "Confirmer",
+		"cancel": "Annuler"
+	},
+	"toast": {
+		"success": {
+			"title": "Succès",
+			"description": "Mission annulée avec succès."
+		},
+		"error": {
+			"title": "Erreur",
+			"description": "Échec de l'annulation de la mission. Veuillez réessayer."
+		}
+	}
+}

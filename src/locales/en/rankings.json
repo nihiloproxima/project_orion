@@ -1,1 +1,43 @@
-{}
+{
+	"title": "GALACTIC RANKINGS",
+	"subtitle": "Strategic performance metrics of commanders and alliances",
+	"tabs": {
+		"commanders": "Commanders",
+		"alliances": "Alliances",
+		"coming_soon": "Coming Soon"
+	},
+	"players": {
+		"title": "COMMANDER RANKINGS",
+		"description": "Individual commander performance metrics",
+		"label": "Total Score"
+	},
+	"alliances": {
+		"title": "ALLIANCE RANKINGS",
+		"description": "Combined alliance power metrics",
+		"label": "Alliance Score"
+	},
+	"pagination": {
+		"page": "Page"
+	},
+	"loading": {
+		"message": "ACCESSING COMMANDER DATABASE...",
+		"steps": {
+			"secure_connection": "ESTABLISHING SECURE CONNECTION...",
+			"authenticating": "AUTHENTICATING CREDENTIALS...",
+			"decrypting": "DECRYPTING COMMANDER RECORDS...",
+			"analyzing": "ANALYZING PERFORMANCE METRICS...",
+			"calculating": "CALCULATING RANKINGS...",
+			"generating": "GENERATING LEADERBOARDS...",
+			"finalizing": "FINALIZING DATA ACCESS..."
+		}
+	},
+	"ranks": {
+		"cadet": "Cadet",
+		"lieutenant": "Lieutenant",
+		"commander": "Commander",
+		"captain": "Captain",
+		"admiral": "Admiral",
+		"fleet_admiral": "Fleet Admiral",
+		"supreme_commander": "Supreme Commander"
+	}
+}

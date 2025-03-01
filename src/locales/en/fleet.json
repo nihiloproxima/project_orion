@@ -1,0 +1,53 @@
+{
+	"title": "FLEET MOVEMENTS",
+	"subtitle": "Track your fleet operations and monitor hostile activity",
+	"filter": {
+		"mission": "Filter by mission",
+		"all": "All Missions",
+		"attack": "Attack",
+		"transport": "Transport",
+		"colonize": "Colonize"
+	},
+	"sort": {
+		"by": "Sort by",
+		"arrival": "Arrival Time",
+		"departure": "Departure Time",
+		"ships": "Ship Count",
+		"resources": "Resource Amount"
+	},
+	"display": {
+		"mode": "Display mode",
+		"grid": "Grid View",
+		"rows": "Row View"
+	},
+	"sections": {
+		"hostile": "⚠️ Hostile Fleet Movements",
+		"allied": "🤝 Incoming Allied Support",
+		"own": "Your Fleet Movements",
+		"no_movements": "No active fleet movements"
+	},
+	"mission": {
+		"status": "Status",
+		"origin": "Origin",
+		"destination": "Destination",
+		"fleet": "Fleet",
+		"cargo": "Cargo"
+	},
+	"cancel": {
+		"button": "Cancel Mission",
+		"title": "Cancel Mission",
+		"description": "Are you sure you want to cancel this fleet movement? This action cannot be undone.",
+		"confirm": "Confirm",
+		"cancel": "Cancel"
+	},
+	"toast": {
+		"success": {
+			"title": "Success",
+			"description": "Mission cancelled successfully."
+		},
+		"error": {
+			"title": "Error",
+			"description": "Failed to cancel mission. Please try again."
+		}
+	}
+}

@@ -24,6 +24,13 @@ async function post(group: string, endpoint: string, data: Record<string, any>) 
 }
 
 export const api = {
+	claimShipFromShipyard: async (planetId: string, commandIndex: number) => {
+		return post('game', 'claimShipFromShipyard', {
+			planet_id: planetId,
+			command_index: commandIndex,
+		});
+	},
+
 	getPlanets: async (galaxy: number) => {
 		return post('game', 'getPlanets', {
 			galaxy: galaxy,

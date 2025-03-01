@@ -27,9 +27,11 @@ import { withIdConverter } from '@/lib/firebase';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { collection, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const FleetMovements = () => {
 	const { state } = useGame();
+	const { t } = useTranslation('fleet');
 	const [movements] = useCollectionData(
 		state.gameConfig && state.currentUser
 			? query(
@@ -76,13 +78,13 @@ const FleetMovements = () => {
 				}}
 			>
 				<SelectTrigger className="w-[180px]">
-					<SelectValue placeholder="Filter by mission" />
+					<SelectValue placeholder={t('filter.mission')} />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="all">All Missions</SelectItem>
-					<SelectItem value="attack">Attack</SelectItem>
-					<SelectItem value="transport">Transport</SelectItem>
-					<SelectItem value="colonize">Colonize</SelectItem>
+					<SelectItem value="all">{t('filter.all')}</SelectItem>
+					<SelectItem value="attack">{t('filter.attack')}</SelectItem>
+					<SelectItem value="transport">{t('filter.transport')}</SelectItem>
+					<SelectItem value="colonize">{t('filter.colonize')}</SelectItem>
 				</SelectContent>
 			</Select>
 
@@ -93,13 +95,13 @@ const FleetMovements = () => {
 				}}
 			>
 				<SelectTrigger className="w-[180px]">
-					<SelectValue placeholder="Sort by" />
+					<SelectValue placeholder={t('sort.by')} />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="arrival">Arrival Time</SelectItem>
-					<SelectItem value="departure">Departure Time</SelectItem>
-					<SelectItem value="ships">Ship Count</SelectItem>
-					<SelectItem value="resources">Resource Amount</SelectItem>
+					<SelectItem value="arrival">{t('sort.arrival')}</SelectItem>
+					<SelectItem value="departure">{t('sort.departure')}</SelectItem>
+					<SelectItem value="ships">{t('sort.ships')}</SelectItem>
+					<SelectItem value="resources">{t('sort.resources')}</SelectItem>
 				</SelectContent>
 			</Select>
 
@@ -110,11 +112,11 @@ const FleetMovements = () => {
 				}}
 			>
 				<SelectTrigger className="w-[180px]">
-					<SelectValue placeholder="Display mode" />
+					<SelectValue placeholder={t('display.mode')} />
 				</SelectTrigger>
 				<SelectContent>
-					<SelectItem value="grid">Grid View</SelectItem>
-					<SelectItem value="rows">Row View</SelectItem>
+					<SelectItem value="grid">{t('display.grid')}</SelectItem>
+					<SelectItem value="rows">{t('display.rows')}</SelectItem>
 				</SelectContent>
 			</Select>
 		</div>
@@ -127,14 +129,14 @@ const FleetMovements = () => {
 			// TODO: Implement cancelMission in API
 			// await api.cancelMission(movementId);
 			toast({
-				title: 'Success',
-				description: 'Mission cancelled successfully.',
+				title: t('toast.success.title'),
+				description: t('toast.success.description'),
 			});
 		} catch (error) {
 			console.error('Failed to cancel mission:', error);
 			toast({
-				title: 'Error',
-				description: 'Failed to cancel mission. Please try again.',
+				title: t('toast.error.title'),
+				description: t('toast.error.description'),
 				variant: 'destructive',
 			});
 		}
@@ -195,25 +197,22 @@ const FleetMovements = () => {
 										size="sm"
 										className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
 										onClick={(e) => e.stopPropagation()}
-										title="Cancel Mission"
+										title={t('cancel.button')}
 									>
 										<X className="h-4 w-4" />
 									</Button>
 								</AlertDialogTrigger>
 								<AlertDialogContent>
 									<AlertDialogHeader>
-										<AlertDialogTitle>Cancel Mission</AlertDialogTitle>
-										<AlertDialogDescription>
-											Are you sure you want to cancel this fleet movement? This action cannot be
-											undone.
-										</AlertDialogDescription>
+										<AlertDialogTitle>{t('cancel.title')}</AlertDialogTitle>
+										<AlertDialogDescription>{t('cancel.description')}</AlertDialogDescription>
 									</AlertDialogHeader>
 									<AlertDialogFooter>
 										<AlertDialogCancel onClick={(e) => e.stopPropagation()}>
-											Cancel
+											{t('cancel.cancel')}
 										</AlertDialogCancel>
 										<AlertDialogAction onClick={(e) => handleCancelMission(movement.id, e)}>
-											Confirm
+											{t('cancel.confirm')}
 										</AlertDialogAction>
 									</AlertDialogFooter>
 								</AlertDialogContent>
@@ -225,17 +224,18 @@ const FleetMovements = () => {
 					<div className="grid gap-2">
 						<div className="flex items-center justify-between">
 							<div className="text-sm">
-								Origin: {getPlanetName(movement.origin.coordinates.x, movement.origin.coordinates.y)}
+								{t('mission.origin')}:{' '}
+								{getPlanetName(movement.origin.coordinates.x, movement.origin.coordinates.y)}
 							</div>
 							<ArrowRight className="h-4 w-4" />
 							<div className="text-sm">
-								Destination:{' '}
+								{t('mission.destination')}:{' '}
 								{getPlanetName(movement.destination.coordinates.x, movement.destination.coordinates.y)}
 							</div>
 						</div>
 
 						<div className="text-sm">
-							Status: {movement.status.charAt(0).toUpperCase() + movement.status.slice(1)}
+							{t('mission.status')}: {movement.status.charAt(0).toUpperCase() + movement.status.slice(1)}
 						</div>
 
 						<div className="text-sm">
@@ -249,7 +249,7 @@ const FleetMovements = () => {
 							<>
 								{movement.ships && movement.ships.length > 0 && (
 									<div className="text-sm mt-2">
-										<div className="font-semibold mb-1">Fleet:</div>
+										<div className="font-semibold mb-1">{t('mission.fleet')}:</div>
 										<div className="grid grid-cols-2 gap-2">
 											{movement.ships.map((ship, index) => (
 												<div key={index} className="flex items-center gap-2">
@@ -270,7 +270,7 @@ const FleetMovements = () => {
 								{/* Expanded resources section */}
 								{movement.resources && (
 									<div className="text-sm mt-2">
-										<div className="font-semibold mb-1">Cargo:</div>
+										<div className="font-semibold mb-1">{t('mission.cargo')}:</div>
 										<div className="grid grid-cols-2 gap-2">
 											{Object.entries(movement.resources).map(([resource, amount]) => {
 												const resourceConfig = {
@@ -315,14 +315,14 @@ const FleetMovements = () => {
 			<div>
 				<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
 					<Rocket className="h-8 w-8" />
-					FLEET MOVEMENTS
+					{t('title')}
 				</h1>
-				<p className="text-muted-foreground">Track your fleet operations and monitor hostile activity</p>
+				<p className="text-muted-foreground">{t('subtitle')}</p>
 			</div>
 
 			{hostileMovements && hostileMovements.length > 0 && (
 				<div className="space-y-4">
-					<h2 className="text-xl font-bold text-red-500">⚠️ Hostile Fleet Movements</h2>
+					<h2 className="text-xl font-bold text-red-500">{t('sections.hostile')}</h2>
 					<MovementControls />
 					<div className={displayMode === 'grid' ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'}>
 						{sortMovements(filterMovements(hostileMovements)).map((movement) =>
@@ -334,7 +334,7 @@ const FleetMovements = () => {
 
 			{allyMovements && allyMovements.length > 0 && (
 				<div className="space-y-4">
-					<h2 className="text-xl font-bold text-green-500">🤝 Incoming Allied Support</h2>
+					<h2 className="text-xl font-bold text-green-500">{t('sections.allied')}</h2>
 					<MovementControls />
 					<div className={displayMode === 'grid' ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'}>
 						{sortMovements(filterMovements(allyMovements)).map((movement) =>
@@ -345,7 +345,7 @@ const FleetMovements = () => {
 			)}
 
 			<div className="space-y-4">
-				<h2 className="text-xl font-bold">Your Fleet Movements</h2>
+				<h2 className="text-xl font-bold">{t('sections.own')}</h2>
 				<MovementControls />
 				{movements && movements.length > 0 ? (
 					<div className={displayMode === 'grid' ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'}>
@@ -354,7 +354,7 @@ const FleetMovements = () => {
 						)}
 					</div>
 				) : (
-					<p className="text-muted-foreground">No active fleet movements</p>
+					<p className="text-muted-foreground">{t('sections.no_movements')}</p>
 				)}
 			</div>
 		</div>

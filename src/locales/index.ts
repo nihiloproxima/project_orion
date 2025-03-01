@@ -9,7 +9,8 @@ import enRankings from './en/rankings.json';
 import enHome from './en/home.json';
 import enTechnologies from './en/technologies.json';
 import enPlanets from './en/planets.json';
-
+import enFleet from './en/fleet.json';
+import enGalaxy from './en/galaxy.json';
 import frCommon from './fr/common.json';
 import frAuth from './fr/auth.json';
 import frDashboard from './fr/dashboard.json';
@@ -21,6 +22,8 @@ import frRankings from './fr/rankings.json';
 import frHome from './fr/home.json';
 import frTechnologies from './fr/technologies.json';
 import frPlanets from './fr/planets.json';
+import frFleet from './fr/fleet.json';
+import frGalaxy from './fr/galaxy.json';
 
 export type Locale = 'en' | 'fr';
 
@@ -37,6 +40,8 @@ export const resources = {
 		home: enHome,
 		technologies: enTechnologies,
 		planets: enPlanets,
+		fleet: enFleet,
+		galaxy: enGalaxy,
 	},
 	fr: {
 		common: frCommon,
@@ -50,6 +55,8 @@ export const resources = {
 		home: frHome,
 		technologies: frTechnologies,
 		planets: frPlanets,
+		fleet: frFleet,
+		galaxy: frGalaxy,
 	},
 };
 

@@ -10,8 +10,11 @@ import { LoadingScreen } from '../../../components/LoadingScreen';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 type RankingType = 'players' | 'alliances';
+
+const USERS_PER_PAGE = 10;
 
 interface RankingEntry {
 	user_id: string;
@@ -20,29 +23,8 @@ interface RankingEntry {
 	score: number;
 }
 
-// Military ranks based on score ranges
-const RANKS = [
-	{ min: 0, name: 'Cadet', color: 'text-gray-400' },
-	{ min: 1000, name: 'Lieutenant', color: 'text-blue-400' },
-	{ min: 5000, name: 'Commander', color: 'text-green-400' },
-	{ min: 10000, name: 'Captain', color: 'text-yellow-400' },
-	{ min: 25000, name: 'Admiral', color: 'text-purple-400' },
-	{ min: 50000, name: 'Fleet Admiral', color: 'text-red-400' },
-	{ min: 100000, name: 'Supreme Commander', color: 'text-primary' },
-];
-
-const getRank = (score: number) => {
-	return RANKS.reduce((highest, rank) => {
-		if (score >= rank.min && rank.min >= highest.min) {
-			return rank;
-		}
-		return highest;
-	}, RANKS[0]);
-};
-
-const USERS_PER_PAGE = 10;
-
 export default function Rankings() {
+	const { t } = useTranslation('rankings');
 	const [rankingsCache, setRankingsCache] = useState<Record<RankingType, Record<number, RankingEntry[]>>>({
 		players: {},
 		alliances: {},
@@ -117,6 +99,25 @@ export default function Rankings() {
 		);
 	}
 
+	const getRank = (score: number) => {
+		const RANKS = [
+			{ min: 0, name: t('ranks.cadet'), color: 'text-gray-400' },
+			{ min: 1000, name: t('ranks.lieutenant'), color: 'text-blue-400' },
+			{ min: 5000, name: t('ranks.commander'), color: 'text-green-400' },
+			{ min: 10000, name: t('ranks.captain'), color: 'text-yellow-400' },
+			{ min: 25000, name: t('ranks.admiral'), color: 'text-purple-400' },
+			{ min: 50000, name: t('ranks.fleet_admiral'), color: 'text-red-400' },
+			{ min: 100000, name: t('ranks.supreme_commander'), color: 'text-primary' },
+		];
+
+		return RANKS.reduce((highest, rank) => {
+			if (score >= rank.min && rank.min >= highest.min) {
+				return rank;
+			}
+			return highest;
+		}, RANKS[0]);
+	};
+
 	const rankingConfig = {
 		players: {
 			title: 'COMMANDER RANKINGS',
@@ -138,20 +139,20 @@ export default function Rankings() {
 			<div>
 				<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
 					<Trophy className="h-8 w-8" />
-					GALACTIC RANKINGS
+					{t('title')}
 				</h1>
-				<p className="text-muted-foreground">Strategic performance metrics of commanders and alliances</p>
+				<p className="text-muted-foreground">{t('subtitle')}</p>
 			</div>
 
 			<Tabs value={rankingType} onValueChange={(v) => setRankingType(v as RankingType)}>
 				<TabsList className="grid w-full grid-cols-2 mb-6">
 					<TabsTrigger value="players" className="flex items-center gap-2">
 						<Trophy className="h-4 w-4" />
-						Commanders
+						{t('tabs.commanders')}
 					</TabsTrigger>
 					<TabsTrigger value="alliances" className="flex items-center gap-2" disabled>
 						<Users className="h-4 w-4" />
-						Alliances
+						{t('tabs.alliances')}
 						<span className="text-xs bg-primary/20 px-2 py-0.5 rounded-full">Coming Soon</span>
 					</TabsTrigger>
 				</TabsList>

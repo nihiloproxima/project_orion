@@ -1,0 +1,34 @@
+{
+	"title": "SHIPYARD",
+	"subtitle": "Construct and manage your fleet of spacecraft",
+	"no_shipyard": {
+		"title": "ACCESS DENIED",
+		"error_code": "[ERROR CODE: NO_SHIPYARD_DETECTED]",
+		"message": "Shipyard structure required for spacecraft construction.",
+		"action": "Please construct a shipyard to access ship building capabilities."
+	},
+	"queue": {
+		"title": "Production Queue",
+		"capacity": "Production Queue ({{current}}/{{capacity}})",
+		"empty": "No ships currently in production",
+		"starts_in": "Starts in: {{time}}",
+		"ready": "Ready for Collection"
+	},
+	"builder": {
+		"select_blueprint": "Select Blueprint",
+		"resource_requirements": "Resource Requirements",
+		"ship_statistics": "Ship Statistics Preview",
+		"cancel": "Cancel",
+		"add_to_queue": "Add to Construction Queue",
+		"not_enough_resources": "Not enough resources to build this ship",
+		"missing_components": "Missing required components"
+	},
+	"components": {
+		"select": "Select {{type}}",
+		"none": "None",
+		"effect": "Effect: {{effect}}"
+	},
+	"buttons": {
+		"build_new": "Build New Ship"
+	}
+}

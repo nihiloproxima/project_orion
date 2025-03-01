@@ -1,0 +1,8 @@
+{
+	"title": "GALAXY OBSERVATION",
+	"subtitle": "Monitor and analyze the galaxy map",
+	"selector": {
+		"title": "Galaxy",
+		"number": "{{number}}"
+	}
+}
