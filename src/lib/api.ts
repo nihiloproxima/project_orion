@@ -69,7 +69,23 @@ export const api = {
 		return post('game', 'upgradeStructure', {
 			planet_id: planetId,
 			structure_type: structureType,
-			upgrades_count: upgradeCount,
+			upgrades_counts: upgradeCount,
+		});
+	},
+	getShipBlueprints: async () => {
+		return post('game', 'getShipBlueprints', {});
+	},
+	getShipComponents: async () => {
+		return post('game', 'getShipComponents', {});
+	},
+	getShips: async (planetId: string) => {
+		return post('game', 'getShips', {
+			planet_id: planetId,
+		});
+	},
+	getShipyardQueue: async (planetId: string) => {
+		return post('game', 'getShipyardQueue', {
+			planet_id: planetId,
 		});
 	},
 	getRankings: async (params: {

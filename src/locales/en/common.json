@@ -5,7 +5,7 @@
 		"user_profile": "USER_PROFILE",
 		"galaxy_map": "GALAXY_MAP",
 		"rankings": "RANKINGS",
-		"fleet_movements": "FLEET_MOVEMENTS",
+		"fleet": "FLEET",
 		"trading": "TRADING",
 		"structures": "STRUCTURES",
 		"research_lab": "RESEARCH_LAB",

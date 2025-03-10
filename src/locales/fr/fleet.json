@@ -1,19 +1,26 @@
 {
-	"title": "MOUVEMENTS DE FLOTTE",
+	"title": "FLOTTE",
 	"subtitle": "Suivez vos opérations de flotte et surveillez l'activité hostile",
 	"filter": {
 		"mission": "Filtrer par mission",
 		"all": "Toutes les Missions",
 		"attack": "Attaque",
-		"transport": "Transport",
-		"colonize": "Colonisation"
+		"recycler": "Recycleur",
+		"spy": "Espion",
+		"battle_ship": "Bateau de bataille",
+		"transport": "Transporteur",
+		"colony": "Colonie"
 	},
 	"sort": {
 		"by": "Trier par",
 		"arrival": "Heure d'arrivée",
 		"departure": "Heure de départ",
 		"ships": "Nombre de vaisseaux",
-		"resources": "Quantité de ressources"
+		"resources": "Quantité de ressources",
+		"type": "Type",
+		"name": "Nom",
+		"level": "Niveau",
+		"integrity": "Intégrité"
 	},
 	"display": {
 		"mode": "Mode d'affichage",
@@ -21,6 +28,7 @@
 		"rows": "Vue en lignes"
 	},
 	"sections": {
+		"no_ships": "Aucun vaisseau disponible",
 		"hostile": "⚠️ Mouvements de Flotte Hostiles",
 		"allied": "🤝 Support Allié Entrant",
 		"own": "Vos Mouvements de Flotte",

@@ -1,5 +1,20 @@
 'use client';
 
+import { AlertTriangle, ArrowRight, Flame, Gift, Hammer, Microchip, Rocket, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { FleetMovement } from '@/models/fleet_movement';
+import Image from 'next/image';
+import { Timer } from '@/components/Timer';
+import { useGame } from '@/contexts/GameContext';
+import { useToast } from '@/hooks/use-toast';
+import { withIdConverter } from '@/lib/firebase';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { collection, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useTranslation } from '@/hooks/useTranslation';
+import { MovementControls } from './MovementControls';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -11,25 +26,8 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { AlertTriangle, ArrowRight, Flame, Gift, Hammer, Microchip, Rocket, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { useState } from 'react';
 
-import { Button } from '../../../components/ui/button';
-import { FleetMovement } from '../../../models/fleet_movement';
-import Image from 'next/image';
-import { Timer } from '../../../components/Timer';
-
-import { useGame } from '../../../contexts/GameContext';
-import { useToast } from '@/hooks/use-toast';
-import { withIdConverter } from '@/lib/firebase';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { collection, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useTranslation } from '@/hooks/useTranslation';
-
-const FleetMovements = () => {
+export const FleetMovementsSection = () => {
 	const { state } = useGame();
 	const { t } = useTranslation('fleet');
 	const [movements] = useCollectionData(
@@ -67,60 +65,6 @@ const FleetMovements = () => {
 	const [sortBy, setSortBy] = useState<string>('arrival');
 	const [displayMode, setDisplayMode] = useState<'grid' | 'rows'>('grid');
 	const { toast } = useToast();
-
-	// Add controls component
-	const MovementControls = () => (
-		<div className="flex flex-wrap gap-4 mb-4" onClick={(e) => e.stopPropagation()}>
-			<Select
-				value={missionFilter}
-				onValueChange={(value) => {
-					setMissionFilter(value);
-				}}
-			>
-				<SelectTrigger className="w-[180px]">
-					<SelectValue placeholder={t('filter.mission')} />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="all">{t('filter.all')}</SelectItem>
-					<SelectItem value="attack">{t('filter.attack')}</SelectItem>
-					<SelectItem value="transport">{t('filter.transport')}</SelectItem>
-					<SelectItem value="colonize">{t('filter.colonize')}</SelectItem>
-				</SelectContent>
-			</Select>
-
-			<Select
-				value={sortBy}
-				onValueChange={(value) => {
-					setSortBy(value);
-				}}
-			>
-				<SelectTrigger className="w-[180px]">
-					<SelectValue placeholder={t('sort.by')} />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="arrival">{t('sort.arrival')}</SelectItem>
-					<SelectItem value="departure">{t('sort.departure')}</SelectItem>
-					<SelectItem value="ships">{t('sort.ships')}</SelectItem>
-					<SelectItem value="resources">{t('sort.resources')}</SelectItem>
-				</SelectContent>
-			</Select>
-
-			<Select
-				value={displayMode}
-				onValueChange={(value: 'grid' | 'rows') => {
-					setDisplayMode(value);
-				}}
-			>
-				<SelectTrigger className="w-[180px]">
-					<SelectValue placeholder={t('display.mode')} />
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem value="grid">{t('display.grid')}</SelectItem>
-					<SelectItem value="rows">{t('display.rows')}</SelectItem>
-				</SelectContent>
-			</Select>
-		</div>
-	);
 
 	const handleCancelMission = async (movementId: string, e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -260,7 +204,7 @@ const FleetMovements = () => {
 														alt={ship.type || 'Ship'}
 														className="w-6 h-6"
 													/>
-													{ship.type}: {ship.count || 1}
+													{ship.type}: {ship.name}
 												</div>
 											))}
 										</div>
@@ -311,19 +255,18 @@ const FleetMovements = () => {
 	};
 
 	return (
-		<div className="space-y-6">
-			<div>
-				<h1 className="text-3xl font-bold neon-text mb-2 flex items-center gap-2">
-					<Rocket className="h-8 w-8" />
-					{t('title')}
-				</h1>
-				<p className="text-muted-foreground">{t('subtitle')}</p>
-			</div>
-
+		<>
 			{hostileMovements && hostileMovements.length > 0 && (
 				<div className="space-y-4">
 					<h2 className="text-xl font-bold text-red-500">{t('sections.hostile')}</h2>
-					<MovementControls />
+					<MovementControls
+						missionFilter={missionFilter}
+						setMissionFilter={setMissionFilter}
+						sortBy={sortBy}
+						setSortBy={setSortBy}
+						displayMode={displayMode}
+						setDisplayMode={setDisplayMode}
+					/>
 					<div className={displayMode === 'grid' ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'}>
 						{sortMovements(filterMovements(hostileMovements)).map((movement) =>
 							renderMovementCard(movement, 'hostile')
@@ -335,7 +278,14 @@ const FleetMovements = () => {
 			{allyMovements && allyMovements.length > 0 && (
 				<div className="space-y-4">
 					<h2 className="text-xl font-bold text-green-500">{t('sections.allied')}</h2>
-					<MovementControls />
+					<MovementControls
+						missionFilter={missionFilter}
+						setMissionFilter={setMissionFilter}
+						sortBy={sortBy}
+						setSortBy={setSortBy}
+						displayMode={displayMode}
+						setDisplayMode={setDisplayMode}
+					/>
 					<div className={displayMode === 'grid' ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'}>
 						{sortMovements(filterMovements(allyMovements)).map((movement) =>
 							renderMovementCard(movement, 'ally')
@@ -346,7 +296,14 @@ const FleetMovements = () => {
 
 			<div className="space-y-4">
 				<h2 className="text-xl font-bold">{t('sections.own')}</h2>
-				<MovementControls />
+				<MovementControls
+					missionFilter={missionFilter}
+					setMissionFilter={setMissionFilter}
+					sortBy={sortBy}
+					setSortBy={setSortBy}
+					displayMode={displayMode}
+					setDisplayMode={setDisplayMode}
+				/>
 				{movements && movements.length > 0 ? (
 					<div className={displayMode === 'grid' ? 'grid gap-4 md:grid-cols-2' : 'space-y-4'}>
 						{sortMovements(filterMovements(movements)).map((movement) =>
@@ -357,8 +314,6 @@ const FleetMovements = () => {
 					<p className="text-muted-foreground">{t('sections.no_movements')}</p>
 				)}
 			</div>
-		</div>
+		</>
 	);
 };
-
-export default FleetMovements;

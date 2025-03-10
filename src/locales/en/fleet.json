@@ -1,5 +1,5 @@
 {
-	"title": "FLEET MOVEMENTS",
+	"title": "FLEET",
 	"subtitle": "Track your fleet operations and monitor hostile activity",
 	"filter": {
 		"mission": "Filter by mission",
@@ -13,7 +13,11 @@
 		"arrival": "Arrival Time",
 		"departure": "Departure Time",
 		"ships": "Ship Count",
-		"resources": "Resource Amount"
+		"resources": "Resource Amount",
+		"type": "Type",
+		"name": "Name",
+		"level": "Level",
+		"integrity": "Integrity"
 	},
 	"display": {
 		"mode": "Display mode",
@@ -21,6 +25,7 @@
 		"rows": "Row View"
 	},
 	"sections": {
+		"no_ships": "No ships available",
 		"hostile": "⚠️ Hostile Fleet Movements",
 		"allied": "🤝 Incoming Allied Support",
 		"own": "Your Fleet Movements",

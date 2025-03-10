@@ -142,13 +142,16 @@ export function ResourceBar({ showMobileSidebar, setShowMobileSidebar }: Resourc
 				</div>
 
 				<div className="hidden sm:flex sm:justify-end sm:gap-6">
-					<div className="flex flex-col items-end">
+					<div className="flex flex-col items-end group relative">
 						<span className="text-xs text-yellow-400/70">CREDITS</span>
 						<div className="flex items-center gap-2">
-							<span className={`font-mono font-bold text-base  text-yellow-400 `}>
+							<span className={`font-mono font-bold text-base text-yellow-400`}>
 								{millify(Math.floor(userInventory?.credits || 0))}
 							</span>
 							<Coins className={`h-4 w-4 text-yellow-400`} />
+						</div>
+						<div className="absolute -bottom-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 px-2 py-1 rounded text-xs text-yellow-400 whitespace-nowrap">
+							{Math.floor(userInventory?.credits || 0).toLocaleString()}
 						</div>
 					</div>
 

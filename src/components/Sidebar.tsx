@@ -113,9 +113,9 @@ export function Sidebar() {
 				color: 'blue',
 			},
 			{
-				to: '/fleet-movements',
+				to: '/fleet',
 				icon: ArrowRight,
-				translationKey: 'fleet_movements',
+				translationKey: 'fleet',
 				color: 'blue',
 			},
 			{
