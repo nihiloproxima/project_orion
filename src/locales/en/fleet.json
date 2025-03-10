@@ -1,58 +1,98 @@
 {
-	"title": "FLEET",
-	"subtitle": "Track your fleet operations and monitor hostile activity",
+	"title": "Fleet Management",
+	"subtitle": "Manage your ships and monitor fleet movements across the galaxy",
 	"filter": {
-		"mission": "Filter by mission",
-		"all": "All Missions",
+		"mission": "Filter by Mission",
+		"ship_type": "Filter by Ship Type",
+		"all": "All",
 		"attack": "Attack",
 		"transport": "Transport",
-		"colonize": "Colonize"
+		"colonize": "Colonize",
+		"battle_ship": "Battle Ship",
+		"colony": "Colony Ship",
+		"spy": "Spy Probe",
+		"recycler": "Recycler"
 	},
 	"sort": {
 		"by": "Sort by",
 		"arrival": "Arrival Time",
 		"departure": "Departure Time",
 		"ships": "Ship Count",
-		"resources": "Resource Amount",
-		"type": "Type",
-		"name": "Name",
-		"level": "Level",
-		"integrity": "Integrity"
+		"resources": "Resources",
+		"type": "Ship Type",
+		"name": "Ship Name",
+		"level": "Ship Level",
+		"integrity": "Ship Integrity"
 	},
 	"display": {
-		"mode": "Display mode",
+		"mode": "Display Mode",
 		"grid": "Grid View",
-		"rows": "Row View"
+		"rows": "List View"
 	},
 	"sections": {
-		"no_ships": "No ships available",
-		"hostile": "⚠️ Hostile Fleet Movements",
-		"allied": "🤝 Incoming Allied Support",
+		"hostile": "Hostile Movements",
+		"allied": "Allied Movements",
 		"own": "Your Fleet Movements",
-		"no_movements": "No active fleet movements"
+		"stationary": "Stationed Ships",
+		"stationary_description": "Ships currently stationed at this planet",
+		"no_movements": "No fleet movements at this time",
+		"no_ships": "No ships stationed at this planet"
 	},
 	"mission": {
+		"origin": "From",
+		"destination": "To",
 		"status": "Status",
-		"origin": "Origin",
-		"destination": "Destination",
-		"fleet": "Fleet",
+		"fleet": "Fleet Composition",
 		"cargo": "Cargo"
+	},
+	"ship": {
+		"level": "Level",
+		"type": "Type",
+		"integrity": "Integrity",
+		"stats": {
+			"attack": "Attack",
+			"defense": "Defense",
+			"speed": "Speed",
+			"capacity": "Cargo Capacity",
+			"shield": "Shield",
+			"evasion": "Evasion",
+			"accuracy": "Accuracy",
+			"crew_capacity": "Crew Capacity",
+			"critical_chance": "Critical Hit",
+			"fire_rate": "Fire Rate",
+			"initiative": "Initiative"
+		},
+		"actions": {
+			"details": "View Details",
+			"hide": "Hide Details",
+			"deploy": "Deploy Ship",
+			"rename": "Rename",
+			"repair": "Repair",
+			"scrap": "Scrap Ship"
+		}
+	},
+	"pagination": {
+		"page": "Page",
+		"of": "of",
+		"previous": "Previous",
+		"next": "Next"
 	},
 	"cancel": {
 		"button": "Cancel Mission",
-		"title": "Cancel Mission",
-		"description": "Are you sure you want to cancel this fleet movement? This action cannot be undone.",
-		"confirm": "Confirm",
-		"cancel": "Cancel"
+		"title": "Cancel Fleet Mission",
+		"description": "Are you sure you want to cancel this fleet mission? The fleet will return to its origin planet.",
+		"cancel": "No, Keep Mission",
+		"confirm": "Yes, Cancel Mission"
 	},
 	"toast": {
 		"success": {
 			"title": "Success",
-			"description": "Mission cancelled successfully."
+			"description": "Mission cancelled successfully"
 		},
 		"error": {
 			"title": "Error",
-			"description": "Failed to cancel mission. Please try again."
+			"description": "Failed to cancel mission",
+			"ships_fetch_failed": "Failed to fetch stationed ships"
 		}
 	}
 }
