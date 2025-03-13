@@ -9,6 +9,22 @@
 		"three": "Three Columns",
 		"four": "Four Columns"
 	},
+	"no_laboratory": {
+		"title": "ACCESS DENIED",
+		"error_code": "[ERROR CODE: NO_LABORATORY_DETECTED]",
+		"message": "Research laboratory required for technological advancement.",
+		"action": "Please construct a research laboratory to access research capabilities.",
+		"standby": "SYSTEM STANDBY..."
+	},
+	"button_text": {
+		"max_level": "MAXIMUM LEVEL",
+		"researching": "RESEARCHING",
+		"planet_researching": "PLANET ALREADY RESEARCHING",
+		"capacity_reached": "RESEARCH CAPACITY REACHED ({{current}}/{{max}})",
+		"prerequisites_not_met": "PREREQUISITES NOT MET",
+		"not_enough_resources": "NOT ENOUGH RESOURCES",
+		"research": "RESEARCH"
+	},
 	"card": {
 		"level": "Level",
 		"max_level": "Maximum level",
@@ -25,9 +41,9 @@
 			"max_level": "MAX LEVEL",
 			"researching": "RESEARCHING",
 			"planet_researching": "PLANET ALREADY RESEARCHING",
-			"capacity_reached": "RESEARCH CAPACITY REACHED ({{current}}/{{max}})",
-			"prerequisites_not_met": "PREREQUISITES NOT MET",
-			"not_enough_resources": "NOT ENOUGH RESOURCES",
+			"capacity_reached": "RESEARCH CAPACITY REACHED",
+			"prerequisites": "PREREQUISITES NOT MET",
+			"resources": "NOT ENOUGH RESOURCES",
 			"research": "RESEARCH"
 		},
 		"effects": {
@@ -39,7 +55,8 @@
 		"no_laboratory": {
 			"title": "Laboratory not found",
 			"code": "404",
-			"message": "The research laboratory does not exist."
+			"message": "The research laboratory does not exist.",
+			"action": "Please build a research laboratory to start researching technologies."
 		}
 	}
 }

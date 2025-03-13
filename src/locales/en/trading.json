@@ -1,1 +1,13 @@
-{}
+{
+	"coming_soon": {
+		"access_restricted": "[ACCESS RESTRICTED]",
+		"error_title": "// TRADING SYSTEM INITIALIZATION ERROR //",
+		"status": {
+			"title": "STATUS: MARKET PROTOCOLS OFFLINE",
+			"reason": "REASON: SCHEDULED MAINTENANCE",
+			"eta": "ETA: PENDING AUTHORIZATION"
+		},
+		"standby": "> PLEASE STAND BY FOR SYSTEM RESTORATION...",
+		"error_code": "ERROR CODE: TRD-334-11 | CONTACT SYSTEM ADMINISTRATOR"
+	}
+}

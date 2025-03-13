@@ -344,16 +344,26 @@ export default function Researchs() {
 	const hasLaboratory = state.selectedPlanet?.structures.some((s) => s.type === 'research_lab' && s.level >= 1);
 
 	if (!hasLaboratory) {
+		// Early return with cyberpunk "coming soon" message
 		return (
-			<div className="flex flex-col items-center justify-center h-[80vh] space-y-6 text-center">
-				<AlertTriangle className="w-16 h-16 text-red-500 animate-pulse" />
-				<div className="space-y-2">
-					<h2 className="text-2xl font-bold text-red-500">{t('errors.no_laboratory.title')}</h2>
-					<div className="font-mono text-sm text-gray-200 max-w-md">
-						<p className="mb-2">{t('errors.no_laboratory.code')}</p>
-						<p>{t('errors.no_laboratory.message')}</p>
-						<p>{t('errors.no_laboratory.action')}</p>
+			<div className="min-h-screen bg-background cyber-grid flex items-center justify-center p-4">
+				<div className="max-w-2xl w-full space-y-6 text-center">
+					<div className="animate-pulse">
+						<h2 className="text-4xl font-bold text-red-500 glitch-text">{t('no_laboratory.title')}</h2>
 					</div>
+
+					<div className="bg-black/50 backdrop-blur-sm border-red-500/50 border-2 p-8 rounded-lg space-y-4">
+						<div className="text-xl text-red-400 font-mono">{t('no_laboratory.error_code')}</div>
+
+						<div className="text-muted-foreground font-mono">
+							<p>{t('no_laboratory.message')}</p>
+							<p>{t('no_laboratory.action')}</p>
+						</div>
+
+						<div className="animate-blink text-yellow-500 font-mono mt-8">{t('no_laboratory.standby')}</div>
+					</div>
+
+					<div className="text-sm text-muted-foreground font-mono">{t('no_laboratory.error_code')}</div>
 				</div>
 			</div>
 		);

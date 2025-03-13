@@ -69,7 +69,7 @@ export const api = {
 		return post('game', 'upgradeStructure', {
 			planet_id: planetId,
 			structure_type: structureType,
-			upgrades_counts: upgradeCount,
+			upgrades_count: upgradeCount,
 		});
 	},
 	getShipBlueprints: async () => {

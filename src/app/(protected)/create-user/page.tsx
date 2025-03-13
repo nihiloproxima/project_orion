@@ -93,8 +93,8 @@ export default function CreateUser() {
 										}`}
 									>
 										<Image
-											src={`/images/avatars/${avatar}.webp`}
-											alt={`Avatar ${index}`}
+											src={`/images/avatars/${avatar}`}
+											alt={`Avatar ${index} ${avatar}`}
 											fill
 											className="object-cover"
 											sizes="(max-width: 768px) 60px, 80px"

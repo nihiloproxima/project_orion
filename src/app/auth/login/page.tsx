@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { auth, db } from '@/lib/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Login() {
 	const router = useRouter();
@@ -18,6 +19,7 @@ export default function Login() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
+	const { t } = useTranslation('auth');
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -52,6 +54,19 @@ export default function Login() {
 	const handleGoogleSignIn = async () => {
 		try {
 			// Auth callback page will handle the rest of the flow
+			const provider = new GoogleAuthProvider();
+			const userCredential = await signInWithPopup(auth, provider);
+
+			const user = await getDoc(doc(db, 'users', userCredential.user?.uid));
+			console.log(user);
+
+			if (!user.exists()) {
+				router.push('/create-user');
+			} else if (!user.data()?.home_planet_id) {
+				router.push('/secure-communications');
+			} else {
+				router.push('/dashboard');
+			}
 		} catch (error: any) {
 			setError(error.message || 'Google authentication failed');
 			console.error('Google auth failed:', error);
@@ -70,13 +85,13 @@ export default function Login() {
 			<Card className="w-[400px] bg-black/50 backdrop-blur-sm border-primary/50 neon-border">
 				<CardHeader className="space-y-4">
 					<CardTitle className="font-mono text-2xl text-center neon-text tracking-wider">
-						SYSTEM ACCESS
+						{t('login.title')}
 					</CardTitle>
 
-					<div className="text-xs font-mono text-primary/70">{'>'} INITIALIZING LOGIN SEQUENCE...</div>
+					<div className="text-xs font-mono text-primary/70">{t('login.initializing')}</div>
 					{error && (
 						<div className="text-xs font-mono text-red-500 bg-red-500/10 p-2 border border-red-500/30 rounded">
-							{'>'} ERROR: {error}
+							{t('login.error.prefix')} {error}
 						</div>
 					)}
 				</CardHeader>
@@ -84,7 +99,7 @@ export default function Login() {
 					<form onSubmit={handleSubmit} className="space-y-6">
 						<div className="space-y-2">
 							<Label htmlFor="email" className="font-mono text-sm text-primary/90">
-								[OPERATOR EMAIL]
+								{t('login.email')}
 							</Label>
 							<Input
 								id="email"
@@ -93,12 +108,12 @@ export default function Login() {
 								onChange={(e) => setEmail(e.target.value)}
 								required
 								className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
-								placeholder="enter.operator@id"
+								placeholder={t('login.email_placeholder')}
 							/>
 						</div>
 						<div className="space-y-2">
 							<Label htmlFor="password" className="font-mono text-sm text-primary/90">
-								[ACCESS CODE]
+								{t('login.password')}
 							</Label>
 							<Input
 								id="password"
@@ -107,21 +122,23 @@ export default function Login() {
 								onChange={(e) => setPassword(e.target.value)}
 								required
 								className="font-mono bg-black/30 border-primary/30 focus:border-primary/60 neon-border"
-								placeholder="****************"
+								placeholder={t('login.password_placeholder')}
 							/>
 						</div>
 						<Button
 							type="submit"
 							className="w-full font-mono bg-primary/80 hover:bg-primary/90 border border-primary/60 neon-border"
 						>
-							AUTHENTICATE
+							{t('login.submit')}
 						</Button>
 						<div className="relative">
 							<div className="absolute inset-0 flex items-center">
 								<span className="w-full border-t border-primary/30" />
 							</div>
 							<div className="relative flex justify-center text-xs uppercase">
-								<span className="bg-background px-2 text-primary/70 font-mono">Or continue with</span>
+								<span className="bg-background px-2 text-primary/70 font-mono">
+									{t('login.continue_with')}
+								</span>
 							</div>
 						</div>
 						<div className="grid grid-cols-2 gap-3">
@@ -168,9 +185,9 @@ export default function Login() {
 				</CardContent>
 				<CardFooter className="flex justify-center">
 					<div className="text-xs font-mono text-primary/70">
-						[NEW OPERATOR?]{' '}
+						{t('login.new_user')}{' '}
 						<Link href="/auth/register" className="text-primary hover:text-primary/80 neon-text">
-							INITIALIZE REGISTRATION
+							{t('login.register')}
 						</Link>
 					</div>
 				</CardFooter>

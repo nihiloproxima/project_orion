@@ -21,7 +21,9 @@
 		"cancel": "Cancel",
 		"add_to_queue": "Add to Construction Queue",
 		"not_enough_resources": "Not enough resources to build this ship",
-		"missing_components": "Missing required components"
+		"missing_components": "Missing required components",
+		"customize_ship": "Customize Your Ship",
+		"component_selection": "Component Selection"
 	},
 	"components": {
 		"select": "Select {{type}}",
@@ -30,5 +32,29 @@
 	},
 	"buttons": {
 		"build_new": "Build New Ship"
+	},
+	"stats": {
+		"speed": "Speed",
+		"capacity": "Cargo Capacity",
+		"attack": "Attack",
+		"defense": "Defense",
+		"shield": "Shield",
+		"evasion": "Evasion",
+		"accuracy": "Accuracy",
+		"crew_capacity": "Crew Capacity",
+		"critical_chance": "Critical Hit Chance",
+		"fire_rate": "Fire Rate",
+		"initiative": "Initiative"
+	},
+	"rarity": {
+		"common": "Common",
+		"rare": "Rare",
+		"epic": "Epic",
+		"legendary": "Legendary"
+	},
+	"resources": {
+		"credits": "Credits",
+		"metal": "Metal",
+		"deuterium": "Deuterium"
 	}
 }

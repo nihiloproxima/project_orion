@@ -1,6 +1,6 @@
 'use client';
 
-import { Anchor, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Anchor, ChevronLeft, ChevronRight, Factory } from 'lucide-react';
 import { useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -11,10 +11,12 @@ import { ShipCard } from './ShipCard';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { collection, query, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
 
 export const StationaryShipsSection = () => {
 	const { state } = useGame();
 	const { t } = useTranslation('fleet');
+	const router = useRouter();
 
 	// Stationary ships state
 	const [stationaryShips] = useCollectionData<Ship>(
@@ -63,6 +65,27 @@ export const StationaryShipsSection = () => {
 	const filteredAndSortedShips = sortShips(filterShips(stationaryShips || []));
 	const paginatedShips = paginateShips(filteredAndSortedShips);
 	const totalPages = Math.ceil(filteredAndSortedShips.length / SHIPS_PER_PAGE);
+
+	// If there are no ships at all, show a CTA to the shipyard
+	if (stationaryShips && stationaryShips.length === 0) {
+		return (
+			<div className="space-y-4">
+				<h2 className="text-xl font-bold flex items-center gap-2">
+					<Anchor className="h-6 w-6" />
+					{t('sections.stationary')}
+				</h2>
+				<p className="text-muted-foreground">{t('sections.stationary_description')}</p>
+
+				<div className="flex flex-col items-center justify-center py-12 space-y-4">
+					<p className="text-muted-foreground text-center">{t('sections.no_ships')}</p>
+					<Button onClick={() => router.push('/shipyard')} className="gap-2">
+						<Factory className="h-4 w-4" />
+						{t('sections.visit_shipyard')}
+					</Button>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-4">

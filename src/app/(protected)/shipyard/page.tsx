@@ -263,7 +263,7 @@ function ShipBuilder({ onClose }: { onClose: () => void }) {
 													rarityTextColors[blueprint.rarity]
 												} font-semibold`}
 											>
-												{blueprint.rarity.charAt(0).toUpperCase() + blueprint.rarity.slice(1)}
+												{t(`rarity.${blueprint.rarity}`)}
 											</div>
 											<div className="text-sm text-muted-foreground">{blueprint.ship_type}</div>
 										</div>
@@ -302,8 +302,7 @@ function ShipBuilder({ onClose }: { onClose: () => void }) {
 													rarityTextColors[selectedBlueprint.rarity]
 												} font-semibold`}
 											>
-												{selectedBlueprint.rarity.charAt(0).toUpperCase() +
-													selectedBlueprint.rarity.slice(1)}
+												{t(`rarity.${selectedBlueprint.rarity}`)}
 											</div>
 										</div>
 									</div>
@@ -404,7 +403,7 @@ function ShipBuilder({ onClose }: { onClose: () => void }) {
 													.map(([stat, value]) => (
 														<div key={stat} className="flex justify-between">
 															<span className="capitalize">
-																{stat.replace(/_/g, ' ')}:
+																{t(`stats.${stat.replace(/_/g, '')}`)}:
 															</span>
 															<span
 																className={
@@ -433,7 +432,7 @@ function ShipBuilder({ onClose }: { onClose: () => void }) {
 							<h3 className="font-bold text-sm mb-2">{t('builder.resource_requirements')}</h3>
 							<div className="space-y-2 text-sm">
 								<div className="flex justify-between items-center">
-									<span className="text-muted-foreground">Credits:</span>
+									<span className="text-muted-foreground">{t('resources.credits')}:</span>
 									<span
 										className={`font-mono ${
 											inventory && inventory.credits < resourceRequirements.credits
@@ -494,7 +493,7 @@ function ShipBuilder({ onClose }: { onClose: () => void }) {
 									return (
 										<div key={stat} className="flex justify-between">
 											<span className="text-muted-foreground capitalize">
-												{stat.replace(/_/g, ' ')}:
+												{t(`stats.${stat.replace(/_/g, '')}`)}:
 											</span>
 											<span className="font-mono">
 												{value}
@@ -569,15 +568,24 @@ export default function Shipyard() {
 
 	if (!hasShipyard) {
 		return (
-			<div className="flex flex-col items-center justify-center h-[80vh] space-y-6 text-center">
-				<AlertTriangle className="w-16 h-16 text-red-500 animate-pulse" />
-				<div className="space-y-2">
-					<h2 className="text-2xl font-bold text-red-500">{t('no_shipyard.title')}</h2>
-					<div className="font-mono text-sm text-muted-foreground max-w-md">
-						<p className="mb-2">{t('no_shipyard.error_code')}</p>
-						<p>{t('no_shipyard.message')}</p>
-						<p>{t('no_shipyard.action')}</p>
+			<div className="min-h-screen bg-background cyber-grid flex items-center justify-center p-4">
+				<div className="max-w-2xl w-full space-y-6 text-center">
+					<div className="animate-pulse">
+						<h2 className="text-4xl font-bold text-red-500 glitch-text">{t('no_shipyard.title')}</h2>
 					</div>
+
+					<div className="bg-black/50 backdrop-blur-sm border-red-500/50 border-2 p-8 rounded-lg space-y-4">
+						<div className="text-xl text-red-400 font-mono">{t('no_shipyard.error_code')}</div>
+
+						<div className="text-muted-foreground font-mono">
+							<p>{t('no_shipyard.message')}</p>
+							<p>{t('no_shipyard.action')}</p>
+						</div>
+
+						<div className="animate-blink text-yellow-500 font-mono mt-8">{t('no_shipyard.standby')}</div>
+					</div>
+
+					<div className="text-sm text-muted-foreground font-mono">{t('no_shipyard.error_code')}</div>
 				</div>
 			</div>
 		);

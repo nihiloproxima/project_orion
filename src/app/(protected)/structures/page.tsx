@@ -354,7 +354,8 @@ function StructureContent({
 				return !structure || structure.level < prereq.level;
 			})
 			.map(
-				(prereq) => `${STRUCTURE_INFO[prereq.type as StructureType].nameKey} ${t('card.level')} ${prereq.level}`
+				(prereq) =>
+					`${t(STRUCTURE_INFO[prereq.type as StructureType].nameKey)} ${t('card.level')} ${prereq.level}`
 			);
 
 		const missingTechnologies = config.prerequisites.technologies

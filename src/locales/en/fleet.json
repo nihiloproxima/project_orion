@@ -36,7 +36,8 @@
 		"stationary": "Stationed Ships",
 		"stationary_description": "Ships currently stationed at this planet",
 		"no_movements": "No fleet movements at this time",
-		"no_ships": "No ships stationed at this planet"
+		"no_ships": "No ships stationed at this planet",
+		"visit_shipyard": "Visit Shipyard"
 	},
 	"mission": {
 		"origin": "From",

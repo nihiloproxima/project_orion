@@ -18,6 +18,7 @@ import { Hammer, Flame, Microchip, Package, FileCode, Coins, ArrowDownZA, ArrowD
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import React from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const RESOURCE_ICONS = {
 	metal: Hammer,
@@ -36,6 +37,7 @@ export default function Trading() {
 	const [minAmount, setMinAmount] = useState('');
 	const [maxAmount, setMaxAmount] = useState('');
 	const [resourceFilter, setResourceFilter] = useState<ResourceType | 'all'>('all');
+	const { t } = useTranslation('trading');
 
 	// Fetch marketplace listings
 	const [resourceListings] = useCollectionData<ResourceForSale>(
@@ -101,6 +103,33 @@ export default function Trading() {
 	const toggleSortOrder = () => {
 		setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
 	};
+
+	// Early return with cyberpunk "coming soon" message
+	return (
+		<div className="min-h-screen bg-background cyber-grid flex items-center justify-center p-4">
+			<div className="max-w-2xl w-full space-y-6 text-center">
+				<div className="animate-pulse">
+					<h2 className="text-4xl font-bold text-red-500 glitch-text">
+						{t('coming_soon.access_restricted')}
+					</h2>
+				</div>
+
+				<div className="bg-black/50 backdrop-blur-sm border-red-500/50 border-2 p-8 rounded-lg space-y-4">
+					<div className="text-xl text-red-400 font-mono">{t('coming_soon.error_title')}</div>
+
+					<div className="text-muted-foreground font-mono">
+						<p>{t('coming_soon.status.title')}</p>
+						<p>{t('coming_soon.status.reason')}</p>
+						<p>{t('coming_soon.status.eta')}</p>
+					</div>
+
+					<div className="animate-blink text-yellow-500 font-mono mt-8">{t('coming_soon.standby')}</div>
+				</div>
+
+				<div className="text-sm text-muted-foreground font-mono">{t('coming_soon.error_code')}</div>
+			</div>
+		</div>
+	);
 
 	return (
 		<div className="space-y-6">

@@ -21,7 +21,9 @@
 		"cancel": "Annuler",
 		"add_to_queue": "Ajouter à la File de Construction",
 		"not_enough_resources": "Ressources insuffisantes pour construire ce vaisseau",
-		"missing_components": "Composants requis manquants"
+		"missing_components": "Composants requis manquants",
+		"customize_ship": "Personnalisez Votre Vaisseau",
+		"component_selection": "Sélection des Composants"
 	},
 	"components": {
 		"select": "Sélectionner {{type}}",
@@ -30,5 +32,29 @@
 	},
 	"buttons": {
 		"build_new": "Construire un Nouveau Vaisseau"
+	},
+	"stats": {
+		"speed": "Vitesse",
+		"capacity": "Capacité de Cargo",
+		"attack": "Attaque",
+		"defense": "Défense",
+		"shield": "Bouclier",
+		"evasion": "Évasion",
+		"accuracy": "Précision",
+		"crew_capacity": "Capacité d'Équipage",
+		"critical_chance": "Chance de Coup Critique",
+		"fire_rate": "Cadence de Tir",
+		"initiative": "Initiative"
+	},
+	"rarity": {
+		"common": "Commun",
+		"rare": "Rare",
+		"epic": "Épique",
+		"legendary": "Légendaire"
+	},
+	"resources": {
+		"credits": "Crédits",
+		"metal": "Métal",
+		"deuterium": "Deutérium"
 	}
 }

@@ -32,7 +32,8 @@
 		"hostile": "⚠️ Mouvements de Flotte Hostiles",
 		"allied": "🤝 Support Allié Entrant",
 		"own": "Vos Mouvements de Flotte",
-		"no_movements": "Aucun mouvement de flotte actif"
+		"no_movements": "Aucun mouvement de flotte actif",
+		"visit_shipyard": "Visiter la Yard"
 	},
 	"mission": {
 		"status": "Statut",

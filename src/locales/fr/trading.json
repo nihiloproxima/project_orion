@@ -1,1 +1,13 @@
-{}
+{
+	"coming_soon": {
+		"access_restricted": "[ACCÈS RESTREINT]",
+		"error_title": "// ERREUR D'INITIALISATION DU SYSTÈME DE COMMERCE //",
+		"status": {
+			"title": "STATUT: PROTOCOLES DE MARCHÉ HORS LIGNE",
+			"reason": "RAISON: MAINTENANCE PROGRAMMÉE",
+			"eta": "ETA: EN ATTENTE D'AUTORISATION"
+		},
+		"standby": "> VEUILLEZ PATIENTER POUR LA RESTAURATION DU SYSTÈME...",
+		"error_code": "CODE D'ERREUR: TRD-334-11 | CONTACTEZ L'ADMINISTRATEUR SYSTÈME"
+	}
+}

@@ -10,7 +10,12 @@ export const DebrisFieldEffect = ({ debrisField }: { debrisField: DebrisField })
 	// Scale particle count with resources, but keep a minimum for visibility
 	const particleCount = Math.max(
 		50,
-		Math.min(Math.floor((debrisField.metal + debrisField.deuterium + debrisField.microchips) / 100), 200)
+		Math.min(
+			Math.floor(
+				(debrisField.resources.metal + debrisField.resources.deuterium + debrisField.resources.microchips) / 100
+			),
+			200
+		)
 	);
 
 	// Memoize the particles geometry

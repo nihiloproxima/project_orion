@@ -9,6 +9,13 @@
 		"three": "Trois colonnes",
 		"four": "Quatre colonnes"
 	},
+	"no_laboratory": {
+		"title": "ACCÈS REFUSÉ",
+		"error_code": "[CODE D'ERREUR: AUCUN LABORATOIRE DÉTECTÉ]",
+		"message": "Laboratoire de recherche requis pour l'avancement technologique.",
+		"action": "Veuillez construire un laboratoire de recherche pour accéder aux capacités de recherche.",
+		"standby": "SYSTÈME EN ATTENTE..."
+	},
 	"button_text": {
 		"max_level": "NIVEAU MAXIMUM",
 		"researching": "EN COURS DE RECHERCHE",
