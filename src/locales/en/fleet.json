@@ -1,6 +1,7 @@
 {
 	"title": "Fleet Management",
 	"subtitle": "Manage your ships and monitor fleet movements across the galaxy",
+	"galaxy": "Galaxy",
 	"filter": {
 		"mission": "Filter by Mission",
 		"ship_type": "Filter by Ship Type",
@@ -61,7 +62,8 @@
 			"crew_capacity": "Crew Capacity",
 			"critical_chance": "Critical Hit",
 			"fire_rate": "Fire Rate",
-			"initiative": "Initiative"
+			"initiative": "Initiative",
+			"range": "Range"
 		},
 		"actions": {
 			"details": "View Details",
@@ -95,5 +97,37 @@
 			"description": "Failed to cancel mission",
 			"ships_fetch_failed": "Failed to fetch stationed ships"
 		}
+	},
+	"mission_setup": {
+		"title": "Deploy {ship}",
+		"select_mission": "Select Mission Type",
+		"mission_placeholder": "Choose a mission...",
+		"select_target": "Select Target Location",
+		"start": "Start Mission",
+		"types": {
+			"attack": "Attack",
+			"transport": "Transport",
+			"colonize": "Colonize",
+			"spy": "Spy",
+			"recycle": "Recycle",
+			"expedition": "Expedition"
+		},
+		"success": {
+			"title": "Mission Started",
+			"mission_started": "Your ship has begun its mission."
+		},
+		"error": {
+			"title": "Error",
+			"mission_failed": "Failed to start mission."
+		}
+	},
+	"units": {
+		"light_years": "ly",
+		"hours": "h"
+	},
+	"resources": {
+		"metal": "Metal",
+		"deuterium": "Deuterium",
+		"microchips": "Microchips"
 	}
 }

@@ -1,5 +1,6 @@
 import { StructureType } from '@/models/planet';
 import { auth } from './firebase';
+import { MissionType } from '@/models';
 
 function getAuthToken() {
 	return auth.currentUser?.getIdToken();
@@ -24,6 +25,15 @@ async function post(group: string, endpoint: string, data: Record<string, any>) 
 }
 
 export const api = {
+	startMission: async (params: {
+		ship_id: string;
+		mission_type: string;
+		target_id: string;
+		origin_planet_id: string;
+	}) => {
+		return post('game', 'startMission', params);
+	},
+
 	claimShipFromShipyard: async (planetId: string, commandIndex: number) => {
 		return post('game', 'claimShipFromShipyard', {
 			planet_id: planetId,
@@ -31,9 +41,10 @@ export const api = {
 		});
 	},
 
-	getPlanets: async (galaxy: number) => {
+	getPlanets: async (galaxy: number, intent: 'all' | MissionType) => {
 		return post('game', 'getPlanets', {
 			galaxy: galaxy,
+			intent: intent,
 		});
 	},
 	buildShip: async (planetId: string, blueprintId: string, componentsIds: string[]) => {

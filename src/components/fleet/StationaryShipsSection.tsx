@@ -12,6 +12,7 @@ import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { collection, query, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { MissionSetupView } from './MissionSetupView';
 
 export const StationaryShipsSection = () => {
 	const { state } = useGame();
@@ -32,6 +33,7 @@ export const StationaryShipsSection = () => {
 	const [shipSortBy, setShipSortBy] = useState<string>('type');
 	const [currentPage, setCurrentPage] = useState(1);
 	const SHIPS_PER_PAGE = 25;
+	const [selectedShip, setSelectedShip] = useState<Ship | null>(null);
 
 	// Filter and sort stationary ships
 	const filterShips = (ships: Ship[]) => {
@@ -87,6 +89,11 @@ export const StationaryShipsSection = () => {
 		);
 	}
 
+	// If a ship is selected, show mission setup view
+	if (selectedShip) {
+		return <MissionSetupView ship={selectedShip} onBack={() => setSelectedShip(null)} />;
+	}
+
 	return (
 		<div className="space-y-4">
 			<h2 className="text-xl font-bold flex items-center gap-2">
@@ -110,7 +117,7 @@ export const StationaryShipsSection = () => {
 				<>
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 						{paginatedShips.map((ship) => (
-							<ShipCard key={ship.id} ship={ship} />
+							<ShipCard key={ship.id} ship={ship} onSelect={() => setSelectedShip(ship)} />
 						))}
 					</div>
 

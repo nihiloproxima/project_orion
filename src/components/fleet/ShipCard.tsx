@@ -10,9 +10,10 @@ import { Settings, Send, Cog } from 'lucide-react';
 
 interface ShipCardProps {
 	ship: Ship;
+	onSelect: () => void;
 }
 
-export const ShipCard = ({ ship }: ShipCardProps) => {
+export const ShipCard = ({ ship, onSelect }: ShipCardProps) => {
 	const { t } = useTranslation('fleet');
 	const [showDetails, setShowDetails] = useState(false);
 
@@ -122,7 +123,7 @@ export const ShipCard = ({ ship }: ShipCardProps) => {
 								{t('ship.actions.repair')}
 							</Button>
 						)}
-						<Button size="sm" variant="default" className="gap-1">
+						<Button size="sm" variant="default" className="gap-1" onClick={onSelect}>
 							<Send className="h-4 w-4" />
 							{t('ship.actions.deploy')}
 						</Button>

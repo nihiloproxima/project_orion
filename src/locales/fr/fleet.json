@@ -1,15 +1,18 @@
 {
 	"title": "FLOTTE",
 	"subtitle": "Suivez vos opérations de flotte et surveillez l'activité hostile",
+	"galaxy": "Galaxie",
 	"filter": {
 		"mission": "Filtrer par mission",
+		"ship_type": "Filtrer par type de vaisseau",
 		"all": "Toutes les Missions",
 		"attack": "Attaque",
 		"recycler": "Recycleur",
 		"spy": "Espion",
 		"battle_ship": "Bateau de bataille",
 		"transport": "Transporteur",
-		"colony": "Colonie"
+		"colony": "Colonie",
+		"colonize": "Coloniser"
 	},
 	"sort": {
 		"by": "Trier par",
@@ -32,6 +35,8 @@
 		"hostile": "⚠️ Mouvements de Flotte Hostiles",
 		"allied": "🤝 Support Allié Entrant",
 		"own": "Vos Mouvements de Flotte",
+		"stationary": "Vaisseaux Stationnés",
+		"stationary_description": "Vaisseaux actuellement stationnés sur cette planète",
 		"no_movements": "Aucun mouvement de flotte actif",
 		"visit_shipyard": "Visiter la Yard"
 	},
@@ -41,6 +46,39 @@
 		"destination": "Destination",
 		"fleet": "Flotte",
 		"cargo": "Cargaison"
+	},
+	"ship": {
+		"level": "Niveau",
+		"type": "Type",
+		"integrity": "Intégrité",
+		"stats": {
+			"attack": "Attaque",
+			"defense": "Défense",
+			"speed": "Vitesse",
+			"capacity": "Capacité de Cargo",
+			"shield": "Bouclier",
+			"evasion": "Évasion",
+			"accuracy": "Précision",
+			"crew_capacity": "Capacité d'Équipage",
+			"critical_chance": "Coup Critique",
+			"fire_rate": "Cadence de Tir",
+			"initiative": "Initiative",
+			"range": "Portée"
+		},
+		"actions": {
+			"details": "Voir les Détails",
+			"hide": "Masquer les Détails",
+			"deploy": "Déployer",
+			"rename": "Renommer",
+			"repair": "Réparer",
+			"scrap": "Démanteler"
+		}
+	},
+	"pagination": {
+		"page": "Page",
+		"of": "sur",
+		"previous": "Précédent",
+		"next": "Suivant"
 	},
 	"cancel": {
 		"button": "Annuler la Mission",
@@ -56,7 +94,40 @@
 		},
 		"error": {
 			"title": "Erreur",
-			"description": "Échec de l'annulation de la mission. Veuillez réessayer."
+			"description": "Échec de l'annulation de la mission. Veuillez réessayer.",
+			"ships_fetch_failed": "Échec de la récupération des vaisseaux stationnés"
 		}
+	},
+	"mission_setup": {
+		"title": "Déployer {ship}",
+		"select_mission": "Sélectionner le type de mission",
+		"mission_placeholder": "Choisir une mission...",
+		"select_target": "Sélectionner la destination",
+		"start": "Démarrer la mission",
+		"types": {
+			"attack": "Attaque",
+			"transport": "Transport",
+			"colonize": "Coloniser",
+			"spy": "Espionner",
+			"recycle": "Recycler",
+			"expedition": "Expédition"
+		},
+		"success": {
+			"title": "Mission Démarrée",
+			"mission_started": "Votre vaisseau a commencé sa mission."
+		},
+		"error": {
+			"title": "Erreur",
+			"mission_failed": "Échec du démarrage de la mission."
+		}
+	},
+	"units": {
+		"light_years": "al",
+		"hours": "h"
+	},
+	"resources": {
+		"metal": "Métal",
+		"deuterium": "Deutérium",
+		"microchips": "Micropuces"
 	}
 }

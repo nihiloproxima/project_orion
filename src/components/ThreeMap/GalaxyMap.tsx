@@ -645,7 +645,7 @@ interface GalaxyMapProps {
 	galaxyFilter?: number;
 }
 
-const GalaxyMap = ({
+export const GalaxyMap = ({
 	mode = 'view-only',
 	onPlanetSelect,
 	allowedPlanets = [],
@@ -664,8 +664,16 @@ const GalaxyMap = ({
 			? collection(db, `seasons/${state.gameConfig.season.current}/debris_fields`).withConverter(withIdConverter)
 			: null
 	);
-	const [tradingOutposts, setTradingOutposts] = useState<Array<{ x: number; y: number }>>([]);
-	const [anomalies, setAnomalies] = useState<Array<{ x: number; y: number }>>([]);
+	const [tradingOutposts] = useCollectionData(
+		state.currentUser?.id && state.gameConfig
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/trading_outposts`).withConverter(
+						withIdConverter
+					),
+					where('owner_id', '==', state.currentUser?.id)
+			  )
+			: null
+	);
 	const [fleetMovements] = useCollectionData(
 		state.currentUser?.id && state.gameConfig
 			? query(
@@ -673,6 +681,15 @@ const GalaxyMap = ({
 						withIdConverter
 					),
 					where('owner_id', '==', state.currentUser?.id)
+			  )
+			: null
+	);
+	const [anomalies] = useCollectionData(
+		state.currentUser?.id && state.gameConfig
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/anomalies`).withConverter(
+						withIdConverter
+					)
 			  )
 			: null
 	);
@@ -687,8 +704,7 @@ const GalaxyMap = ({
 
 	useEffect(() => {
 		const getPlanets = async () => {
-			const data = await api.getPlanets(galaxyFilter);
-			console.log(`planets`, data.planets);
+			const data = await api.getPlanets(galaxyFilter, 'all');
 			setPlanets(data.planets);
 		};
 
@@ -768,13 +784,19 @@ const GalaxyMap = ({
 					<GridSystem />
 
 					{/* Add Trading Outposts */}
-					{tradingOutposts.map((outpost, index) => (
-						<TradingOutpostMarker key={`outpost-${index}`} position={[outpost.x, outpost.y, 0]} />
+					{tradingOutposts?.map((outpost, index) => (
+						<TradingOutpostMarker
+							key={`outpost-${index}`}
+							position={[outpost.position.x, outpost.position.y, 0]}
+						/>
 					))}
 
 					{/* Add Anomalies */}
-					{anomalies.map((anomaly, index) => (
-						<AnomalyMarker key={`anomaly-${index}`} position={[anomaly.x, anomaly.y, 0]} />
+					{anomalies?.map((anomaly, index) => (
+						<AnomalyMarker
+							key={`anomaly-${index}`}
+							position={[anomaly.position.x, anomaly.position.y, 0]}
+						/>
 					))}
 
 					{/* Add debris fields before planets */}
@@ -784,6 +806,7 @@ const GalaxyMap = ({
 
 					{/* Fleet movements */}
 					{fleetMovements &&
+						fleetMovements.length &&
 						_.concat(fleetMovements, hostileFleetMovements).map((fleetMovement) => (
 							<FleetMovementTracker key={fleetMovement.id} fleetMovement={fleetMovement} />
 						))}
