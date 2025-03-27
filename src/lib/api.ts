@@ -26,10 +26,15 @@ async function post(group: string, endpoint: string, data: Record<string, any>) 
 
 export const api = {
 	startMission: async (params: {
-		ship_id: string;
+		ship_ids: string[];
 		mission_type: string;
 		target_id: string;
 		origin_planet_id: string;
+		resources?: {
+			metal?: number;
+			microchips?: number;
+			deuterium?: number;
+		};
 	}) => {
 		return post('game', 'startMission', params);
 	},

@@ -118,12 +118,12 @@ export function Sidebar() {
 				translationKey: 'fleet',
 				color: 'blue',
 			},
-			{
-				to: '/trading',
-				icon: ArrowLeftRight,
-				translationKey: 'trading',
-				color: 'green',
-			},
+			// {
+			// 	to: '/trading',
+			// 	icon: ArrowLeftRight,
+			// 	translationKey: 'trading',
+			// 	color: 'green',
+			// },
 		],
 		PLANET: [
 			{

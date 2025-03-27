@@ -1,5 +1,4 @@
 import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
-import { CrewMember } from './crew_member';
 import { TechnologyId } from './researchs_config';
 
 export type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
@@ -14,7 +13,6 @@ export type ShipStats = {
 	shield: number;
 	evasion: number;
 	accuracy: number;
-	crew_capacity: number;
 	critical_chance: number;
 	fire_rate: number;
 	initiative: number;
@@ -29,7 +27,6 @@ export interface Ship {
 	stats: ShipStats;
 	components: Array<ShipComponent>;
 	integrity: number; // 0 to 100. ship is unusable when integrity is 0
-	crew: Array<CrewMember>;
 	owner_id: string;
 	xp: number;
 	level: number;
@@ -112,7 +109,6 @@ export function parseShip(doc: DocumentSnapshot): Ship {
 		stats: data.stats || {},
 		components: data.components || {},
 		integrity: data.integrity || 0,
-		crew: data.crew || 0,
 		owner_id: data.owner_id || '',
 		xp: data.xp || 0,
 		level: data.level || 1,

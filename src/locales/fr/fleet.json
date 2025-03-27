@@ -71,7 +71,8 @@
 			"deploy": "Déployer",
 			"rename": "Renommer",
 			"repair": "Réparer",
-			"scrap": "Démanteler"
+			"scrap": "Démanteler",
+			"send_in_mission": "Envoyer en mission"
 		}
 	},
 	"pagination": {
@@ -105,6 +106,7 @@
 		"select_target": "Sélectionner la destination",
 		"start": "Démarrer la mission",
 		"types": {
+			"move": "Déplacer",
 			"attack": "Attaque",
 			"transport": "Transport",
 			"colonize": "Coloniser",

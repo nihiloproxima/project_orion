@@ -1,6 +1,6 @@
 'use client';
 
-import { Anchor, ChevronLeft, ChevronRight, Factory } from 'lucide-react';
+import { Anchor, ChevronLeft, ChevronRight, Factory, Rocket } from 'lucide-react';
 import { useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -13,6 +13,7 @@ import { collection, query, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { MissionSetupView } from './MissionSetupView';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const StationaryShipsSection = () => {
 	const { state } = useGame();
@@ -33,7 +34,8 @@ export const StationaryShipsSection = () => {
 	const [shipSortBy, setShipSortBy] = useState<string>('type');
 	const [currentPage, setCurrentPage] = useState(1);
 	const SHIPS_PER_PAGE = 25;
-	const [selectedShip, setSelectedShip] = useState<Ship | null>(null);
+	const [selectedShips, setSelectedShips] = useState<Set<string>>(new Set());
+	const [showMissionSetup, setShowMissionSetup] = useState(false);
 
 	// Filter and sort stationary ships
 	const filterShips = (ships: Ship[]) => {
@@ -68,6 +70,22 @@ export const StationaryShipsSection = () => {
 	const paginatedShips = paginateShips(filteredAndSortedShips);
 	const totalPages = Math.ceil(filteredAndSortedShips.length / SHIPS_PER_PAGE);
 
+	const handleShipSelect = (shipId: string) => {
+		setSelectedShips((prev) => {
+			const newSelection = new Set(prev);
+			if (newSelection.has(shipId)) {
+				newSelection.delete(shipId);
+			} else {
+				newSelection.add(shipId);
+			}
+			return newSelection;
+		});
+	};
+
+	const handleStartMission = () => {
+		setShowMissionSetup(true);
+	};
+
 	// If there are no ships at all, show a CTA to the shipyard
 	if (stationaryShips && stationaryShips.length === 0) {
 		return (
@@ -89,17 +107,30 @@ export const StationaryShipsSection = () => {
 		);
 	}
 
-	// If a ship is selected, show mission setup view
-	if (selectedShip) {
-		return <MissionSetupView ship={selectedShip} onBack={() => setSelectedShip(null)} />;
+	if (showMissionSetup) {
+		const selectedShipObjects = stationaryShips?.filter((ship) => selectedShips.has(ship.id)) || [];
+		return <MissionSetupView ships={selectedShipObjects} onBack={() => setShowMissionSetup(false)} />;
 	}
 
 	return (
 		<div className="space-y-4">
-			<h2 className="text-xl font-bold flex items-center gap-2">
-				<Anchor className="h-6 w-6" />
-				{t('sections.stationary')}
-			</h2>
+			<div className="flex items-center justify-between">
+				<div>
+					<h2 className="text-xl font-bold flex items-center gap-2">
+						<Anchor className="h-6 w-6" />
+						{t('sections.stationary')}
+					</h2>
+					<p className="text-muted-foreground">
+						{stationaryShips?.length || 0} / {state.gameConfig?.ships.maximum_ships_count || 0} ships
+					</p>
+				</div>
+
+				<Button onClick={handleStartMission} disabled={selectedShips.size === 0} className="gap-2">
+					<Rocket className="h-4 w-4" />
+					{t('ship.actions.send_in_mission')} ({selectedShips.size})
+				</Button>
+			</div>
+
 			<p className="text-muted-foreground">{t('sections.stationary_description')}</p>
 
 			<ShipControls
@@ -117,7 +148,14 @@ export const StationaryShipsSection = () => {
 				<>
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 						{paginatedShips.map((ship) => (
-							<ShipCard key={ship.id} ship={ship} onSelect={() => setSelectedShip(ship)} />
+							<div key={ship.id} className="relative">
+								<Checkbox
+									className="absolute top-2 right-2 z-10"
+									checked={selectedShips.has(ship.id)}
+									onCheckedChange={() => handleShipSelect(ship.id)}
+								/>
+								<ShipCard ship={ship} onSelect={() => handleShipSelect(ship.id)} />
+							</div>
 						))}
 					</div>
 

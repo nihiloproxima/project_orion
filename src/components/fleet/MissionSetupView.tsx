@@ -8,17 +8,20 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGame } from '@/contexts/GameContext';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Rocket, Target } from 'lucide-react';
+import { ArrowLeft, Clock, Rocket, Target } from 'lucide-react';
 import { api } from '@/lib/api';
 import { GalaxyMap } from '@/components/ThreeMap/GalaxyMap';
 import { Planet } from '@/models/planet';
+import fleetCalculations from '@/utils/fleet_calculations';
+import utils from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 interface MissionSetupViewProps {
-	ship: Ship;
+	ships: Ship[];
 	onBack: () => void;
 }
 
-export const MissionSetupView = ({ ship, onBack }: MissionSetupViewProps) => {
+export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 	const { t: commonT } = useTranslation('');
 	const { t } = useTranslation('fleet');
 	const { state } = useGame();
@@ -28,6 +31,16 @@ export const MissionSetupView = ({ ship, onBack }: MissionSetupViewProps) => {
 	const [selectedGalaxy, setSelectedGalaxy] = useState<number>(state.selectedPlanet?.position.galaxy || 0);
 	const [isLoading, setIsLoading] = useState(false);
 	const [allowedPlanets, setAllowedPlanets] = useState<string[]>([]);
+	const [arrivalTime, setArrivalTime] = useState<{ arrivalTime: Date; travelTimeSeconds: number } | null>(null);
+	const [resources, setResources] = useState({
+		metal: 0,
+		deuterium: 0,
+		microchips: 0,
+	});
+
+	// Calculate total cargo capacity
+	const totalCargoCapacity = ships.reduce((total, ship) => total + (ship.stats.capacity || 0), 0);
+	const totalResourcesSelected = resources.metal + resources.deuterium + resources.microchips;
 
 	useEffect(() => {
 		if (!selectedMission) return;
@@ -40,26 +53,67 @@ export const MissionSetupView = ({ ship, onBack }: MissionSetupViewProps) => {
 		fetchAllowedPlanets();
 	}, [selectedGalaxy, selectedMission]);
 
-	// Define available missions based on ship type
-	const availableMissions =
-		{
-			battle_ship: ['attack'],
-			transport: ['transport'],
-			colony: ['colonize'],
-			spy: ['spy'],
-			recycler: ['recycle', 'expedition'],
-		}[ship.type] || [];
+	useEffect(() => {
+		if (!selectedTarget || !state.selectedPlanet || !state.gameConfig) return;
+
+		const { arrivalTime, travelTimeSeconds } = fleetCalculations.calculateFleetArrivalTime(
+			state.gameConfig,
+			ships,
+			state.selectedPlanet.position,
+			selectedTarget.position
+		);
+
+		setArrivalTime({
+			arrivalTime: new Date(arrivalTime.toMillis()),
+			travelTimeSeconds,
+		});
+	}, [selectedTarget, ships, state.selectedPlanet, state.gameConfig]);
+
+	// Get common available missions between all ships
+	const availableMissions = Array.from(
+		new Set(
+			ships.flatMap((ship): MissionType[] => {
+				const missionsByType = {
+					battle_ship: ['attack', 'move'] as MissionType[],
+					transport: ['transport', 'move'] as MissionType[],
+					colony: ['colonize', 'move'] as MissionType[],
+					spy: ['spy', 'move'] as MissionType[],
+					recycler: ['recycle', 'expedition', 'move'] as MissionType[],
+				};
+
+				return missionsByType[ship.type] || ['move'];
+			})
+		)
+	);
+
+	const handleResourceChange = (resource: 'metal' | 'deuterium' | 'microchips', value: string) => {
+		const numValue = Math.max(0, parseInt(value) || 0);
+		const otherResources = Object.entries(resources)
+			.filter(([key]) => key !== resource)
+			.reduce((sum, [, val]) => sum + val, 0);
+
+		// Ensure we don't exceed cargo capacity
+		const maxAllowed = totalCargoCapacity - otherResources;
+		const finalValue = Math.min(numValue, maxAllowed);
+
+		setResources((prev) => ({
+			...prev,
+			[resource]: finalValue,
+		}));
+	};
 
 	const handleStartMission = async () => {
 		if (!selectedMission || !selectedTarget) return;
 
 		setIsLoading(true);
 		try {
+			// Start mission for each ship
 			await api.startMission({
-				ship_id: ship.id,
+				ship_ids: ships.map((s) => s.id),
 				mission_type: selectedMission,
 				target_id: selectedTarget.id,
 				origin_planet_id: state.selectedPlanet!.id,
+				resources: resources,
 			});
 
 			toast({
@@ -70,7 +124,7 @@ export const MissionSetupView = ({ ship, onBack }: MissionSetupViewProps) => {
 		} catch (error) {
 			toast({
 				title: t('mission_setup.error.title'),
-				description: t('mission_setup.error.mission_failed'),
+				description: t('mission_setup.error.mission_failed') + ' ' + error,
 				variant: 'destructive',
 			});
 		} finally {
@@ -87,28 +141,84 @@ export const MissionSetupView = ({ ship, onBack }: MissionSetupViewProps) => {
 						<ArrowLeft className="h-4 w-4" />
 						{commonT('back')}
 					</Button>
-					<h2 className="text-xl font-bold">{t('mission_setup.title', { ship: ship.name })}</h2>
+					<h2 className="text-xl font-bold">{t('mission_setup.title', { ship: `${ships.length} ships` })}</h2>
 				</div>
 			</div>
 
-			{/* Ship Info Card */}
+			{/* Ships Info Card */}
 			<Card className="p-4">
-				<div className="grid grid-cols-3 gap-4">
-					<div className="flex items-center gap-2">
-						<Rocket className="h-4 w-4 text-primary" />
-						<div className="text-sm">
-							<div className="font-medium">{t('ship.type')}</div>
-							<div>{ship.type.charAt(0).toUpperCase() + ship.type.slice(1)}</div>
+				<div className="space-y-4">
+					{ships.map((ship) => (
+						<div key={ship.id} className="grid grid-cols-3 gap-4">
+							<div className="flex items-center gap-2">
+								<Rocket className="h-4 w-4 text-primary" />
+								<div className="text-sm">
+									<div className="font-medium">{ship.name}</div>
+									<div>{ship.type.charAt(0).toUpperCase() + ship.type.slice(1)}</div>
+								</div>
+							</div>
+
+							<div className="flex items-center gap-2">
+								<Target className="h-4 w-4 text-primary" />
+								<div className="text-sm">
+									<div className="font-medium">{t('ship.stats.range')}</div>
+									<div>
+										{ship.stats.speed * 10} {t('units.light_years')}
+									</div>
+								</div>
+							</div>
+
+							<div className="flex items-center gap-2">
+								<div className="text-sm">
+									<div className="font-medium">Cargo Capacity</div>
+									<div>{ship.stats.capacity || 0}</div>
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+			</Card>
+
+			{/* Resources Selection */}
+			<Card className="p-4">
+				<div className="space-y-4">
+					<div className="flex justify-between items-center">
+						<h3 className="font-medium">Resources to Send</h3>
+						<div className="text-sm text-muted-foreground">
+							{totalResourcesSelected} / {totalCargoCapacity}
 						</div>
 					</div>
 
-					<div className="flex items-center gap-2">
-						<Target className="h-4 w-4 text-primary" />
-						<div className="text-sm">
-							<div className="font-medium">{t('ship.stats.range')}</div>
-							<div>
-								{ship.stats.speed * 10} {t('units.light_years')}
-							</div>
+					<div className="grid grid-cols-3 gap-4">
+						<div>
+							<label className="text-sm font-medium">Metal</label>
+							<Input
+								type="number"
+								value={resources.metal}
+								onChange={(e) => handleResourceChange('metal', e.target.value)}
+								min="0"
+								max={totalCargoCapacity}
+							/>
+						</div>
+						<div>
+							<label className="text-sm font-medium">Deuterium</label>
+							<Input
+								type="number"
+								value={resources.deuterium}
+								onChange={(e) => handleResourceChange('deuterium', e.target.value)}
+								min="0"
+								max={totalCargoCapacity}
+							/>
+						</div>
+						<div>
+							<label className="text-sm font-medium">Microchips</label>
+							<Input
+								type="number"
+								value={resources.microchips}
+								onChange={(e) => handleResourceChange('microchips', e.target.value)}
+								min="0"
+								max={totalCargoCapacity}
+							/>
 						</div>
 					</div>
 				</div>
@@ -199,6 +309,16 @@ export const MissionSetupView = ({ ship, onBack }: MissionSetupViewProps) => {
 								<span className="font-medium">Owner: </span>
 								{selectedTarget.owner_name || 'Uncolonized'}
 							</div>
+							{arrivalTime && (
+								<div className="col-span-2 flex items-center gap-2 mt-2">
+									<Clock className="h-4 w-4 text-primary" />
+									<div>
+										<span className="font-medium">Arrival: </span>
+										{arrivalTime.arrivalTime.toLocaleString()} (
+										{utils.formatTimeString(arrivalTime.travelTimeSeconds * 1000)})
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
 				</Card>

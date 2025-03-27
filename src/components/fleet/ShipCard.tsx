@@ -123,10 +123,6 @@ export const ShipCard = ({ ship, onSelect }: ShipCardProps) => {
 								{t('ship.actions.repair')}
 							</Button>
 						)}
-						<Button size="sm" variant="default" className="gap-1" onClick={onSelect}>
-							<Send className="h-4 w-4" />
-							{t('ship.actions.deploy')}
-						</Button>
 					</div>
 				</div>
 			</CardContent>

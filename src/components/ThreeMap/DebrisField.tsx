@@ -4,6 +4,7 @@ import { DebrisField } from '@/models';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import millify from 'millify';
 
 export const DebrisFieldEffect = ({ debrisField }: { debrisField: DebrisField }) => {
 	const particlesRef = useRef<THREE.Points>(null);
@@ -115,7 +116,7 @@ export const DebrisFieldEffect = ({ debrisField }: { debrisField: DebrisField })
 	});
 
 	return (
-		<group position={[debrisField.coordinate_x, debrisField.coordinate_y, 0]}>
+		<group position={[debrisField.position.x, debrisField.position.y, 0]}>
 			{/* Background glow effect */}
 			<mesh>
 				<ringGeometry args={[20, 50, 32]} />
@@ -128,8 +129,10 @@ export const DebrisFieldEffect = ({ debrisField }: { debrisField: DebrisField })
 			{/* Resource amount indicator */}
 			<Html position={[0, -60, 0]}>
 				<div className="text-xs text-gray-300 bg-black/50 px-2 py-1 rounded whitespace-nowrap">
-					Resources:{' '}
-					{Math.floor(debrisField.metal + debrisField.deuterium + debrisField.microchips).toLocaleString()}
+					Debris Field Resources:{' '}
+					{millify(
+						debrisField.resources.metal + debrisField.resources.deuterium + debrisField.resources.microchips
+					)}
 				</div>
 			</Html>
 		</group>

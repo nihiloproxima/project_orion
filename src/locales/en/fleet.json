@@ -71,7 +71,8 @@
 			"deploy": "Deploy Ship",
 			"rename": "Rename",
 			"repair": "Repair",
-			"scrap": "Scrap Ship"
+			"scrap": "Scrap Ship",
+			"send_in_mission": "Send in mission"
 		}
 	},
 	"pagination": {
@@ -105,6 +106,7 @@
 		"select_target": "Select Target Location",
 		"start": "Start Mission",
 		"types": {
+			"move": "Move",
 			"attack": "Attack",
 			"transport": "Transport",
 			"colonize": "Colonize",

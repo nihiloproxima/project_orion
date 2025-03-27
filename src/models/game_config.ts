@@ -10,6 +10,9 @@ export interface GameConfig {
 		next_start_at: Timestamp;
 		end_at: Timestamp;
 	};
+	ships: {
+		maximum_ships_count: number;
+	};
 	planets: {
 		count: number;
 		grid_size: number;

@@ -1,5 +1,4 @@
 export * from './chat_message';
-export * from './crew_member';
 export * from './debris_field';
 export * from './fleet_movement';
 export * from './game_config';
