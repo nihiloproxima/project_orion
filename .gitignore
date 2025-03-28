@@ -16,6 +16,7 @@
 **/out
 **/build
 **/dist
+**/dump.rdb
 
 # Environment
 **/.env*
