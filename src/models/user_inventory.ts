@@ -1,4 +1,4 @@
-import { DocumentSnapshot } from 'firebase-admin/firestore';
+import { DocumentSnapshot } from 'firebase/firestore';
 import { ShipBlueprint, ShipComponent } from './ship';
 
 export interface UserInventory {

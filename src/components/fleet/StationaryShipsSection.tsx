@@ -31,7 +31,6 @@ export const StationaryShipsSection = () => {
 			: null
 	);
 	const [shipTypeFilter, setShipTypeFilter] = useState<string>('all');
-	const [shipSortBy, setShipSortBy] = useState<string>('type');
 	const [currentPage, setCurrentPage] = useState(1);
 	const SHIPS_PER_PAGE = 25;
 	const [selectedShips, setSelectedShips] = useState<Set<string>>(new Set());
@@ -43,32 +42,15 @@ export const StationaryShipsSection = () => {
 		return ships.filter((ship) => ship.type === shipTypeFilter);
 	};
 
-	const sortShips = (ships: Ship[]) => {
-		return [...ships].sort((a, b) => {
-			switch (shipSortBy) {
-				case 'type':
-					return a.type.localeCompare(b.type);
-				case 'name':
-					return a.name.localeCompare(b.name);
-				case 'level':
-					return b.level - a.level;
-				case 'integrity':
-					return b.integrity - a.integrity;
-				default:
-					return a.type.localeCompare(b.type);
-			}
-		});
-	};
-
 	// Pagination
 	const paginateShips = (ships: Ship[]) => {
 		const startIndex = (currentPage - 1) * SHIPS_PER_PAGE;
 		return ships.slice(startIndex, startIndex + SHIPS_PER_PAGE);
 	};
 
-	const filteredAndSortedShips = sortShips(filterShips(stationaryShips || []));
-	const paginatedShips = paginateShips(filteredAndSortedShips);
-	const totalPages = Math.ceil(filteredAndSortedShips.length / SHIPS_PER_PAGE);
+	const filteredShips = filterShips(stationaryShips || []);
+	const paginatedShips = paginateShips(filteredShips);
+	const totalPages = Math.ceil(filteredShips.length / SHIPS_PER_PAGE);
 
 	const handleShipSelect = (shipId: string) => {
 		setSelectedShips((prev) => {
@@ -133,12 +115,7 @@ export const StationaryShipsSection = () => {
 
 			<p className="text-muted-foreground">{t('sections.stationary_description')}</p>
 
-			<ShipControls
-				shipTypeFilter={shipTypeFilter}
-				setShipTypeFilter={setShipTypeFilter}
-				shipSortBy={shipSortBy}
-				setShipSortBy={setShipSortBy}
-			/>
+			<ShipControls shipTypeFilter={shipTypeFilter} setShipTypeFilter={setShipTypeFilter} />
 
 			{stationaryShips?.length === 0 ? (
 				<div className="flex justify-center py-8">
@@ -154,7 +131,7 @@ export const StationaryShipsSection = () => {
 									checked={selectedShips.has(ship.id)}
 									onCheckedChange={() => handleShipSelect(ship.id)}
 								/>
-								<ShipCard ship={ship} onSelect={() => handleShipSelect(ship.id)} />
+								<ShipCard ship={ship} />
 							</div>
 						))}
 					</div>

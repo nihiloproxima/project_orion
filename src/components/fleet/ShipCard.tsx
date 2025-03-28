@@ -6,14 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Ship } from '@/models/ship';
 import { useTranslation } from '@/hooks/useTranslation';
-import { Settings, Send, Cog } from 'lucide-react';
+import { Settings, Cog } from 'lucide-react';
 
 interface ShipCardProps {
 	ship: Ship;
-	onSelect: () => void;
 }
 
-export const ShipCard = ({ ship, onSelect }: ShipCardProps) => {
+export const ShipCard = ({ ship }: ShipCardProps) => {
 	const { t } = useTranslation('fleet');
 	const [showDetails, setShowDetails] = useState(false);
 

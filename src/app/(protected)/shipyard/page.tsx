@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Factory, Plus, Hammer, Flame } from 'lucide-react';
+import { Factory, Plus, Hammer, Flame } from 'lucide-react';
 import { Card, CardHeader } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';

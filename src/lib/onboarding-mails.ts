@@ -1,7 +1,8 @@
 import { BaseMail } from '@/models/mail';
+import { Timestamp } from 'firebase/firestore';
 
-export const generateOnboardingMails = (ownerId: string): BaseMail[] => {
-	const now = Date.now();
+export const generateOnboardingMails = (): BaseMail[] => {
+	const now = Timestamp.now();
 
 	return [
 		{
@@ -9,7 +10,6 @@ export const generateOnboardingMails = (ownerId: string): BaseMail[] => {
 			type: 'game_message',
 			category: 'messages',
 			created_at: now,
-			owner_id: ownerId,
 			sender_name: 'Supreme Council',
 			title: 'Commander Assignment Protocol',
 			content: `Greetings, Commander.
@@ -27,14 +27,13 @@ The Council awaits your decision.
 				action: 'choose_homeworld',
 				priority: 'high',
 			},
-			ttl: 1000 * 60 * 60 * 24 * 30,
+			ttl: Timestamp.fromMillis(1000 * 60 * 60 * 24 * 30),
 		},
 		{
 			id: 'welcome_2',
 			type: 'private_message',
 			category: 'messages',
-			created_at: now - 1000,
-			owner_id: ownerId,
+			created_at: Timestamp.fromMillis(now.toMillis() - 1000),
 			sender_name: 'Mom',
 			title: 'Important Reminders for My Space Commander!',
 			content: `Sweetie! 💖
@@ -56,14 +55,13 @@ Mom`,
 			read: false,
 			archived: false,
 			data: {},
-			ttl: 1000 * 60 * 60 * 24 * 30,
+			ttl: Timestamp.fromMillis(1000 * 60 * 60 * 24 * 30),
 		},
 		{
 			id: 'welcome_3',
 			type: 'private_message',
 			category: 'messages',
-			created_at: now - 2000,
-			owner_id: ownerId,
+			created_at: Timestamp.fromMillis(now.toMillis() - 2000),
 			sender_name: 'Jake from the Academy',
 			title: 'You Actually Made It!',
 			content: `Hey Commander Hotshot! 🚀
@@ -88,7 +86,7 @@ P.P.S. But really, proud of you buddy! 🎉`,
 				friendship_level: 'best_buddies',
 				blackmail_material: 'abundant',
 			},
-			ttl: 1000 * 60 * 60 * 24 * 30,
+			ttl: Timestamp.fromMillis(1000 * 60 * 60 * 24 * 30),
 		},
 	];
 };

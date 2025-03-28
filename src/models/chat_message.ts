@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { User } from './user';
 
 export interface ChatMessage {

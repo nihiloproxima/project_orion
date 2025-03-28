@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
 
 // outposts are NPC structures that can't be attacked by players. They serve for trading resources with players and for missions
 export interface Outpost {

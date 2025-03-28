@@ -251,21 +251,6 @@ function StructureContent({
 	const { t } = useTranslation('structures');
 	const [maxAffordableLevels, setMaxAffordableLevels] = useState(0);
 
-	useEffect(() => {
-		if (!state.currentResources) return;
-
-		let levels = 0;
-		while (true) {
-			if (levels >= 10000) break;
-
-			const { cost } = calculateMultiLevelCosts(levels + 1);
-			if (cost > state.currentResources.metal) break;
-			levels++;
-		}
-
-		setMaxAffordableLevels(levels);
-	}, [state.currentResources]);
-
 	const calculateMultiLevelCosts = (levels: number) => {
 		if (!state.gameConfig) return { cost: 0, time: 0 };
 
@@ -290,6 +275,21 @@ function StructureContent({
 
 		return { cost: metalCost, time: totalTime };
 	};
+
+	useEffect(() => {
+		if (!state.currentResources) return;
+
+		let levels = 0;
+		while (true) {
+			if (levels >= 10000) break;
+
+			const { cost } = calculateMultiLevelCosts(levels + 1);
+			if (cost > state.currentResources.metal) break;
+			levels++;
+		}
+
+		setMaxAffordableLevels(levels);
+	}, [state.currentResources]);
 
 	const { cost: multiLevelCost, time: multiLevelTime } = calculateMultiLevelCosts(selectedLevels);
 	const canAfford = state.currentResources!.metal >= multiLevelCost;

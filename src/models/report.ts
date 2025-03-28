@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase/firestore';
 import { ShipType } from './ship';
 
 export type ReportType = 'spy' | 'combat' | 'mission';

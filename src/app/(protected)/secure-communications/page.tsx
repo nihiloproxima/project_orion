@@ -3,7 +3,7 @@
 import { BaseMail, MailType } from '@/models/mail';
 import { Bell, Eye, Mail, MessageSquare, Rocket, Sword, Trash2, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MailContent } from '@/components/MailContent';
 import { generateOnboardingMails } from '@/lib/onboarding-mails';
@@ -39,18 +39,11 @@ export default function SecureCommunications() {
 			  )
 			: null
 	);
-	const onboardingMails = generateOnboardingMails(state.currentUser?.id || '');
+	const onboardingMails = generateOnboardingMails();
 	const [selectedMail, setSelectedMail] = useState<BaseMail | null>(null);
 	const [activeCategory, setActiveCategory] = useState<FilterCategory>('all');
 	const [isViewingMail, setIsViewingMail] = useState(false);
-	const [page, setPage] = useState(0);
-	const [hasMore, setHasMore] = useState(true);
 	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-	useEffect(() => {
-		setPage(0);
-		setHasMore(true);
-	}, [activeCategory]);
 
 	const getMailIcon = (type: string) => {
 		const category = MAIL_CATEGORIES.find((cat) => cat.type === type);
@@ -203,15 +196,6 @@ export default function SecureCommunications() {
 														</p>
 													</div>
 												))}
-												{hasMore && (
-													<Button
-														variant="outline"
-														className="w-full mt-4"
-														onClick={() => setPage((p) => p + 1)}
-													>
-														Load More
-													</Button>
-												)}
 											</>
 										)}
 									</div>

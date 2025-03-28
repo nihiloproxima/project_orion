@@ -2,7 +2,7 @@ import { UserReward } from '@/models/user_rewards';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { motion } from 'framer-motion';
-import { Coins, Star, Hammer, Flame, Microchip } from 'lucide-react';
+import { Coins, Hammer, Flame, Microchip } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useGame } from '@/contexts/GameContext';
@@ -16,7 +16,7 @@ export function RewardModal() {
 
 	const handleAcceptReward = async () => {
 		try {
-			await api.users.collectReward(currentReward.id);
+			await api.collectReward(currentReward.id);
 			setState((prev) => ({
 				...prev,
 				userRewards: prev.userRewards.slice(1),
@@ -42,13 +42,6 @@ export function RewardModal() {
 					<div className="flex items-center gap-2">
 						<Coins className="h-8 w-8 text-yellow-500" />
 						<span className="text-2xl">{reward.data.credits} Credits</span>
-					</div>
-				);
-			case 'reputation':
-				return (
-					<div className="flex items-center gap-2">
-						<Star className="h-8 w-8 text-blue-500" />
-						<span className="text-2xl">{reward.data.reputation_points} Reputation</span>
 					</div>
 				);
 			case 'resources':

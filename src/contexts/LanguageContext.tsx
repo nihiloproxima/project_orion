@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { Locale, resources, defaultLocale } from '../locales';
 import { api } from '../lib/api';
 import { useAuth } from './AuthContext';

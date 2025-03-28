@@ -4,11 +4,9 @@ import { useTranslation } from '@/hooks/useTranslation';
 interface ShipControlsProps {
 	shipTypeFilter: string;
 	setShipTypeFilter: (value: string) => void;
-	shipSortBy: string;
-	setShipSortBy: (value: string) => void;
 }
 
-export const ShipControls = ({ shipTypeFilter, setShipTypeFilter, shipSortBy, setShipSortBy }: ShipControlsProps) => {
+export const ShipControls = ({ shipTypeFilter, setShipTypeFilter }: ShipControlsProps) => {
 	const { t } = useTranslation('fleet');
 
 	return (

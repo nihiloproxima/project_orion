@@ -19,7 +19,6 @@ import {
 	MailIcon,
 	Factory,
 	MessageSquare,
-	ArrowLeftRight,
 } from 'lucide-react';
 import { useGame } from '../contexts/GameContext';
 import { auth } from '@/lib/firebase';

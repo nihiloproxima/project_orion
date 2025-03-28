@@ -1,7 +1,6 @@
 'use client';
 
 import {
-	AlertTriangle,
 	Beaker,
 	Clock,
 	Flame,

@@ -17,7 +17,7 @@ export default function ChooseHomeworldPage() {
 
 	useEffect(() => {
 		const getPlanets = async () => {
-			const data = await api.getPlanets(currentGalaxy);
+			const data = await api.getPlanets(currentGalaxy, 'colonize');
 			setPlanets(data.planets);
 		};
 
