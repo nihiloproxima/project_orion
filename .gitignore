@@ -19,7 +19,9 @@
 **/dump.rdb
 
 # Environment
-**/.env*
+**/.env.development
+**/.env.production
+**/.env
 
 # Debug
 **/npm-debug.log*
