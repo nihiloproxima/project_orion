@@ -7,7 +7,7 @@
 ![Project Orion Dashboard](screenshots/dashboard.webp)
 
 
-Project Orion is a real-time space strategy MMO game where players take on the role of commanders assigned to frontier colonies by the Galactic Council. Combining idle mechanics, resource management, and strategic warfare, the game offers a deep and engaging experience in space exploration and empire building.
+Project Orion is a real-time space strategy MMO game in the browser where players take on the role of commanders assigned to frontier colonies by the Galactic Council. Combining idle mechanics, resource management, and strategic warfare, the game offers a deep and engaging experience in space exploration and empire building.
 
 ## 🎮 Game Overview
 
