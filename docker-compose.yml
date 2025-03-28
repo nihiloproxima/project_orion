@@ -13,6 +13,8 @@ services:
     depends_on:
       - redis
     restart: always
+    ports:
+      - "8080:8080"  # 👈 ajoute ça
 
   worker:
     build: ./server
