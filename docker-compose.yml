@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7
+    container_name: orion-redis
+    restart: always
+
+  backend:
+    build: ./server
+    working_dir: /app
+    command: ["node", "build/server.js"]
+    ports:
+      - "40001:8080"
+    environment:
+      - REDIS_URL=redis://orion-redis:6379
+    depends_on:
+      - redis
+    restart: always
+
+  worker:
+    build: ./server
+    working_dir: /app
+    command: ["node", "build/worker/worker.js"]
+    environment:
+      - REDIS_URL=redis://orion-redis:6379
+    depends_on:
+      - redis
+    restart: always
+
+  frontend:
+    build: ./client
+    ports:
+      - "40002:3000"
+    depends_on:
+      - backend
+    restart: always
+
+  nginx:
+    image: nginx:stable
+    ports:
+      - "40000:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    restart: always
