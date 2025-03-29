@@ -8,7 +8,7 @@ function getAuthToken() {
 
 async function post(group: string, endpoint: string, data: Record<string, any>) {
 	const token = await getAuthToken();
-	const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${group}/${endpoint}`, {
+	const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/${group}/${endpoint}`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
