@@ -19,11 +19,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 	useEffect(() => {
 		const initSocket = async () => {
 			if (!authedUser) return console.log('No authed user');
-			console.log(`socket`, process.env.NEXT_PUBLIC_WEBSOCKET_URL!);
 
 			const token = await authedUser.getIdToken();
 
-			socketRef.current = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL!, {
+			socketRef.current = io(process.env.NEXT_PUBLIC_API_URL!, {
+				path: '/api/socket',
+				transports: ['websocket'],
 				auth: { token },
 				reconnection: true,
 				reconnectionDelay: 1000,
@@ -31,13 +32,11 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 			});
 
 			socketRef.current.on('connect', () => {
-				console.log('Socket connected');
 				socketRef.current?.emit('subscribe:planets');
 				setConnected(true);
 			});
 
 			socketRef.current.on('disconnect', () => {
-				console.log('Socket disconnected');
 				setConnected(false);
 			});
 
