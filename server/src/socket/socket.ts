@@ -16,6 +16,7 @@ export function setupSocket(fastify: FastifyInstance) {
 			origin: '*',
 			methods: ['GET', 'POST'],
 		},
+		path: '/api/socket.io',
 	});
 
 	// Authentication middleware
