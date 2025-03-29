@@ -8,6 +8,9 @@
 !**/.yarn/releases
 !**/.yarn/versions
 
+# Certbot
+certbot
+
 # Testing
 **/coverage
 
