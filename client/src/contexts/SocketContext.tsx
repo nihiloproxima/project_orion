@@ -23,7 +23,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 			const token = await authedUser.getIdToken();
 
 			socketRef.current = io(process.env.NEXT_PUBLIC_API_URL!, {
-				path: '/api/socket',
+				path: '/api/socket.io',
 				transports: ['websocket'],
 				auth: { token },
 				reconnection: true,

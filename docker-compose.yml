@@ -12,8 +12,6 @@ services:
       - REDIS_URL=redis://orion-redis:6379
     depends_on:
       - redis
-    ports:
-      - "8080:8080"
     restart: always
 
   worker:
