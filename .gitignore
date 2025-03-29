@@ -44,3 +44,5 @@ certbot
 
 # Vercel
 **/.vercel
+
+docker/nginx/default.conf
