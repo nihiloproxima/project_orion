@@ -1,7 +1,7 @@
 <h1 align="center">🚀 Project Orion</h1>
 
 <h2 align="center">
-  <a href="https://beta.projectorion.app">Play Now at beta.projectorion.app</a>
+  <a href="https://projectorion.app">Play Now at projectorion.app</a>
 </h2>
 
 ![Project Orion Dashboard](screenshots/dashboard.webp)
