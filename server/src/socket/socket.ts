@@ -13,10 +13,12 @@ export const activeUsers = new Map<string, SocketUser>();
 export function setupSocket(fastify: FastifyInstance) {
 	const io = new Server(fastify.server, {
 		cors: {
-			origin: '*',
+			origin: ['*', `https://${process.env.DOMAIN}`],
 			methods: ['GET', 'POST'],
+			credentials: true,
 		},
 		path: '/api/socket.io',
+		transports: ['websocket', 'polling'],
 	});
 
 	// Authentication middleware

@@ -24,11 +24,13 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
 			socketRef.current = io(process.env.NEXT_PUBLIC_API_URL!, {
 				path: '/api/socket.io',
-				transports: ['websocket'],
+				transports: ['websocket', 'polling'],
 				auth: { token },
 				reconnection: true,
 				reconnectionDelay: 1000,
 				reconnectionDelayMax: 5000,
+				reconnectionAttempts: 5,
+				timeout: 20000,
 			});
 
 			socketRef.current.on('connect', () => {
