@@ -2,7 +2,7 @@
 
 import { auth, db, withIdConverter } from '@/lib/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
-import { GameConfig, Planet, User, UserResearchs, UserTasks, UserReward } from '../models/';
+import { GameConfig, Planet, User, UserResearchs, UserTasks, UserReward } from 'shared-types';
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 
 import { useAuthState } from 'react-firebase-hooks/auth';

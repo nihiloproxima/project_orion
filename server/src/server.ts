@@ -10,6 +10,7 @@ import { FastifyAdapter } from '@bull-board/fastify';
 import queue from './bullmq/queue';
 import { handleAdminRequest, handleGameRequest } from './middlewares/handle_requests';
 import { setupSocket } from './socket/socket';
+import { BaseAdapter } from '@bull-board/api/dist/src/queueAdapters/base';
 
 const fastify = Fastify({
 	logger: true,
@@ -37,7 +38,7 @@ fastify.post('/admin/:functionName', handleAdminRequest);
 // Set up BullBoard with Fastify adapter
 const serverAdapter = new FastifyAdapter();
 createBullBoard({
-	queues: [new BullMQAdapter(queue)],
+	queues: [new BullMQAdapter(queue) as BaseAdapter],
 	serverAdapter,
 });
 

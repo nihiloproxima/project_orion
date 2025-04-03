@@ -1,10 +1,10 @@
 'use client';
 
-import { Sidebar } from '../../components/Sidebar';
-import { ResourceBar } from '../../components/ResourceBar';
+import { Sidebar } from '../Sidebar';
+import { ResourceBar } from '../ResourceBar';
 import { useGame } from '../../contexts/GameContext';
 import { useEffect, useState } from 'react';
-import { LoadingScreen } from '../../components/LoadingScreen';
+import { LoadingScreen } from '../LoadingScreen';
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
 	const loadingDuration = 1000;

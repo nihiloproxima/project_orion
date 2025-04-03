@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import db from '../../database/db';
 import admin from 'firebase-admin';
-import { User } from '../../models';
+import { User } from 'shared-types';
 
 interface UpdateUserParams {
 	name?: User['name'];

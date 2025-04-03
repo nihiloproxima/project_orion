@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { Planet } from '../models';
+import { Planet } from 'shared-types';
 
 const GALAXY_COUNT = 20;
 const PLANETS_PER_GALAXY = 100;

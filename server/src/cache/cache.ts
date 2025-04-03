@@ -1,5 +1,5 @@
 import db from '../database/db';
-import { GameConfig, Planet } from '../models';
+import { GameConfig, Planet } from 'shared-types';
 import redisClient from './redis';
 
 const rankingCacheKey = (season: number, page: number) => `seasons:${season}:ranking_cache:${page}`;

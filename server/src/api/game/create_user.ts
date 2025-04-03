@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import admin from 'firebase-admin';
 import db from '../../database/db';
-import { UserResearchs } from '../../models';
+import { UserResearchs } from 'shared-types';
 
 interface CreateUserParams {
 	name: string;

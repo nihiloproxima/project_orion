@@ -1,6 +1,6 @@
 import { StructureType } from '@/models/planet';
 import { auth } from './firebase';
-import { MissionType } from '@/models';
+import { MissionType } from 'shared-types';
 
 function getAuthToken() {
 	return auth.currentUser?.getIdToken();

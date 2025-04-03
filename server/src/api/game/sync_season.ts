@@ -1,7 +1,7 @@
 import admin from 'firebase-admin';
 import db from '../../database/db';
 import cache from '../../cache/cache';
-import { UserResearchs } from '../../models';
+import { UserResearchs } from 'shared-types';
 
 export async function syncSeason(userId: string) {
 	const gameConfig = await db.getGameConfig();

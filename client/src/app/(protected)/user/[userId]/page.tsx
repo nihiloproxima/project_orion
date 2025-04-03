@@ -21,7 +21,7 @@ import { collection, doc, query, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Planet } from '@/models';
+import { Planet } from 'shared-types';
 
 export default function UserProfilePage() {
 	const params = useParams();

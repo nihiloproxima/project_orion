@@ -1,6 +1,5 @@
-import { FleetMovement, MissionMail } from '../models';
-
-import { Planet } from '../models';
+import { FleetMovement, MissionMail, Ship, ShipType, SpyMail, UserResearchs, Planet } from 'shared-types';
+import _ from 'lodash';
 
 const mailGenerator = {
 	planetAlreadyColonized: (fleetMovement: FleetMovement, targetPlanet: Planet): Omit<MissionMail, 'id'> => {
@@ -64,6 +63,75 @@ const mailGenerator = {
 					`Transport resources to planet ${fleetMovement.destination.planet_name}`,
 					'Establish a new colony',
 				],
+			},
+			ttl: fleetMovement.arrival_time,
+		};
+	},
+
+	spyMissionSuccess: (
+		fleetMovement: FleetMovement,
+		targetPlanet: Planet,
+		userResearchs: UserResearchs,
+		planetShips: Ship[]
+	): Omit<SpyMail, 'id'> => {
+		return {
+			type: 'spy',
+			category: 'reports',
+			title: 'Spy mission success',
+			content: `Your spy mission to planet ${targetPlanet.name} [${targetPlanet.position.x}:${targetPlanet.position.y}] has been completed successfully.`,
+			created_at: fleetMovement.arrival_time,
+			sender_id: 'system',
+			sender_name: 'System',
+			read: false,
+			archived: false,
+			data: {
+				target_planet_id: targetPlanet.id,
+				target_owner_id: targetPlanet.owner_id || '',
+				target_coordinates: {
+					x: targetPlanet.position.x,
+					y: targetPlanet.position.y,
+				},
+				resources: {
+					current: {
+						metal: targetPlanet.resources.metal,
+						microchips: targetPlanet.resources.microchips,
+						deuterium: targetPlanet.resources.deuterium,
+					},
+				},
+				structures: targetPlanet.structures.map((structure) => ({
+					type: structure.type,
+					level: structure.level,
+					is_under_construction: structure.construction_start_time !== null,
+				})),
+				research: Object.entries(userResearchs.technologies).map(([id, research]) => ({
+					id,
+					level: research.level,
+					is_researching: research.is_researching,
+				})),
+				ships: Object.entries(_.countBy(planetShips, 'type')).map(([type, count]) => ({
+					type: type as ShipType,
+					count,
+				})),
+			},
+			ttl: fleetMovement.arrival_time,
+		};
+	},
+
+	spyMissionFailed: (fleetMovement: FleetMovement, targetPlanet: Planet): Omit<MissionMail, 'id'> => {
+		return {
+			type: 'mission',
+			category: 'missions',
+			title: 'Spy mission failed',
+			content: `Your spy mission to planet ${targetPlanet.name} [${targetPlanet.position.x}:${targetPlanet.position.y}] failed.`,
+			created_at: fleetMovement.arrival_time,
+			sender_id: 'system',
+			sender_name: 'System',
+			read: false,
+			archived: false,
+			data: {
+				mission_type: 'spy',
+				status: 'failed',
+				objectives: [`Spy on planet ${targetPlanet.name}`, 'Establish a new colony'],
 			},
 			ttl: fleetMovement.arrival_time,
 		};

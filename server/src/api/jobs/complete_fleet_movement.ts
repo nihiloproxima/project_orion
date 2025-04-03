@@ -2,7 +2,7 @@ import Joi from 'joi';
 import admin from 'firebase-admin';
 import db from '../../database/db';
 import assert from '../../rules/asserts';
-import { FleetMovement, GameConfig, Ship } from '../../models';
+import { FleetMovement, GameConfig, Ship } from 'shared-types';
 import { Timestamp, Transaction } from 'firebase-admin/firestore';
 import fleetCalculations from '../../rules/fleet_calculations';
 import { addJob } from '../../bullmq/queue';
@@ -41,6 +41,15 @@ export async function completeFleetMovement(data: CompleteFleetMovementParams) {
 				break;
 			case 'transport':
 				jobs.push(await handleTransportMission(tx, gameConfig, fleetMovement));
+
+				break;
+			case 'move':
+				jobs.push(await handleMoveMission(tx, gameConfig, fleetMovement));
+
+				break;
+			case 'spy':
+				jobs.push(await handleSpyMission(tx, gameConfig, fleetMovement));
+
 				break;
 		}
 
@@ -257,6 +266,87 @@ async function handleTransportMission(tx: Transaction, gameConfig: GameConfig, f
 	return returnFleet(tx, gameConfig, fleetMovement, ships);
 }
 
+// Basically a transport mission but ships stays on location after. Only used on same user planet
 export async function handleMoveMission(tx: Transaction, gameConfig: GameConfig, fleetMovement: FleetMovement) {
-	console.log('todo finish after');
+	const [ships, targetPlanet] = await Promise.all([
+		db.getShipsFromIds(tx, gameConfig.season.current, fleetMovement.ship_ids),
+		db.getPlanet(tx, gameConfig.season.current, fleetMovement.destination.planet_id),
+	]);
+
+	if (targetPlanet.owner_id === null || targetPlanet.owner_id !== fleetMovement.owner_id) {
+		return returnFleet(tx, gameConfig, fleetMovement, ships);
+	}
+
+	const userResearchs = await db.getUserResearchs(tx, targetPlanet.owner_id);
+
+	planetCalculations.calculatePlanetResources(gameConfig, targetPlanet, userResearchs);
+
+	// Add resources to planet
+	db.setPlanet(tx, gameConfig.season.current, targetPlanet.id, {
+		resources: {
+			metal: targetPlanet.resources.metal + (fleetMovement.resources?.metal || 0),
+			deuterium: targetPlanet.resources.deuterium + (fleetMovement.resources?.deuterium || 0),
+			microchips: targetPlanet.resources.microchips + (fleetMovement.resources?.microchips || 0),
+			energy: targetPlanet.resources.energy + 15,
+		},
+		updated_at: Timestamp.now(),
+	});
+
+	ships.map((ship) => {
+		db.setShip(tx, gameConfig.season.current, ship.id, {
+			status: 'stationed',
+			position: {
+				planet_id: targetPlanet.id,
+				galaxy: targetPlanet.position.galaxy,
+				x: targetPlanet.position.x,
+				y: targetPlanet.position.y,
+			},
+			updated_at: Timestamp.now(),
+		});
+	});
+}
+
+async function handleSpyMission(tx: Transaction, gameConfig: GameConfig, fleetMovement: FleetMovement) {
+	const [ships, targetPlanet, shipsOnPlanet, userResearchs] = await Promise.all([
+		db.getShipsFromIds(tx, gameConfig.season.current, fleetMovement.ship_ids),
+		db.getPlanet(tx, gameConfig.season.current, fleetMovement.destination.planet_id),
+		db.getShipsOnPlanet(tx, gameConfig.season.current, fleetMovement.destination.planet_id),
+		db.getUserResearchs(tx, fleetMovement.owner_id),
+	]);
+
+	if (!targetPlanet.owner_id) {
+		return returnFleet(tx, gameConfig, fleetMovement, ships);
+	}
+
+	const ownerResearchs = await db.getUserResearchs(tx, targetPlanet.owner_id);
+
+	planetCalculations.calculatePlanetResources(gameConfig, targetPlanet, ownerResearchs);
+
+	if (targetPlanet.owner_id === null || targetPlanet.owner_id === fleetMovement.owner_id) {
+		return returnFleet(tx, gameConfig, fleetMovement, ships);
+	}
+	const ownerSpyLevel = ownerResearchs.technologies['spy']?.level || 0;
+	const attackerSpyLevel = userResearchs.technologies['spy']?.level || 0;
+	const spyLevelDiff = attackerSpyLevel - ownerSpyLevel;
+
+	if (spyLevelDiff <= -2) {
+		// Mission failed - spy tech too low
+		db.createUserMail(tx, fleetMovement.owner_id, mailsGenerator.spyMissionFailed(fleetMovement, targetPlanet));
+	} else if (spyLevelDiff === -1) {
+		// Limited info - only resources, researchs and structures
+		db.createUserMail(
+			tx,
+			fleetMovement.owner_id,
+			mailsGenerator.spyMissionSuccess(fleetMovement, targetPlanet, ownerResearchs, [])
+		);
+	} else {
+		// Full info including ships
+		db.createUserMail(
+			tx,
+			fleetMovement.owner_id,
+			mailsGenerator.spyMissionSuccess(fleetMovement, targetPlanet, ownerResearchs, shipsOnPlanet)
+		);
+	}
+
+	return returnFleet(tx, gameConfig, fleetMovement, ships);
 }

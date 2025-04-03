@@ -2,7 +2,7 @@ import admin from 'firebase-admin';
 import db from '../../database/db';
 import Joi from 'joi';
 import { v4 as uuidv4 } from 'uuid';
-import { ShipBlueprint, ShipComponent } from '../../models/ship';
+import { ShipBlueprint, ShipComponent } from 'shared-types';
 
 interface AddBlueprintRequest {
 	user_id: string;

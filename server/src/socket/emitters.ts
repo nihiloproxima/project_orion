@@ -1,5 +1,5 @@
 import { io } from '../server';
-import { Planet } from '../models';
+import { Planet } from 'shared-types';
 import { activeUsers } from './socket';
 import cache from '../cache/cache';
 

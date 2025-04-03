@@ -1,6 +1,6 @@
 import { Html } from '@react-three/drei';
 
-import { DebrisField } from '@/models';
+import { DebrisField } from 'shared-types';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';

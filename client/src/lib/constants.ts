@@ -1,5 +1,5 @@
-import { ResearchCategory, StructureType } from '../models';
-import { TechnologyId } from '../models';
+import { ResearchCategory, StructureType } from 'shared-types';
+import { TechnologyId } from 'shared-types';
 
 export const STRUCTURE_INFO: Record<
 	StructureType,

@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { GameConfig, Planet, StructureType, TechnologyId, UserResearchs } from '../models';
+import { GameConfig, Planet, StructureType, TechnologyId, UserResearchs } from 'shared-types';
 import { GROWTH_FACTOR } from './constants';
 import { BASE_POINTS } from './constants';
 

@@ -6,7 +6,7 @@ import assert from '../../rules/asserts';
 import planetCalculations from '../../rules/planet_calculations';
 import generateShip from '../../generators/ship_generator';
 import { Timestamp } from 'firebase-admin/firestore';
-import { ShipyardQueueCommand } from '../../models';
+import { ShipyardQueueCommand } from 'shared-types';
 import utils from '../../rules/utils';
 
 interface BuildShipParams {

@@ -1,4 +1,4 @@
-import { Ship, ShipBlueprint, ShipComponent, ShipStats, User } from '../models';
+import { Ship, ShipBlueprint, ShipComponent, ShipStats, User } from 'shared-types';
 import { Timestamp } from 'firebase-admin/firestore';
 
 function generateShipName(blueprint: ShipBlueprint, components: ShipComponent[]): string {
@@ -102,6 +102,7 @@ export default function generateShip(user: User, blueprint: ShipBlueprint, compo
 		integrity: 100,
 		owner_id: user.id,
 		xp: 0,
+		position: null,
 		level: 1,
 		created_by: {
 			user_id: user.id,

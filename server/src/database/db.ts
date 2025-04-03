@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { Timestamp } from 'firebase-admin/firestore';
 import {
 	ChatMessage,
-	DEFAULT_GAME_CONFIG,
+	FleetMovement,
 	GameConfig,
 	Mail,
 	Planet,
@@ -12,6 +12,10 @@ import {
 	UserInventory,
 	UserResearchs,
 	UserTasks,
+	UserReward,
+} from 'shared-types';
+import {
+	parseFleetMovement,
 	parseMail,
 	parsePlanet,
 	parseShip,
@@ -20,13 +24,12 @@ import {
 	parseUserInventory,
 	parseUserReward,
 	parseUserTasks,
-	UserReward,
-} from '../models';
+} from '../parsers';
 import { db } from './firebase';
 import { PartialWithFieldValue, Transaction } from 'firebase-admin/firestore';
 import cache from '../cache/cache';
 import * as admin from 'firebase-admin';
-import { FleetMovement, parseFleetMovement } from '../models/fleet_movement';
+import { DEFAULT_GAME_CONFIG } from '../rules/constants';
 
 export default {
 	// Configs
@@ -48,7 +51,7 @@ export default {
 		const ref = db.collection('config').doc('game');
 		tx.set(ref, data);
 
-		cache.setGameConfig(data as GameConfig);
+		await cache.setGameConfig(data as GameConfig);
 	},
 
 	// User
@@ -243,6 +246,13 @@ export default {
 		const ships = await tx.getAll(...refs);
 
 		return ships.map((ship) => parseShip(ship));
+	},
+
+	getShipsOnPlanet: async (tx: Transaction, season: number, planetId: string) => {
+		const ref = db.collection(`seasons/${season}/planets/${planetId}/ships`);
+		const query = ref.where('position.planet_id', '==', planetId);
+		const ships = await tx.get(query);
+		return ships.docs.map((doc) => parseShip(doc));
 	},
 
 	createShip: async (tx: Transaction, season: number, data: PartialWithFieldValue<Ship>) => {

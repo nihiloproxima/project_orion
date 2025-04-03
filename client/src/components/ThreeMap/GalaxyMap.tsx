@@ -6,8 +6,8 @@ import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import React, { useEffect, useRef, useState, useMemo, useContext } from 'react';
 
-import { FleetMovement } from '@/models';
-import { Planet } from '@/models';
+import { FleetMovement } from 'shared-types';
+import { Planet } from 'shared-types';
 import utils from '@/lib/utils';
 import _ from 'lodash';
 import { useGame } from '@/contexts/GameContext';
@@ -428,19 +428,60 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 			const endTime = fleetMovement.arrival_time.toMillis();
 			const progress = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
 
-			// Lerp between start and end coordinates
-			const x = THREE.MathUtils.lerp(
-				fleetMovement.origin.coordinates.x,
-				fleetMovement.destination.coordinates.x,
-				progress
-			);
-			const y = THREE.MathUtils.lerp(
-				fleetMovement.origin.coordinates.y,
-				fleetMovement.destination.coordinates.y,
-				progress
-			);
+			// Get galaxy numbers
+			const originGalaxy = Math.floor(fleetMovement.origin.coordinates.x / 10000);
+			const destGalaxy = Math.floor(fleetMovement.destination.coordinates.x / 10000);
+			const currentGalaxy = Math.floor(state.currentGalaxy);
 
-			meshRef.current.position.set(x, y, 0);
+			// Calculate positions relative to current galaxy view
+			let startX = fleetMovement.origin.coordinates.x;
+			let endX = fleetMovement.destination.coordinates.x;
+
+			// Adjust positions based on galaxy differences
+			if (originGalaxy !== destGalaxy) {
+				if (currentGalaxy === originGalaxy) {
+					// Fleet is departing to the right
+					endX = 10000;
+				} else if (currentGalaxy === destGalaxy) {
+					// Fleet is arriving from the left
+					startX = -10000;
+				} else if (currentGalaxy > originGalaxy && currentGalaxy < destGalaxy) {
+					// Fleet is passing through from left to right
+					startX = -10000;
+					endX = 10000;
+				}
+			}
+
+			// Only show fleet if it's in the current galaxy view
+			const isVisible = currentGalaxy >= originGalaxy && currentGalaxy <= destGalaxy;
+
+			if (isVisible) {
+				// Lerp between adjusted coordinates
+				const x = THREE.MathUtils.lerp(startX, endX, progress);
+				const y = THREE.MathUtils.lerp(
+					fleetMovement.origin.coordinates.y,
+					fleetMovement.destination.coordinates.y,
+					progress
+				);
+
+				meshRef.current.visible = true;
+				meshRef.current.position.set(x, y, 0);
+
+				// Update line positions
+				const linePositions = new Float32Array([
+					startX,
+					fleetMovement.origin.coordinates.y,
+					0,
+					endX,
+					fleetMovement.destination.coordinates.y,
+					0,
+				]);
+				lineRef.current.geometry.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+				lineRef.current.visible = true;
+			} else {
+				meshRef.current.visible = false;
+				lineRef.current.visible = false;
+			}
 		}
 	});
 

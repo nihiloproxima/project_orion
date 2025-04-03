@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { GameConfig, UserResearchs, Planet, Structure, ResourceType } from '../models';
+import { GameConfig, UserResearchs, Planet, Structure, ResourceType } from 'shared-types';
 import _ from 'lodash';
 
 export interface ResourceGenerationRates {

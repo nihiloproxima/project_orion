@@ -1,7 +1,7 @@
 import admin from 'firebase-admin';
 import _ from 'lodash';
 import Joi from 'joi';
-import { GameConfig } from '../../models';
+import { GameConfig } from 'shared-types';
 import db from '../../database/db';
 
 interface SetGameConfigParams {

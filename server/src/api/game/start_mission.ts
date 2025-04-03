@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import admin from 'firebase-admin';
-import { MissionType, Planet, Ship } from '../../models';
+import { MissionType, Planet, Ship } from 'shared-types';
 import db from '../../database/db';
 import assert from '../../rules/asserts';
 import planetCalculations from '../../rules/planet_calculations';
@@ -51,6 +51,11 @@ export async function startMission(userId: string, body: StartMissionBody) {
 			ships.every((ship) => ship.owner_id === userId),
 			true,
 			'You do not own all ships'
+		);
+		assert.isEqual(
+			ships.every((ship) => ship.position?.planet_id === params.origin_planet_id),
+			true,
+			'Ships must be stationed on planet'
 		);
 
 		planetCalculations.calculatePlanetResources(gameConfig, planet, userResearchs);
@@ -147,6 +152,7 @@ export async function startMission(userId: string, body: StartMissionBody) {
 		ships.map((ship) => {
 			db.setShip(tx, gameConfig.season.current, ship.id, {
 				status: 'traveling',
+				position: null,
 				updated_at: Timestamp.now(),
 			});
 		});

@@ -4,7 +4,7 @@ import { useGame } from '@/contexts/GameContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { Planet } from '@/models/planet';
+import { Planet } from 'shared-types';
 import { api } from '@/lib/api';
 import GalaxyMap from '@/components/ThreeMap/GalaxyMap';
 import { GalaxySelector } from '@/components/GalaxySelector';

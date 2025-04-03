@@ -3,7 +3,7 @@ import admin from 'firebase-admin';
 import assert from '../../rules/asserts';
 import db from '../../database/db';
 import utils from '../../rules/utils';
-import { StructureType } from '../../models';
+import { StructureType } from 'shared-types';
 
 interface EndStructureUpgradeParams {
 	planet_id: string;

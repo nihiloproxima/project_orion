@@ -9,13 +9,13 @@ import {
 	DropdownMenuTrigger,
 } from '../../../components/ui/dropdown-menu';
 
-import { Structure, StructureType } from '../../../models/';
+import { Structure, StructureType } from '../../../models';
 
 import { Button } from '../../../components/ui/button';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import Image from 'next/image';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { StructureConfig } from '@/models';
+import { StructureConfig } from 'shared-types';
 import { STRUCTURE_INFO, TECHNOLOGIES } from '@/lib/constants';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';

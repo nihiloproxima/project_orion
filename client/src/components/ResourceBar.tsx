@@ -2,12 +2,12 @@ import { useGame } from '../contexts/GameContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import millify from 'millify';
 import { Flame, Hammer, Microchip, Zap, Menu, Coins } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
-import { ResourceType } from '@/models';
+import { ResourceType } from 'shared-types';
 import { useEffect, useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { Button } from './ui/button';
 import planetCalculations, { ResourceGenerationRates } from '@/utils/planet_calculations';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 import { db } from '@/lib/firebase';

@@ -1,7 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { GameConfig, Planet } from '../models';
-
-import { Ship } from '../models';
+import { GameConfig, Planet, Ship } from 'shared-types';
 
 const fleetCalculations = {
 	calculateFleetArrivalTime: (
