@@ -33,6 +33,17 @@ export async function endStructureUpgrade(body: EndStructureUpgradeParams) {
 			`Structure ${params.structure_type} construction finish time does not match with params`
 		);
 
+		const shouldCreateShipyardQueue = structure.type === 'shipyard' && structure.level === 0;
+		if (shouldCreateShipyardQueue && planet.owner_id) {
+			db.setShipyardQueue(tx, gameConfig.season.current, planet.id, {
+				planet_id: planet.id,
+				commands: [],
+				capacity: 1,
+				created_at: admin.firestore.Timestamp.now(),
+				updated_at: admin.firestore.Timestamp.now(),
+			});
+		}
+
 		const shouldImproveCapacity = structure.type === 'research_lab' && structure.level === 0;
 		if (shouldImproveCapacity && planet.owner_id) {
 			db.setUserResearchs(tx, planet.owner_id!, {

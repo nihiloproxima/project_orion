@@ -41,7 +41,6 @@ export async function claimShipFromShipyard(userId: string, body: ClaimShipFromS
 			throw new Error(`Command is not finished`);
 		}
 
-		db.createShip(tx, gameConfig.season.current, _.omit(command.ship, 'id'));
 		db.setShipyardQueue(tx, gameConfig.season.current, params.planet_id, {
 			commands: shipyardQueue.commands.filter((_, index) => index !== params.command_index),
 		});

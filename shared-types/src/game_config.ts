@@ -1,7 +1,63 @@
-import { Timestamp } from ".";
+import { StructureType, Timestamp } from ".";
 import { PlanetBiome, ResourceType } from "./planet";
-import { ResearchConfig } from "./researchs_config";
+import { ResearchConfig, TechnologyId } from "./researchs_config";
 import { StructureConfig } from "./structure_config";
+
+export interface Requirement {
+  type: "structure" | "technology";
+  id: StructureType | TechnologyId;
+  level: number;
+}
+
+export type ShipType =
+  | "colonizer"
+  | "transporter"
+  | "spy_probe"
+  | "recycler"
+  | "destroyer"
+  | "cruiser"
+  | "battleship"
+  | "interceptor"
+  | "death_star";
+
+export type ShipConfig = {
+  type: ShipType;
+  construction: {
+    metal: number;
+    microchips: number;
+    seconds: number;
+  };
+  requirements: Requirement[];
+  speed: number;
+  capacity: number;
+  attack: number;
+  defense: number;
+  evasion: number;
+  accuracy: number;
+  critical_chance: number;
+  fire_rate: number;
+  initiative: number;
+};
+
+export type DefenseType =
+  | "laser_cannon"
+  | "ion_cannon"
+  | "rocket_launcher"
+  | "missile_launcher"
+  | "shield_generator";
+
+export type DefenseConfig = {
+  type: DefenseType;
+  construction: {
+    metal: number;
+    microchips: number;
+    seconds: number;
+  };
+  attack: number;
+  defense: number;
+  accuracy: number;
+  critical_chance: number;
+};
 
 export interface GameConfig {
   version: string;
@@ -10,9 +66,8 @@ export interface GameConfig {
     next_start_at: Timestamp;
     end_at: Timestamp;
   };
-  ships: {
-    maximum_ships_count: number;
-  };
+  ships: Array<ShipConfig>;
+  defenses: Array<DefenseConfig>;
   planets: {
     count: number;
     grid_size: number;

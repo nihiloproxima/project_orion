@@ -1,13 +1,29 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { GameConfig, Planet, StructureType, TechnologyId, UserResearchs } from 'shared-types';
+import { DefenseType, GameConfig, Planet, ShipType, StructureType, TechnologyId, UserResearchs } from 'shared-types';
 import { GROWTH_FACTOR } from './constants';
 import { BASE_POINTS } from './constants';
 
 const utils = {
+	getShipConfig: (gameConfig: GameConfig, type: ShipType) => {
+		const shipConfig = gameConfig.ships.find((s) => s.type === type);
+		if (!shipConfig) {
+			throw new Error(`Ship config not found with type ${type}`);
+		}
+		return shipConfig;
+	},
+
+	getDefenseConfig: (gameConfig: GameConfig, type: DefenseType) => {
+		const defenseConfig = gameConfig.defenses.find((d) => d.type === type);
+		if (!defenseConfig) {
+			throw new Error(`Defense config not found with type ${type}`);
+		}
+		return defenseConfig;
+	},
+
 	getStructureConfig: (gameConfig: GameConfig, type: StructureType) => {
 		const structureConfig = gameConfig.structures.find((s) => s.type === type);
 		if (!structureConfig) {
-			throw new Error('Structure config not found');
+			throw new Error(`Structure config not found with type ${type}`);
 		}
 		return structureConfig;
 	},
@@ -15,7 +31,7 @@ const utils = {
 	getResearchConfig: (gameConfig: GameConfig, id: string) => {
 		const researchConfig = gameConfig.researchs.find((r) => r.id === id);
 		if (!researchConfig) {
-			throw new Error('Research config not found');
+			throw new Error(`Research config not found with id ${id}`);
 		}
 		return researchConfig;
 	},
@@ -23,7 +39,7 @@ const utils = {
 	getUserResearch: (userResearchs: UserResearchs, id: TechnologyId) => {
 		const research = userResearchs.technologies[id];
 		if (!research) {
-			throw new Error('Research not found');
+			throw new Error(`Research not found with id ${id}`);
 		}
 
 		return research;
@@ -32,7 +48,7 @@ const utils = {
 	getStructure: (planet: Planet, type: StructureType) => {
 		const structure = planet.structures.find((s) => s.type === type);
 		if (!structure) {
-			throw new Error('Structure not found');
+			throw new Error(`Structure not found with type ${type}`);
 		}
 		return structure;
 	},

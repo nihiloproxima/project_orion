@@ -44,6 +44,7 @@ export default function Register() {
 		setIsLoading(true);
 		e.preventDefault();
 		if (!validatePasswords()) {
+			setError(t('register.errors.passwords_mismatch'));
 			setIsLoading(false);
 			return;
 		}

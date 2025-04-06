@@ -4,21 +4,21 @@ import _ from 'lodash';
 import db from '../../database/db';
 import assert from '../../rules/asserts';
 import planetCalculations from '../../rules/planet_calculations';
-import generateShip from '../../generators/ship_generator';
 import { Timestamp } from 'firebase-admin/firestore';
-import { ShipyardQueueCommand } from 'shared-types';
+import { ShipType, ShipyardQueueCommand } from 'shared-types';
 import utils from '../../rules/utils';
+import { addJob } from 'server/src/bullmq/queue';
 
 interface BuildShipParams {
 	planet_id: string;
-	blueprint_id: string;
-	components_ids: string[];
+	ship_type: ShipType;
+	count: number;
 }
 
 const schema = Joi.object<BuildShipParams>({
 	planet_id: Joi.string().required(),
-	blueprint_id: Joi.string().required(),
-	components_ids: Joi.array().items(Joi.string()).required(),
+	ship_type: Joi.string().required(),
+	count: Joi.number().required(),
 });
 
 export async function buildShip(userId: string, body: BuildShipParams) {
@@ -26,57 +26,57 @@ export async function buildShip(userId: string, body: BuildShipParams) {
 
 	const gameConfig = await db.getGameConfig();
 
-	await admin.firestore().runTransaction(async (tx) => {
-		const [user, planet, shipyardQueue, userInventory, userResearchs] = await Promise.all([
-			db.getUser(tx, userId),
+	const itemFinishTime = await admin.firestore().runTransaction(async (tx) => {
+		const [planet, shipyardQueue, userResearchs] = await Promise.all([
 			db.getPlanet(tx, gameConfig.season.current, params.planet_id),
 			db.getShipyardQueue(tx, gameConfig.season.current, params.planet_id),
-			db.getUserInventory(tx, userId),
 			db.getUserResearchs(tx, userId),
 		]);
 
-		planetCalculations.calculatePlanetResources(gameConfig, planet, userResearchs);
+		const shipConfig = utils.getShipConfig(gameConfig, params.ship_type);
 
-		const blueprint = _.remove(userInventory.ship_blueprints, { id: params.blueprint_id }).at(0);
-		const components = _.remove(userInventory.ship_components, (c) => params.components_ids.includes(c.id));
+		planetCalculations.calculatePlanetResources(gameConfig, planet, userResearchs);
 
 		assert.isGreaterThan(shipyardQueue.capacity, shipyardQueue.commands.length, 'Shipyard queue is full');
 		assert.isEqual(planet.owner_id, userId, 'User does not own this planet');
-		assert.isNotEqual(blueprint, undefined, 'Blueprint not found');
-		assert.isGreaterThanOrEqual(
-			blueprint!.base_cost.credits,
-			userInventory.credits,
-			'User does not have enough credits'
-		);
-		assert.isEqual(components.length, params.components_ids.length, 'Some components not found');
 
-		for (const resource in blueprint!.base_cost.resources) {
-			if (resource) {
-				assert.isGreaterThan(
-					planet.resources[resource],
-					blueprint!.base_cost.resources[resource],
-					`User does not have enough ${resource}`
-				);
-				planet.resources[resource] -= blueprint!.base_cost.resources[resource];
-			}
-		}
+		assert.isGreaterThanOrEqual(shipConfig.construction.metal, planet.resources.metal, 'Not enough metal');
+		assert.isGreaterThanOrEqual(
+			shipConfig.construction.microchips,
+			planet.resources.microchips,
+			'Not enough microchips'
+		);
+
+		planet.resources.metal -= shipConfig.construction.metal;
+		planet.resources.microchips -= shipConfig.construction.microchips;
 		db.setPlanet(tx, gameConfig.season.current, params.planet_id, planet);
 
-		userInventory.credits -= blueprint!.base_cost.credits;
-
-		const ship = generateShip(user, blueprint!, components);
 		const command: ShipyardQueueCommand = {
-			ship,
+			ship_type: params.ship_type,
+			count: params.count,
+			current_item_start_time: Timestamp.now(),
+			current_item_finish_time: Timestamp.fromMillis(
+				Date.now() + utils.secondsToMs(shipConfig.construction.seconds)
+			),
 			construction_start_time: Timestamp.now(),
 			construction_finish_time: Timestamp.fromMillis(
-				Date.now() + utils.secondsToMs(blueprint!.construction_seconds)
+				Date.now() + utils.secondsToMs(shipConfig.construction.seconds * params.count)
 			),
-			base_cost: blueprint!.base_cost,
 		};
 		shipyardQueue.commands.push(command);
 		db.setShipyardQueue(tx, gameConfig.season.current, params.planet_id, shipyardQueue);
-		db.setUserInventory(tx, userId, userInventory);
+
+		return command.current_item_finish_time.toMillis();
 	});
+
+	await addJob(
+		'processShipyardQueue',
+		{
+			planet_id: params.planet_id,
+			item_finish_time: itemFinishTime,
+		},
+		itemFinishTime - Date.now()
+	);
 
 	return {
 		status: 'ok',

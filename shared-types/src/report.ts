@@ -1,4 +1,4 @@
-import { ShipType } from "./ship";
+import { ShipType } from ".";
 import { Timestamp } from "./timestamp";
 
 export type ReportType = "spy" | "combat" | "mission";
@@ -31,11 +31,6 @@ export interface ResearchInfo {
   is_researching: boolean;
 }
 
-export interface ShipInfo {
-  type: ShipType;
-  count: number;
-}
-
 export interface SpyReport extends BaseReport {
   type: "spy";
   target_planet_id: string;
@@ -49,5 +44,7 @@ export interface SpyReport extends BaseReport {
   structures: StructureInfo[];
   research: ResearchInfo[];
   defense_score: number;
-  ships: ShipInfo[];
+  ships: {
+    [shipType in ShipType]?: number;
+  };
 }

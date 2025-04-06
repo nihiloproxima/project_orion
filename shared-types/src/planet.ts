@@ -1,3 +1,4 @@
+import { DefenseType, ShipType } from "./game_config";
 import { Timestamp } from "./timestamp";
 export type ResourceType = "metal" | "microchips" | "deuterium" | "energy";
 export type PlanetBiome = "desert" | "ocean" | "jungle" | "ice" | "volcanic";
@@ -31,6 +32,12 @@ export interface Planet {
     deuterium: number;
     energy: number;
     last_update: Timestamp;
+  };
+  ships: {
+    [shipType in ShipType]: number;
+  };
+  defenses: {
+    [defenseType in DefenseType]: number;
   };
   position: {
     x: number;

@@ -1,19 +1,17 @@
 import { Timestamp } from "./timestamp";
 import { Planet } from "./planet";
-import { ShipType } from "./game_config";
+import { DefenseType } from "./game_config";
 
-export interface ShipyardQueueCommand {
-  ship_type: ShipType;
+export interface DefenseFactoryQueueCommand {
+  defense_type: DefenseType;
   count: number;
-  current_item_start_time: Timestamp;
-  current_item_finish_time: Timestamp;
   construction_start_time: Timestamp;
   construction_finish_time: Timestamp;
 }
 
-export interface ShipyardQueue {
+export interface DefenseFactoryQueue {
   planet_id: Planet["id"];
-  commands: Array<ShipyardQueueCommand>;
+  commands: Array<DefenseFactoryQueueCommand>;
   capacity: number;
   created_at: Timestamp;
   updated_at: Timestamp;
