@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { Button } from '../../../../components/ui/button';
 import Image from 'next/image';
 import { Input } from '../../../../components/ui/input';
-import { User } from '../../../../models/user';
+import { User } from 'shared-types';
 import { api } from '../../../../lib/api';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../../contexts/GameContext';

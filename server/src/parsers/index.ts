@@ -5,7 +5,6 @@ export * from './mail';
 export * from './outpost';
 export * from './planet';
 export * from './report';
-export * from './ship';
 export * from './shipyard_queue';
 export * from './user';
 export * from './user_inventory';

@@ -6,7 +6,6 @@ import {
 	GameConfig,
 	Mail,
 	Planet,
-	Ship,
 	ShipyardQueue,
 	User,
 	UserInventory,
@@ -18,7 +17,6 @@ import {
 	parseFleetMovement,
 	parseMail,
 	parsePlanet,
-	parseShip,
 	parseShipyardQueue,
 	parseUser,
 	parseUserInventory,
@@ -227,46 +225,6 @@ export default {
 
 	deleteUserMail: (tx: Transaction, userId: string, mailId: string) => {
 		const ref = db.collection(`users/${userId}/mails`).doc(mailId);
-		tx.delete(ref);
-	},
-
-	// Ships
-	getShip: async (tx: Transaction, season: number, shipId: string) => {
-		const ref = db.doc(`seasons/${season}/ships/${shipId}`);
-		const ship = await tx.get(ref);
-		return parseShip(ship);
-	},
-
-	getShipsFromIds: async (tx: Transaction, season: number, shipIds: string[]) => {
-		if (shipIds.length === 0) {
-			return [];
-		}
-
-		const refs = shipIds.map((shipId) => db.doc(`seasons/${season}/ships/${shipId}`));
-		const ships = await tx.getAll(...refs);
-
-		return ships.map((ship) => parseShip(ship));
-	},
-
-	getShipsOnPlanet: async (tx: Transaction, season: number, planetId: string) => {
-		const ref = db.collection(`seasons/${season}/planets/${planetId}/ships`);
-		const query = ref.where('position.planet_id', '==', planetId);
-		const ships = await tx.get(query);
-		return ships.docs.map((doc) => parseShip(doc));
-	},
-
-	createShip: async (tx: Transaction, season: number, data: PartialWithFieldValue<Ship>) => {
-		const ref = db.collection(`seasons/${season}/ships`).doc();
-		tx.set(ref, data);
-	},
-
-	setShip: async (tx: Transaction, season: number, shipId: string, data: PartialWithFieldValue<Ship>) => {
-		const ref = db.doc(`seasons/${season}/ships/${shipId}`);
-		tx.set(ref, data, { merge: true });
-	},
-
-	deleteShip: (tx: Transaction, season: number, shipId: string) => {
-		const ref = db.doc(`seasons/${season}/ships/${shipId}`);
 		tx.delete(ref);
 	},
 

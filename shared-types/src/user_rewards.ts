@@ -1,6 +1,5 @@
 import { Timestamp } from "./timestamp";
 import { Planet, ResourceType } from "./planet";
-import { ShipBlueprint, ShipComponent } from "./ship";
 
 export interface UserReward {
   id: string;
@@ -34,6 +33,4 @@ export interface ExpeditionReward {
   };
   credits?: number;
   xp?: number;
-  blueprint?: ShipBlueprint;
-  component?: ShipComponent;
 }

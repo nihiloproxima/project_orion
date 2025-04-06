@@ -1,6 +1,6 @@
 import { StructureType } from '@/models/planet';
 import { auth } from './firebase';
-import { MissionType } from 'shared-types';
+import { MissionType, ShipType } from 'shared-types';
 
 function getAuthToken() {
 	return auth.currentUser?.getIdToken();
@@ -52,11 +52,11 @@ export const api = {
 			intent: intent,
 		});
 	},
-	buildShip: async (planetId: string, blueprintId: string, componentsIds: string[]) => {
+	buildShip: async (planetId: string, shipType: ShipType, buildCount: number) => {
 		return post('game', 'buildShip', {
 			planet_id: planetId,
-			blueprint_id: blueprintId,
-			components_ids: componentsIds,
+			ship_type: shipType,
+			count: buildCount,
 		});
 	},
 	renameShip: async (shipId: string, newName: string) => {

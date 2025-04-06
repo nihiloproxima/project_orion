@@ -1,10 +1,10 @@
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
-import { ShipyardQueue, Planet } from 'shared-types';
+import { DefenseFactoryQueue, Planet } from 'shared-types';
 
-export function parseShipyardQueue(planetId: Planet['id'], doc: DocumentSnapshot): ShipyardQueue {
+export function parseDefenseFactoryQueue(planetId: Planet['id'], doc: DocumentSnapshot): DefenseFactoryQueue {
 	const data = doc.data();
 
-	const defaultData: ShipyardQueue = {
+	const defaultData: DefenseFactoryQueue = {
 		planet_id: planetId,
 		commands: [],
 		capacity: 1,

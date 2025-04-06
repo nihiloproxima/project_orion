@@ -1,7 +1,16 @@
-import { MissionType, Ship } from "./ship";
 import { Planet, ResourceType } from "./planet";
 import { User } from "./user";
-import { Timestamp } from ".";
+import { ShipType, Timestamp } from ".";
+
+export type MissionType =
+  | "transport"
+  | "colonize"
+  | "attack"
+  | "spy"
+  | "recycle"
+  | "delivery"
+  | "move"
+  | "expedition";
 
 export type ResourcePayload = {
   [key in ResourceType]?: number;
@@ -11,8 +20,9 @@ export interface FleetMovement {
   id: string;
   owner_id: string;
   owner_name: string;
-  ships: Array<Partial<Ship>>;
-  ship_ids: string[];
+  ships: {
+    [shipType in ShipType]?: number;
+  };
   origin: {
     planet_id: Planet["id"];
     planet_name: Planet["name"];

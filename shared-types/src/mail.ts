@@ -1,6 +1,6 @@
-import { ResearchInfo, ResourcesInfo, ShipInfo, StructureInfo } from "./report";
-import { MissionType } from "./ship";
-import { Timestamp } from ".";
+import { ResearchInfo, ResourcesInfo, StructureInfo } from "./report";
+
+import { MissionType, ShipType, Timestamp } from ".";
 
 export type MailCategory = "reports" | "messages" | "missions";
 export type MailType =
@@ -39,7 +39,9 @@ export interface SpyMail extends BaseMail {
     resources: ResourcesInfo;
     structures: StructureInfo[];
     research: ResearchInfo[];
-    ships: ShipInfo[];
+    ships: {
+      [shipType in ShipType]?: number;
+    };
   };
 }
 
@@ -60,14 +62,22 @@ export interface CombatMail extends BaseMail {
     attackers: Array<{
       user_id: string;
       name: string;
-      ships: ShipInfo[];
-      losses: ShipInfo[];
+      ships: {
+        [shipType in ShipType]?: number;
+      };
+      losses: {
+        [shipType in ShipType]?: number;
+      };
     }>;
     defenders: Array<{
       user_id: string;
       name: string;
-      ships: ShipInfo[];
-      losses: ShipInfo[];
+      ships: {
+        [shipType in ShipType]?: number;
+      };
+      losses: {
+        [shipType in ShipType]?: number;
+      };
     }>;
     result: "attacker_victory" | "defender_victory" | "draw";
     loot?: {
@@ -91,7 +101,9 @@ export interface MissionMail extends BaseMail {
         deuterium?: number;
         microchips?: number;
       };
-      ships?: ShipInfo[];
+      ships?: {
+        [shipType in ShipType]?: number;
+      };
       experience?: number;
     };
   };
