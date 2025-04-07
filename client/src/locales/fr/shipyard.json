@@ -5,7 +5,8 @@
 		"title": "ACCÈS REFUSÉ",
 		"error_code": "[CODE D'ERREUR: AUCUN CHANTIER SPATIAL DÉTECTÉ]",
 		"message": "Structure de chantier spatial requise pour la construction de vaisseaux.",
-		"action": "Veuillez construire un chantier spatial pour accéder aux capacités de construction de vaisseaux."
+		"action": "Veuillez construire un chantier spatial pour accéder aux capacités de construction de vaisseaux.",
+		"standby": "MODE STANDBY ACTIVÉ"
 	},
 	"queue": {
 		"title": "File de Production",
@@ -56,5 +57,44 @@
 		"credits": "Crédits",
 		"metal": "Métal",
 		"deuterium": "Deutérium"
+	},
+	"categories": {
+		"civilian": {
+			"name": "VAISSEAUX CIVILS",
+			"description": "Vaisseaux non-combattants pour la logistique et l'expansion"
+		},
+		"military": {
+			"name": "VAISSEAUX MILITAIRES",
+			"description": "Vaisseaux de combat pour la guerre et la défense"
+		},
+		"special": {
+			"name": "VAISSEAUX SPÉCIAUX",
+			"description": "Vaisseaux spécialisés pour des opérations spécifiques"
+		}
+	},
+	"grid_view": {
+		"title": "Vue en Grille",
+		"single": "Colonne Unique",
+		"two": "Deux Colonnes",
+		"three": "Trois Colonnes",
+		"four": "Quatre Colonnes"
+	},
+	"select_category": {
+		"prompt": "SÉLECTIONNER_CATÉGORIE:",
+		"placeholder": "Sélectionner une catégorie",
+		"default_message": "SÉLECTIONNEZ UNE CATÉGORIE POUR VOIR LES VAISSEAUX DISPONIBLES"
+	},
+	"ship_stats": {
+		"speed": "Vitesse",
+		"defense": "Défense",
+		"attack": "Attaque",
+		"cargo": "Cargo",
+		"build_time": "Temps de Construction"
+	},
+	"build": {
+		"queue_full": "File de construction pleine (maximum {{capacity}})",
+		"requires_shipyard": "Nécessite un Chantier Spatial niveau {{level}}",
+		"missing_tech": "Technologies Requises Manquantes:",
+		"build_ships": "Construire des Vaisseaux"
 	}
 }

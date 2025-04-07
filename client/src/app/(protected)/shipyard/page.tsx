@@ -42,6 +42,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { doc } from 'firebase/firestore';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const QUEUE_CAPACITY = 5;
 
@@ -54,7 +55,7 @@ const SHIP_CATEGORIES: Record<string, { name: string; description: string; types
 	military: {
 		name: 'MILITARY_SHIPS',
 		description: 'Combat vessels for warfare and defense',
-		types: ['cruiser'] as ShipType[],
+		types: ['cruiser', 'destroyer', 'battleship', 'interceptor', 'death_star'] as ShipType[],
 	},
 	special: {
 		name: 'SPECIAL_SHIPS',
@@ -429,6 +430,7 @@ function DesktopCategories({ selectedCategory, setSelectedCategory }: any) {
 
 export default function Shipyard() {
 	const { state } = useGame();
+	const { t } = useTranslation('shipyard');
 	const [selectedCategory, setSelectedCategory] = useState<string>('civilian');
 	const [shipyardQueue, shipyardQueueLoading] = useDocumentData<ShipyardQueue>(
 		doc(
@@ -461,15 +463,24 @@ export default function Shipyard() {
 
 	if (!hasShipyard || (!shipyardQueue && !shipyardQueueLoading)) {
 		return (
-			<div className="flex flex-col items-center justify-center h-[80vh] space-y-6 text-center">
-				<AlertTriangle className="w-16 h-16 text-red-500 animate-pulse" />
-				<div className="space-y-2">
-					<h2 className="text-2xl font-bold text-red-500">ACCESS DENIED</h2>
-					<div className="font-mono text-sm text-muted-foreground max-w-md">
-						<p className="mb-2">[ERROR CODE: NO_SHIPYARD_DETECTED]</p>
-						<p>Shipyard structure required for spacecraft construction.</p>
-						<p>Please construct a shipyard to access ship building capabilities.</p>
+			<div className="min-h-screen bg-background cyber-grid flex items-center justify-center p-4">
+				<div className="max-w-2xl w-full space-y-6 text-center">
+					<div className="animate-pulse">
+						<h2 className="text-4xl font-bold text-red-500 glitch-text">{t('no_shipyard.title')}</h2>
 					</div>
+
+					<div className="bg-black/50 backdrop-blur-sm border-red-500/50 border-2 p-8 rounded-lg space-y-4">
+						<div className="text-xl text-red-400 font-mono">{t('no_shipyard.error_code')}</div>
+
+						<div className="text-muted-foreground font-mono">
+							<p>{t('no_shipyard.message')}</p>
+							<p>{t('no_shipyard.action')}</p>
+						</div>
+
+						<div className="animate-blink text-yellow-500 font-mono mt-8">{t('no_shipyard.standby')}</div>
+					</div>
+
+					<div className="text-sm text-muted-foreground font-mono">{t('no_shipyard.error_code')}</div>
 				</div>
 			</div>
 		);

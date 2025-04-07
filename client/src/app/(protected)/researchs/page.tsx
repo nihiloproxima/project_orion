@@ -27,16 +27,14 @@ import { Button } from '../../../components/ui/button';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import Image from 'next/image';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { ResearchConfig } from '@/models/researchs_config';
+import { ResearchConfig, TechnologyId, Technology } from 'shared-types';
 import { TECHNOLOGIES } from '../../../lib/constants';
-import { TechnologyId } from '../../../models';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
 import researchsCalculations from '@/utils/researchs_calculations';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../contexts/GameContext';
 import { useState } from 'react';
-import { Technology } from '../../../models/user_researchs';
 import utils from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
 

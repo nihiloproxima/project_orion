@@ -5,7 +5,8 @@
 		"title": "ACCESS DENIED",
 		"error_code": "[ERROR CODE: NO_SHIPYARD_DETECTED]",
 		"message": "Shipyard structure required for spacecraft construction.",
-		"action": "Please construct a shipyard to access ship building capabilities."
+		"action": "Please construct a shipyard to access ship building capabilities.",
+		"standby": "STANDBY MODE ACTIVATED"
 	},
 	"queue": {
 		"title": "Production Queue",
@@ -56,5 +57,44 @@
 		"credits": "Credits",
 		"metal": "Metal",
 		"deuterium": "Deuterium"
+	},
+	"categories": {
+		"civilian": {
+			"name": "CIVILIAN_SHIPS",
+			"description": "Non-combat vessels for logistics and expansion"
+		},
+		"military": {
+			"name": "MILITARY_SHIPS",
+			"description": "Combat vessels for warfare and defense"
+		},
+		"special": {
+			"name": "SPECIAL_SHIPS",
+			"description": "Specialized vessels for specific operations"
+		}
+	},
+	"grid_view": {
+		"title": "Grid View",
+		"single": "Single Column",
+		"two": "Two Columns",
+		"three": "Three Columns",
+		"four": "Four Columns"
+	},
+	"select_category": {
+		"prompt": "SELECT_CATEGORY:",
+		"placeholder": "Select category",
+		"default_message": "SELECT A CATEGORY TO VIEW AVAILABLE SHIPS"
+	},
+	"ship_stats": {
+		"speed": "Speed",
+		"defense": "Defense",
+		"attack": "Attack",
+		"cargo": "Cargo",
+		"build_time": "Build Time"
+	},
+	"build": {
+		"queue_full": "Build queue is full ({{capacity}} max)",
+		"requires_shipyard": "Requires Shipyard Level {{level}}",
+		"missing_tech": "Missing Technology Requirements:",
+		"build_ships": "Build Ships"
 	}
 }

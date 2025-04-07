@@ -431,7 +431,7 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 			// Get galaxy numbers
 			const originGalaxy = Math.floor(fleetMovement.origin.coordinates.x / 10000);
 			const destGalaxy = Math.floor(fleetMovement.destination.coordinates.x / 10000);
-			const currentGalaxy = Math.floor(state.currentGalaxy);
+			const currentGalaxy = state.selectedPlanet!.position.galaxy;
 
 			// Calculate positions relative to current galaxy view
 			let startX = fleetMovement.origin.coordinates.x;
