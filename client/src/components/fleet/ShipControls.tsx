@@ -1,5 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/hooks/useTranslation';
+import { SHIP_ASSETS } from '@/lib/constants';
 
 interface ShipControlsProps {
 	shipTypeFilter: string;
@@ -8,6 +9,9 @@ interface ShipControlsProps {
 
 export const ShipControls = ({ shipTypeFilter, setShipTypeFilter }: ShipControlsProps) => {
 	const { t } = useTranslation('fleet');
+	const { t: tShipyard } = useTranslation('shipyard');
+
+	const shipTypes = Object.keys(SHIP_ASSETS);
 
 	return (
 		<div className="flex flex-wrap gap-4 mb-4">
@@ -22,11 +26,11 @@ export const ShipControls = ({ shipTypeFilter, setShipTypeFilter }: ShipControls
 				</SelectTrigger>
 				<SelectContent>
 					<SelectItem value="all">{t('filter.all')}</SelectItem>
-					<SelectItem value="battle_ship">{t('filter.battle_ship')}</SelectItem>
-					<SelectItem value="transport">{t('filter.transport')}</SelectItem>
-					<SelectItem value="colony">{t('filter.colony')}</SelectItem>
-					<SelectItem value="recycler">{t('filter.recycler')}</SelectItem>
-					<SelectItem value="spy">{t('filter.spy')}</SelectItem>
+					{shipTypes.map((type) => (
+						<SelectItem key={type} value={type}>
+							{tShipyard(`ships.${type}.name`)}
+						</SelectItem>
+					))}
 				</SelectContent>
 			</Select>
 		</div>

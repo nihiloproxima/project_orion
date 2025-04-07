@@ -45,7 +45,8 @@
 		"crew_capacity": "Crew Capacity",
 		"critical_chance": "Critical Hit Chance",
 		"fire_rate": "Fire Rate",
-		"initiative": "Initiative"
+		"initiative": "Initiative",
+		"build_time": "Build Time"
 	},
 	"rarity": {
 		"common": "Common",
@@ -56,7 +57,8 @@
 	"resources": {
 		"credits": "Credits",
 		"metal": "Metal",
-		"deuterium": "Deuterium"
+		"deuterium": "Deuterium",
+		"microchips": "Microchips"
 	},
 	"categories": {
 		"civilian": {
@@ -84,17 +86,58 @@
 		"placeholder": "Select category",
 		"default_message": "SELECT A CATEGORY TO VIEW AVAILABLE SHIPS"
 	},
-	"ship_stats": {
-		"speed": "Speed",
-		"defense": "Defense",
-		"attack": "Attack",
-		"cargo": "Cargo",
-		"build_time": "Build Time"
-	},
 	"build": {
 		"queue_full": "Build queue is full ({{capacity}} max)",
 		"requires_shipyard": "Requires Shipyard Level {{level}}",
 		"missing_tech": "Missing Technology Requirements:",
-		"build_ships": "Build Ships"
+		"build_ships": "Add to Construction Queue"
+	},
+	"ships": {
+		"colonizer": {
+			"name": "Colony Ship",
+			"description": "Required for expanding to new planets. The ship is dismantled when it reaches its destination."
+		},
+		"transporter": {
+			"name": "Transporter",
+			"description": "Moves resources between planets."
+		},
+		"spy_probe": {
+			"name": "Spy Probe",
+			"description": "Gathers intelligence on other planets. Can detect resource levels and structures."
+		},
+		"recycler": {
+			"name": "Recycler",
+			"description": "Specialized for collecting debris after battles."
+		},
+		"cruiser": {
+			"name": "Cruiser",
+			"description": "Fast and powerful combat vessels. Excellent for both attack and defense."
+		},
+		"destroyer": {
+			"name": "Destroyer",
+			"description": "Heavy-duty combat vessels with advanced weaponry and defense systems."
+		},
+		"battleship": {
+			"name": "Battleship",
+			"description": "Large and powerful warships for fleet engagements and planetary conquests."
+		},
+		"interceptor": {
+			"name": "Interceptor",
+			"description": "Fast and agile combat vessels for quick engagements and evasion."
+		},
+		"death_star": {
+			"name": "Death Star",
+			"description": "The ultimate weapon of destruction, capable of leveling entire planets."
+		}
+	},
+	"queue_display": {
+		"remaining_ships": "Remaining ships: {{count}}"
+	},
+	"ship_inventory": {
+		"title": "FLEET INVENTORY",
+		"available": "Available",
+		"select_amount": "Select amount",
+		"start_mission": "Start Mission",
+		"no_ships": "No ships available. Build some ships to begin your fleet."
 	}
 }

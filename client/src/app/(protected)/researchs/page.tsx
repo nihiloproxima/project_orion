@@ -95,7 +95,7 @@ function ResearchCard({
 			return tResearchs('card.button.capacity_reached');
 		}
 		if (!prerequisitesMet) return tResearchs('card.button.prerequisites_not_met');
-		if (!hasEnoughResources) return tResearchs('card.button.not_enough_resources');
+		if (!hasEnoughResources) return tResearchs('card.button.resources');
 		return tResearchs('card.button.research');
 	};
 

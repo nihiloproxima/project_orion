@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Ship, MissionType } from '@/models/ship';
+import { MissionType, Planet } from 'shared-types';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -11,17 +11,16 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Clock, Rocket, Target } from 'lucide-react';
 import { api } from '@/lib/api';
 import { GalaxyMap } from '@/components/ThreeMap/GalaxyMap';
-import { Planet } from '@/models/planet';
 import fleetCalculations from '@/utils/fleet_calculations';
 import utils from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 
-interface MissionSetupViewProps {
-	ships: Ship[];
+type MissionSetupViewProps = {
+	shipSelections: Record<string, number>;
 	onBack: () => void;
-}
+};
 
-export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
+export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewProps) => {
 	const { t: commonT } = useTranslation('');
 	const { t } = useTranslation('fleet');
 	const { state } = useGame();
@@ -38,8 +37,11 @@ export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 		microchips: 0,
 	});
 
-	// Calculate total cargo capacity
-	const totalCargoCapacity = ships.reduce((total, ship) => total + (ship.stats.capacity || 0), 0);
+	// Calculate total cargo capacity from all selected ships
+	const totalCargoCapacity = Object.entries(shipSelections).reduce((total, [type, count]) => {
+		const shipConfig = state.gameConfig?.ships.find((s) => s.type === type);
+		return total + (shipConfig?.capacity || 0) * count;
+	}, 0);
 	const totalResourcesSelected = resources.metal + resources.deuterium + resources.microchips;
 
 	useEffect(() => {
@@ -56,9 +58,15 @@ export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 	useEffect(() => {
 		if (!selectedTarget || !state.selectedPlanet || !state.gameConfig) return;
 
+		const shipTypes = Object.entries(shipSelections).map(([type]) => {
+			const ship = state.gameConfig?.ships.find((s) => s.type === type);
+			if (!ship) throw new Error(`Ship type ${type} not found`);
+			return ship;
+		});
+
 		const { arrivalTime, travelTimeSeconds } = fleetCalculations.calculateFleetArrivalTime(
 			state.gameConfig,
-			ships,
+			shipTypes,
 			state.selectedPlanet.position,
 			selectedTarget.position
 		);
@@ -67,21 +75,24 @@ export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 			arrivalTime: new Date(arrivalTime.toMillis()),
 			travelTimeSeconds,
 		});
-	}, [selectedTarget, ships, state.selectedPlanet, state.gameConfig]);
+	}, [selectedTarget, shipSelections, state.selectedPlanet, state.gameConfig]);
 
-	// Get common available missions between all ships
+	// Get common available missions between all ship types
 	const availableMissions = Array.from(
 		new Set(
-			ships.flatMap((ship): MissionType[] => {
+			Object.entries(shipSelections).flatMap(([type]): MissionType[] => {
 				const missionsByType = {
-					battle_ship: ['attack', 'move'] as MissionType[],
-					transport: ['transport', 'move'] as MissionType[],
-					colony: ['colonize', 'move'] as MissionType[],
-					spy: ['spy', 'move'] as MissionType[],
+					battleship: ['attack', 'move'] as MissionType[],
+					cruiser: ['attack', 'move'] as MissionType[],
+					destroyer: ['attack', 'move'] as MissionType[],
+					interceptor: ['attack', 'move'] as MissionType[],
+					transporter: ['transport', 'move'] as MissionType[],
+					colonizer: ['colonize', 'move'] as MissionType[],
+					spy_probe: ['spy', 'move'] as MissionType[],
 					recycler: ['recycle', 'expedition', 'move'] as MissionType[],
-				};
+				} as const;
 
-				return missionsByType[ship.type] || ['move'];
+				return (missionsByType as any)[type] || ['move'];
 			})
 		)
 	);
@@ -103,16 +114,16 @@ export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 	};
 
 	const handleStartMission = async () => {
-		if (!selectedMission || !selectedTarget) return;
+		if (!selectedMission || !selectedTarget || !state.selectedPlanet) return;
 
 		setIsLoading(true);
 		try {
-			// Start mission for each ship
+			// Start mission with ship types and counts
 			await api.startMission({
-				ship_ids: ships.map((s) => s.id),
+				ship_ids: Object.entries(shipSelections).flatMap(([type, count]) => Array(count).fill(type)),
 				mission_type: selectedMission,
 				target_id: selectedTarget.id,
-				origin_planet_id: state.selectedPlanet!.id,
+				origin_planet_id: state.selectedPlanet.id,
 				resources: resources,
 			});
 
@@ -141,20 +152,24 @@ export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 						<ArrowLeft className="h-4 w-4" />
 						{commonT('back')}
 					</Button>
-					<h2 className="text-xl font-bold">{t('mission_setup.title', { ship: `${ships.length} ships` })}</h2>
+					<h2 className="text-xl font-bold">
+						{t('mission_setup.title', {
+							ship: `${Object.values(shipSelections).reduce((a, b) => a + b, 0)} ships`,
+						})}
+					</h2>
 				</div>
 			</div>
 
 			{/* Ships Info Card */}
 			<Card className="p-4">
 				<div className="space-y-4">
-					{ships.map((ship) => (
-						<div key={ship.id} className="grid grid-cols-3 gap-4">
+					{Object.entries(shipSelections).map(([type, count]) => (
+						<div key={type} className="grid grid-cols-3 gap-4">
 							<div className="flex items-center gap-2">
 								<Rocket className="h-4 w-4 text-primary" />
 								<div className="text-sm">
-									<div className="font-medium">{ship.name}</div>
-									<div>{ship.type.charAt(0).toUpperCase() + ship.type.slice(1)}</div>
+									<div className="font-medium">{type}</div>
+									<div>Count: {count}</div>
 								</div>
 							</div>
 
@@ -163,7 +178,8 @@ export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 								<div className="text-sm">
 									<div className="font-medium">{t('ship.stats.range')}</div>
 									<div>
-										{ship.stats.speed * 10} {t('units.light_years')}
+										{state.gameConfig?.ships.find((s) => s.type === type)?.speed ?? 0 * 10}{' '}
+										{t('units.light_years')}
 									</div>
 								</div>
 							</div>
@@ -171,7 +187,9 @@ export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 							<div className="flex items-center gap-2">
 								<div className="text-sm">
 									<div className="font-medium">Cargo Capacity</div>
-									<div>{ship.stats.capacity || 0}</div>
+									<div>
+										{(state.gameConfig?.ships.find((s) => s.type === type)?.capacity || 0) * count}
+									</div>
 								</div>
 							</div>
 						</div>
@@ -240,7 +258,7 @@ export const MissionSetupView = ({ ships, onBack }: MissionSetupViewProps) => {
 						</SelectTrigger>
 						<SelectContent>
 							{availableMissions.map((mission) => (
-								<SelectItem key={mission} value={mission}>
+								<SelectItem key={mission as string} value={mission as string}>
 									{t(`mission_setup.types.${mission}`)}
 								</SelectItem>
 							))}

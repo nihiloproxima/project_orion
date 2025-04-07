@@ -73,7 +73,9 @@
 			"repair": "Repair",
 			"scrap": "Scrap Ship",
 			"send_in_mission": "Send in mission"
-		}
+		},
+		"available": "Available",
+		"selected": "Selected"
 	},
 	"pagination": {
 		"page": "Page",

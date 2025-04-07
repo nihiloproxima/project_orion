@@ -45,7 +45,8 @@
 		"crew_capacity": "Capacité d'Équipage",
 		"critical_chance": "Chance de Coup Critique",
 		"fire_rate": "Cadence de Tir",
-		"initiative": "Initiative"
+		"initiative": "Initiative",
+		"build_time": "Temps de Construction"
 	},
 	"rarity": {
 		"common": "Commun",
@@ -56,7 +57,8 @@
 	"resources": {
 		"credits": "Crédits",
 		"metal": "Métal",
-		"deuterium": "Deutérium"
+		"deuterium": "Deutérium",
+		"microchips": "Micropuces"
 	},
 	"categories": {
 		"civilian": {
@@ -84,17 +86,58 @@
 		"placeholder": "Sélectionner une catégorie",
 		"default_message": "SÉLECTIONNEZ UNE CATÉGORIE POUR VOIR LES VAISSEAUX DISPONIBLES"
 	},
-	"ship_stats": {
-		"speed": "Vitesse",
-		"defense": "Défense",
-		"attack": "Attaque",
-		"cargo": "Cargo",
-		"build_time": "Temps de Construction"
-	},
 	"build": {
 		"queue_full": "File de construction pleine (maximum {{capacity}})",
 		"requires_shipyard": "Nécessite un Chantier Spatial niveau {{level}}",
 		"missing_tech": "Technologies Requises Manquantes:",
-		"build_ships": "Construire des Vaisseaux"
+		"build_ships": "Ajouter à la file"
+	},
+	"ships": {
+		"colonizer": {
+			"name": "Vaisseau de Colonisation",
+			"description": "Nécessaire pour l'expansion vers de nouvelles planètes. Le vaisseau est démantelé lorsqu'il atteint sa destination."
+		},
+		"transporter": {
+			"name": "Transporteur",
+			"description": "Déplace les ressources entre les planètes."
+		},
+		"spy_probe": {
+			"name": "Sonde d'Espionnage",
+			"description": "Recueille des renseignements sur d'autres planètes. Peut détecter les niveaux de ressources et les structures."
+		},
+		"recycler": {
+			"name": "Recycleur",
+			"description": "Spécialisé dans la collecte de débris après les batailles."
+		},
+		"cruiser": {
+			"name": "Croiseur",
+			"description": "Vaisseaux de combat rapides et puissants. Excellent pour l'attaque et la défense."
+		},
+		"destroyer": {
+			"name": "Destructeur",
+			"description": "Vaisseaux de combat lourds avec systèmes d'armement et de défense avancés."
+		},
+		"battleship": {
+			"name": "Vaisseau de Bataille",
+			"description": "Grands navires de guerre puissants pour les engagements de flotte et les conquêtes planétaires."
+		},
+		"interceptor": {
+			"name": "Intercepteur",
+			"description": "Vaisseaux de combat rapides et agiles pour des engagements rapides et l'évasion."
+		},
+		"death_star": {
+			"name": "Étoile de la Mort",
+			"description": "L'arme ultime de destruction, capable de raser des planètes entières."
+		}
+	},
+	"queue_display": {
+		"remaining_ships": "Vaisseaux restants: {{count}}"
+	},
+	"ship_inventory": {
+		"title": "INVENTAIRE DE LA FLOTTE",
+		"available": "Disponible",
+		"select_amount": "Sélectionner quantité",
+		"start_mission": "Démarrer Mission",
+		"no_ships": "Aucun vaisseau disponible. Construisez des vaisseaux pour commencer votre flotte."
 	}
 }

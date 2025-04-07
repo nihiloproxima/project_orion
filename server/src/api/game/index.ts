@@ -1,5 +1,4 @@
 export * from './build_ship';
-export * from './claim_ship_from_shipyard';
 export * from './collect_reward';
 export * from './create_user';
 export * from './get_planets';

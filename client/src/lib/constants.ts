@@ -1,4 +1,4 @@
-import { ResearchCategory, StructureType } from 'shared-types';
+import { ResearchCategory, ShipType, StructureType } from 'shared-types';
 import { TechnologyId } from 'shared-types';
 
 export const STRUCTURE_INFO: Record<
@@ -154,5 +154,71 @@ export const TECHNOLOGIES: Record<
 		image: 'enhanced_mining.png',
 		descriptionKey: 'metal_production_boost.description',
 		category: 'resource',
+	},
+};
+
+export const SHIP_CATEGORIES: Record<string, { nameKey: string; descriptionKey: string; types: ShipType[] }> = {
+	civilian: {
+		nameKey: 'categories.civilian.name',
+		descriptionKey: 'categories.civilian.description',
+		types: ['colonizer', 'transporter'] as ShipType[],
+	},
+	military: {
+		nameKey: 'categories.military.name',
+		descriptionKey: 'categories.military.description',
+		types: ['cruiser', 'destroyer', 'battleship', 'interceptor', 'death_star'] as ShipType[],
+	},
+	special: {
+		nameKey: 'categories.special.name',
+		descriptionKey: 'categories.special.description',
+		types: ['spy_probe', 'recycler_ship'] as ShipType[],
+	},
+};
+
+export const SHIP_ASSETS: Record<ShipType, { nameKey: string; image: string; descriptionKey: string }> = {
+	colonizer: {
+		nameKey: 'ships.colonizer.name',
+		image: `images/ships/colonizer.webp`,
+		descriptionKey: 'ships.colonizer.description',
+	},
+	transporter: {
+		nameKey: 'ships.transporter.name',
+		image: `images/ships/transporter.webp`,
+		descriptionKey: 'ships.transporter.description',
+	},
+	spy_probe: {
+		nameKey: 'ships.spy_probe.name',
+		image: `images/ships/spy_probe.webp`,
+		descriptionKey: 'ships.spy_probe.description',
+	},
+	recycler: {
+		nameKey: 'ships.recycler.name',
+		image: `images/ships/recycler.webp`,
+		descriptionKey: 'ships.recycler.description',
+	},
+	cruiser: {
+		nameKey: 'ships.cruiser.name',
+		image: `images/ships/cruiser.webp`,
+		descriptionKey: 'ships.cruiser.description',
+	},
+	destroyer: {
+		nameKey: 'ships.destroyer.name',
+		image: `images/ships/destroyer.webp`,
+		descriptionKey: 'ships.destroyer.description',
+	},
+	battleship: {
+		nameKey: 'ships.battleship.name',
+		image: `images/ships/battleship.webp`,
+		descriptionKey: 'ships.battleship.description',
+	},
+	interceptor: {
+		nameKey: 'ships.interceptor.name',
+		image: `images/ships/interceptor.webp`,
+		descriptionKey: 'ships.interceptor.description',
+	},
+	death_star: {
+		nameKey: 'ships.death_star.name',
+		image: `images/ships/death_star.webp`,
+		descriptionKey: 'ships.death_star.description',
 	},
 };

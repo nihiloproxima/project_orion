@@ -73,7 +73,9 @@
 			"repair": "Réparer",
 			"scrap": "Démanteler",
 			"send_in_mission": "Envoyer en mission"
-		}
+		},
+		"available": "Disponible",
+		"selected": "Sélectionné"
 	},
 	"pagination": {
 		"page": "Page",
