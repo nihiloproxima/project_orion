@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Earth, Edit, ImageIcon, Trophy, User as User
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../../components/ui/dialog';
 import { cardVariants, containerVariants, itemVariants } from '@/lib/animations';
 import { useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { Button } from '../../../../components/ui/button';
 import Image from 'next/image';
@@ -22,8 +23,11 @@ import { db, withIdConverter } from '@/lib/firebase';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Planet } from 'shared-types';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function UserProfilePage() {
+	const { theme, setTheme } = useTheme();
+
 	const params = useParams();
 	const userId = params.userId as string;
 	const { state } = useGame();
@@ -89,14 +93,32 @@ export default function UserProfilePage() {
 				{isCurrentUser && (
 					<div className="flex items-center gap-4">
 						<LanguageSelector />
-						<Button
-							variant="default"
-							size="icon"
-							className="rounded-full"
-							onClick={() => setIsAvatarDialogOpen(true)}
-						>
-							<ImageIcon className="h-4 w-4" />
-						</Button>
+
+						<Select defaultValue={theme} onValueChange={setTheme}>
+							<SelectTrigger className="w-full bg-black border-primary/30 text-primary hover:border-primary/60 transition-colors">
+								<SelectValue placeholder={t('common', 'theme.select')} />
+							</SelectTrigger>
+							<SelectContent className="bg-black/95 border-primary/30">
+								{[
+									{
+										value: 'default',
+										label: t('common', 'theme.matrix_green'),
+										color: 'emerald',
+									},
+									{ value: 'purple', label: t('common', 'theme.neon_purple'), color: 'purple' },
+									{ value: 'blue', label: t('common', 'theme.cyber_blue'), color: 'blue' },
+									{ value: 'synthwave', label: t('common', 'theme.synthwave'), color: 'pink' },
+								].map((item) => (
+									<SelectItem
+										key={item.value}
+										value={item.value}
+										className={`text-${item.color}-400 hover:bg-${item.color}-500/20`}
+									>
+										{`> ${item.label}`}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
 				)}
 			</motion.div>

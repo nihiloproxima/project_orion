@@ -2,10 +2,8 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Button } from './ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import {
 	LogOut,
 	Terminal,
@@ -61,7 +59,6 @@ const NavLink = ({ item, badge }: { item: any; badge?: number }) => {
 export function Sidebar() {
 	const { logout } = useAuth();
 	const { state } = useGame();
-	const { theme, setTheme } = useTheme();
 	const { t } = useLanguage();
 	const router = useRouter();
 
@@ -199,31 +196,6 @@ export function Sidebar() {
 			)}
 
 			<div className="mt-auto">
-				{/* Theme selector with cyberpunk styling */}
-				<div className="p-2 md:p-4 border-t border-primary/30">
-					<Select defaultValue={theme} onValueChange={setTheme}>
-						<SelectTrigger className="w-full bg-black border-primary/30 text-primary hover:border-primary/60 transition-colors">
-							<SelectValue placeholder={t('common', 'theme.select')} />
-						</SelectTrigger>
-						<SelectContent className="bg-black/95 border-primary/30">
-							{[
-								{ value: 'default', label: t('common', 'theme.matrix_green'), color: 'emerald' },
-								{ value: 'purple', label: t('common', 'theme.neon_purple'), color: 'purple' },
-								{ value: 'blue', label: t('common', 'theme.cyber_blue'), color: 'blue' },
-								{ value: 'synthwave', label: t('common', 'theme.synthwave'), color: 'pink' },
-							].map((item) => (
-								<SelectItem
-									key={item.value}
-									value={item.value}
-									className={`text-${item.color}-400 hover:bg-${item.color}-500/20`}
-								>
-									{`> ${item.label}`}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-
 				{/* Logout section with warning styling */}
 				<div className="p-2 md:p-4 border-t border-red-500/30">
 					<Button

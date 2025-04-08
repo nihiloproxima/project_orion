@@ -2,8 +2,6 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import { Locale, resources, defaultLocale } from '../locales';
-import { api } from '../lib/api';
-import { useAuth } from './AuthContext';
 
 type LanguageContextType = {
 	locale: Locale;
@@ -18,7 +16,6 @@ const LanguageContext = createContext<LanguageContextType>({
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-	const { authedUser } = useAuth();
 	const [locale, setLocaleState] = useState<Locale>(() => {
 		if (typeof window !== 'undefined') {
 			const savedLocale = localStorage.getItem('app-locale');
@@ -31,15 +28,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 	const setLocale = async (newLocale: Locale) => {
 		setLocaleState(newLocale);
 		localStorage.setItem('app-locale', newLocale);
-
-		// If user is authenticated, save preference to their profile
-		if (authedUser) {
-			try {
-				await api.updateUserLanguage(newLocale);
-			} catch (error) {
-				console.error('Failed to update user language preference:', error);
-			}
-		}
 	};
 
 	// Translation function
