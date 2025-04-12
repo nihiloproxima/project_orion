@@ -10,7 +10,7 @@ RUN npm run build
 
 # Build main application
 WORKDIR /app
-COPY . .
+COPY server/ .
 RUN npm install
 RUN npm run build
 

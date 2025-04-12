@@ -5,7 +5,9 @@ services:
     restart: always
 
   backend:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     working_dir: /app
     command: ["node", "build/server.js"]
     environment:
@@ -17,7 +19,9 @@ services:
     restart: always
 
   worker:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     working_dir: /app
     command: ["node", "build/worker/worker.js"]
     environment:
@@ -29,7 +33,9 @@ services:
     restart: always
 
   frontend:
-    build: ./client
+    build:
+      context: .
+      dockerfile: client/Dockerfile
     volumes:
       - ./shared-types:/app/shared-types
     depends_on:
