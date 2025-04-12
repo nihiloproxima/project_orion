@@ -60,6 +60,7 @@ export default function SecureCommunications() {
 				data: {
 					action: t('onboarding.welcome_1.action'),
 					priority: t('onboarding.welcome_1.priority'),
+					link: '/dashboard',
 				},
 				ttl: Timestamp.fromMillis(1000 * 60 * 60 * 24 * 30),
 			},
@@ -144,9 +145,10 @@ export default function SecureCommunications() {
 		}
 	};
 
-	const displayedMails = !state.selectedPlanet
-		? onboardingMails
-		: mails?.filter((mail) => activeCategory === 'all' || mail.type === activeCategory) || [];
+	const displayedMails =
+		state.currentUser?.onboarding_step === 'check-mails'
+			? onboardingMails
+			: mails?.filter((mail) => activeCategory === 'all' || mail.type === activeCategory) || [];
 
 	return (
 		<div className="space-y-6">
@@ -278,7 +280,7 @@ export default function SecureCommunications() {
 											</Button>
 										)}
 									</div>
-									{selectedMail && <MailContent mail={selectedMail as any} />}
+									{selectedMail && <MailContent mail={selectedMail} />}
 								</div>
 							)}
 						</div>

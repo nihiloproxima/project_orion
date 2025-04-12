@@ -1,4 +1,4 @@
-import { StructureType } from 'shared-types';
+import { OnboardingStep, StructureType } from 'shared-types';
 import { auth } from './firebase';
 import { MissionType, ShipType } from 'shared-types';
 
@@ -25,6 +25,9 @@ async function post(group: string, endpoint: string, data: Record<string, any>) 
 }
 
 export const api = {
+	progressOnboarding: async (step: OnboardingStep) => {
+		return post('game', 'progressOnboarding', { step });
+	},
 	syncSeason: async () => {
 		return post('game', 'syncSeason', {});
 	},

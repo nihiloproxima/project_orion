@@ -289,8 +289,8 @@ const planetGenerator = {
 		const MAX_ATTEMPTS = 1000; // Prevent infinite loops
 
 		while (planets.length < PLANETS_PER_GALAXY && attempts < MAX_ATTEMPTS) {
-			const x = Math.random() * WORLD_WIDTH;
-			const y = Math.random() * WORLD_HEIGHT;
+			const x = Math.floor(Math.random() * WORLD_WIDTH);
+			const y = Math.floor(Math.random() * WORLD_HEIGHT);
 			const radius = MIN_PLANET_RADIUS + Math.random() * (MAX_PLANET_RADIUS - MIN_PLANET_RADIUS);
 			const name = planetGenerator.generatePlanetName(usedNames);
 

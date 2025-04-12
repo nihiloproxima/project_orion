@@ -41,7 +41,7 @@
 			"sender": "Supreme Council",
 			"title": "Commander Assignment Protocol",
 			"content": "Greetings, Commander.\n\nOn behalf of the Galactic Council, I extend my congratulations on your graduation from the Elite Commander Academy. Your exceptional performance has not gone unnoticed.\n\nAs per protocol, you have been assigned your first command post. The coordinates of your homeworld have been transmitted to your navigation system. This planet will serve as the foundation for your future operations and contributions to our galactic civilization.\n\nThe Council has high expectations for your performance.\n\n[CLICK TO VIEW YOUR ASSIGNED HOMEWORLD]",
-			"action": "choose_homeworld",
+			"action": "Go to dashboard",
 			"priority": "high"
 		},
 		"welcome_2": {

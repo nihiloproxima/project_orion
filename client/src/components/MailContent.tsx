@@ -1,9 +1,10 @@
 import { BaseMail, CombatMail, MissionMail, SpyMail } from 'shared-types';
 import { Beaker, Bell, Building, Eye, MessageSquare, Rocket, Ship, Sword } from 'lucide-react';
-
-import { Button } from './ui/button';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/hooks/useTranslation';
+import { api } from '@/lib/api';
+import { Button } from './ui/button';
 
 interface MailContentProps {
 	mail: BaseMail;
@@ -11,6 +12,15 @@ interface MailContentProps {
 
 export function MailContent({ mail }: MailContentProps) {
 	const router = useRouter();
+
+	const { t } = useTranslation('mail');
+
+	const welcomeMailAction = async () => {
+		await api.progressOnboarding('completed');
+		console.log('progressing onboarding');
+		router.push('/dashboard');
+		console.log('pushing to dashboard');
+	};
 
 	// Spy Mail Handler
 	if (mail.type === 'spy') {
@@ -321,13 +331,13 @@ export function MailContent({ mail }: MailContentProps) {
 						<div className="whitespace-pre-wrap font-mono text-primary/90">{mail.content}</div>
 					)}
 
-					{mail.data.action === 'goto_dashboard' && (
+					{mail.data.link && (
 						<div className="flex justify-center">
 							<Button
-								onClick={() => router.push('/dashboard')}
+								onClick={welcomeMailAction}
 								className="mt-4 animate-pulse bg-primary hover:bg-primary/80 text-lg font-bold"
 							>
-								Choose Your Homeworld
+								{t('onboarding.welcome_1.action')}
 							</Button>
 						</div>
 					)}

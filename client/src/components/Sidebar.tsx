@@ -114,12 +114,6 @@ export function Sidebar() {
 				translationKey: 'fleet',
 				color: 'blue',
 			},
-			// {
-			// 	to: '/trading',
-			// 	icon: ArrowLeftRight,
-			// 	translationKey: 'trading',
-			// 	color: 'green',
-			// },
 		],
 		PLANET: [
 			{
@@ -170,7 +164,7 @@ export function Sidebar() {
 			{!isCreateUserPage && (
 				<div className="flex-1 px-2 md:px-4 overflow-y-auto">
 					<nav className="space-y-1">
-						{state.selectedPlanet && (
+						{state.selectedPlanet && state.currentUser?.onboarding_step === 'completed' && (
 							<>
 								{Object.entries(NAVIGATION_ITEMS).map(([section, items]) => (
 									<div key={section} className="mb-4">

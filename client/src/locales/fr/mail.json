@@ -41,7 +41,7 @@
 			"sender": "Conseil Suprême",
 			"title": "Protocole d'Affectation du Commandant",
 			"content": "Salutations, Commandant.\n\nAu nom du Conseil Galactique, je vous félicite pour votre diplôme de l'Académie d'Élite des Commandants. Votre performance exceptionnelle n'est pas passée inaperçue.\n\nConformément au protocole, vous avez été assigné à votre premier poste de commandement. Les coordonnées de votre monde natal ont été transmises à votre système de navigation. Cette planète servira de fondation pour vos futures opérations et contributions à notre civilisation galactique.\n\nLe Conseil a de grandes attentes concernant vos performances.\n\n[CLIQUEZ POUR VOIR VOTRE MONDE NATAL ASSIGNÉ]",
-			"action": "choose_homeworld",
+			"action": "Aller au tableau de bord",
 			"priority": "high"
 		},
 		"welcome_2": {

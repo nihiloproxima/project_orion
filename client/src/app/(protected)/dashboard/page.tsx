@@ -3,7 +3,7 @@
 import { MessageSquare, Users, MapPin, Ruler, TreePine } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { containerVariants, itemVariants } from '@/lib/animations';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -61,22 +61,10 @@ export default function Dashboard() {
 		}
 	}, [messages]);
 
-	const handleSendMessage = async (e: React.FormEvent) => {
-		e.preventDefault();
-		if (!newMessage.trim()) return;
-
-		try {
-			await api.sendMessage('global', newMessage);
-			setNewMessage('');
-		} catch (error) {
-			console.error('Failed to send message:', error);
-		}
-	};
-
 	useEffect(() => {
 		if (!state.loading) {
 			if (state.currentUser) {
-				if (!state.selectedPlanet && state.userPlanets.length === 0) {
+				if (state.currentUser.onboarding_step === 'check-mails') {
 					router.push('/secure-communications');
 				}
 			} else {
@@ -111,6 +99,18 @@ export default function Dashboard() {
 				return fr;
 			default:
 				return enUS;
+		}
+	};
+
+	const handleSendMessage = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!newMessage.trim()) return;
+
+		try {
+			await api.sendMessage('global', newMessage);
+			setNewMessage('');
+		} catch (error) {
+			console.error('Failed to send message:', error);
 		}
 	};
 
@@ -349,16 +349,29 @@ function OnlineCommandersDialog({ open, onOpenChange }: { open: boolean; onOpenC
 	const { state } = useGame();
 	const { t } = useTranslation('dashboard');
 
-	const [commanders] = useCollectionData(
-		state.activePlayers?.length > 0
-			? query(
-					collection(db, 'users').withConverter(withIdConverter),
-					where('__name__', 'in', state.activePlayers)
-			  )
-			: null
-	);
+	// Memoize the query to prevent recreation on every render
+	const commandersQuery = useMemo(() => {
+		if (!state.activePlayers?.length) return null;
+		return query(
+			collection(db, 'users').withConverter(withIdConverter),
+			where('__name__', 'in', state.activePlayers)
+		);
+	}, [state.activePlayers]); // Only recreate when activePlayers changes
 
-	if (!commanders) return null;
+	// Use the memoized query
+	const [commanders] = useCollectionData(commandersQuery);
+
+	// Memoize the commanders list to prevent unnecessary re-renders of child components
+	const memoizedCommanders = useMemo(() => {
+		if (!commanders) return [];
+		return commanders.map((commander) => ({
+			id: commander.id,
+			name: commander.name,
+			avatar: commander.avatar,
+		}));
+	}, [commanders]); // Only recreate when commanders data changes
+
+	if (!memoizedCommanders.length) return null;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -371,7 +384,7 @@ function OnlineCommandersDialog({ open, onOpenChange }: { open: boolean; onOpenC
 				</DialogHeader>
 				<ScrollArea className="max-h-[60vh]">
 					<div className="space-y-4 pr-4">
-						{commanders.map((commander) => (
+						{memoizedCommanders.map((commander) => (
 							<Link
 								key={commander.id}
 								href={`/user/${commander.id}`}

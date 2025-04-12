@@ -5,8 +5,9 @@ export type UserTitle = string;
 
 export type OnboardingStep =
   | "create_user"
-  | "choose_homeworld"
-  | "build_metal_mine";
+  | "check-mails"
+  | "build_metal_mine"
+  | "completed";
 
 export interface User {
   id: string;

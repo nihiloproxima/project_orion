@@ -77,7 +77,7 @@ export default {
 
 	setUser: async (tx: Transaction, userId: string, data: PartialWithFieldValue<User>) => {
 		const ref = db.collection('users').doc(userId);
-		tx.set(ref, { ...data, updated_at: Timestamp.now() });
+		tx.set(ref, { ...data, updated_at: Timestamp.now() }, { merge: true });
 	},
 
 	updateUser: async (tx: Transaction, userId: string, data: PartialWithFieldValue<User>) => {
