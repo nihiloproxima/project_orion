@@ -17,11 +17,7 @@ const fleetCalculations = {
 		);
 
 		// Calculate distance in 3D space (galaxy, x, y)
-		const distance = Math.sqrt(
-			Math.pow(destination.x - origin.x, 2) +
-				Math.pow(destination.y - origin.y, 2) +
-				Math.pow(destination.galaxy - origin.galaxy, 2)
-		);
+		const distance = Math.sqrt(Math.pow(destination.x - origin.x, 2) + Math.pow(destination.y - origin.y, 2));
 
 		// Compute travel time in seconds based on the slowest speed and gameConfig multiplier
 		const travelTimeSeconds = Math.ceil(distance / slowestSpeed / gameConfig.speed.ships);

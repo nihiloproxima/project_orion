@@ -300,7 +300,7 @@ export default function UserProfilePage() {
 										<CardContent className="p-4">
 											<div className="font-bold text-primary">{planet.name}</div>
 											<div className="text-sm text-muted-foreground">
-												[{planet.position.x}, {planet.position.y}, {planet.position.galaxy}]
+												[{planet.position.x}, {planet.position.y}, {planet.position.chunk}]
 											</div>
 											<div className="text-sm">
 												{t('planets', 'size', { size: planet.radius.toLocaleString() })}

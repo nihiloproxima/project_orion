@@ -9,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from '../../../components/ui/dropdown-menu';
 
-import { Structure, StructureType } from '../../../models';
+import { Structure, StructureType } from 'shared-types';
 
 import { Button } from '../../../components/ui/button';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';

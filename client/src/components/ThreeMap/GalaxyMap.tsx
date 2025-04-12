@@ -604,8 +604,8 @@ const FleetMovementTracker = ({
 			const endTime = fleetMovement.arrival_time.toMillis();
 			const progress = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
 			// Determine in which galaxy the fleet currently is based on travel progress
-			const originGalaxy = fleetMovement.origin.coordinates.galaxy;
-			const destGalaxy = fleetMovement.destination.coordinates.galaxy;
+			const originGalaxy = fleetMovement.origin.coordinates.chunk;
+			const destGalaxy = fleetMovement.destination.coordinates.chunk;
 
 			// If crossing galaxies, determine current galaxy based on progress
 			let currentGalaxy;
@@ -664,10 +664,10 @@ const FleetMovementTracker = ({
 							new Float32Array([
 								fleetMovement.origin.coordinates.x,
 								fleetMovement.origin.coordinates.y,
-								fleetMovement.origin.coordinates.galaxy,
+								fleetMovement.origin.coordinates.chunk,
 								fleetMovement.destination.coordinates.x,
 								fleetMovement.destination.coordinates.y,
-								fleetMovement.destination.coordinates.galaxy,
+								fleetMovement.destination.coordinates.chunk,
 							]),
 							3
 						),
@@ -911,7 +911,7 @@ export const GalaxyMap = ({
 
 	useEffect(() => {
 		const getPlanets = async () => {
-			const data = await api.getPlanets(galaxyFilter, 'all');
+			const data = await api.getPlanets('all');
 			setPlanets(data.planets);
 		};
 

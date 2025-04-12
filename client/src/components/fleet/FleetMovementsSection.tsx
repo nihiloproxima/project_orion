@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowRight, Flame, Gift, Hammer, Microchip, Rocket, X } 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { FleetMovement } from '@/models/fleet_movement';
+import { FleetMovement } from 'shared-types';
 import Image from 'next/image';
 import { Timer } from '@/components/Timer';
 import { useGame } from '@/contexts/GameContext';
@@ -191,20 +191,20 @@ export const FleetMovementsSection = () => {
 
 						{expandedMovement === movement.id && (
 							<>
-								{movement.ships && movement.ships.length > 0 && (
+								{movement.ships && (
 									<div className="text-sm mt-2">
 										<div className="font-semibold mb-1">{t('mission.fleet')}:</div>
 										<div className="grid grid-cols-2 gap-2">
-											{movement.ships.map((ship, index) => (
-												<div key={index} className="flex items-center gap-2">
+											{Object.entries(movement.ships).map(([shipType, amount]) => (
+												<div key={shipType} className="flex items-center gap-2">
 													<Image
-														src={`/images/ships/${ship.type || 'default'}.webp`}
+														src={`/images/ships/${shipType}.webp`}
 														width={24}
 														height={24}
-														alt={ship.type || 'Ship'}
+														alt={shipType || 'Ship'}
 														className="w-6 h-6"
 													/>
-													{ship.type}: {ship.name}
+													{shipType}: {amount}
 												</div>
 											))}
 										</div>

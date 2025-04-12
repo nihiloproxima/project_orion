@@ -10,7 +10,6 @@ import { useGame } from '@/contexts/GameContext';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Clock, Rocket, Target } from 'lucide-react';
 import { api } from '@/lib/api';
-import { GalaxyMap } from '@/components/ThreeMap/GalaxyMap';
 import fleetCalculations from '@/utils/fleet_calculations';
 import utils from '@/lib/utils';
 import { Input } from '@/components/ui/input';

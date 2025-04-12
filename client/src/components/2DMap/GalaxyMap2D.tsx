@@ -180,7 +180,6 @@ const InfoCardComponent = ({ planet, onSelect }: { planet: Planet; onSelect?: ()
 const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement }) => {
 	const { state } = useGame();
 	const [position, setPosition] = useState({ x: 0, y: 0 });
-	const [isVisible, setIsVisible] = useState(true);
 
 	// Determine movement type
 	const isAllyMovement =
@@ -230,8 +229,6 @@ const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement 
 	}, [fleetMovement]);
 
 	const movementColor = getMovementColor();
-
-	if (!isVisible) return null;
 
 	return (
 		<Group>

@@ -23,7 +23,7 @@ export default function GalaxyObservation() {
 			<Card className="border-2 shadow-2xl shadow-primary/20 min-h-0 flex-1">
 				<div className="h-full w-full">
 					{/* <GalaxyMap mode="view-only" galaxyFilter={currentGalaxy} /> */}
-					<GalaxyMap2D />
+					<GalaxyMap2D mode="view-only" />
 				</div>
 			</Card>
 		</div>
