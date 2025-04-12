@@ -35,7 +35,6 @@ export default function CreateUser() {
 		}
 
 		// Check if user already exists in users table
-
 		if (userDoc?.exists()) {
 			router.push('/secure-communications');
 		}

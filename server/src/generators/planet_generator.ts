@@ -1,13 +1,26 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { Planet } from 'shared-types';
 
-const GALAXY_COUNT = 20;
-const PLANETS_PER_GALAXY = 100;
-const GALAXY_SIZE = 10000;
+// World configuration constants
+const WORLD_WIDTH = 1000;
+const WORLD_HEIGHT = 1000;
+const CHUNK_SIZE = 100;
+const PLANETS_PER_GALAXY = 200;
+const MIN_DISTANCE_BETWEEN_PLANETS = 30;
+const MIN_PLANET_RADIUS = 1;
+const MAX_PLANET_RADIUS = 5;
+const PLANET_TTL_DAYS = 30;
 
 const biomes: Planet['biome'][] = ['desert', 'ocean', 'jungle', 'ice', 'volcanic'];
 
 const planetGenerator = {
+	// Helper function to get chunk ID from coordinates
+	getChunkId: (x: number, y: number) => {
+		const chunkX = Math.floor(x / CHUNK_SIZE);
+		const chunkY = Math.floor(y / CHUNK_SIZE);
+		return chunkY * 10 + chunkX;
+	},
+
 	generatePlanetName(usedNames: Set<string>): string {
 		const prefixes = [
 			'HD',
@@ -188,41 +201,138 @@ const planetGenerator = {
 		return name;
 	},
 
+	// generatePlanets: () => {
+	// 	const planets: Omit<Planet, 'id'>[] = [];
+
+	// 	const usedNames = new Set<string>();
+	// 	const usedCoordinates = new Set<string>();
+
+	// 	const MIN_DISTANCE = 30; // Minimum distance between planets
+
+	// 	let attempts = 0;
+	// 	const MAX_ATTEMPTS = 1000; // Prevent infinite loops
+
+	// 	while (planets.length < PLANETS_PER_GALAXY && attempts < MAX_ATTEMPTS) {
+	// 		// Generate coordinates in the range -50 to 50 (for GALAXY_SIZE = 100)
+	// 		const halfGrid = GALAXY_SIZE / 2;
+	// 		const x = Math.floor(Math.random() * GALAXY_SIZE) - halfGrid;
+	// 		const y = Math.floor(Math.random() * GALAXY_SIZE) - halfGrid;
+	// 		const radius = Math.random() * 10;
+	// 		const chunk = planetGenerator.getChunkId(x, y);
+	// 		const coordKey = `${x}-${y}-${chunk}`;
+
+	// 		// Skip if coordinate is already occupied
+	// 		if (usedCoordinates.has(coordKey)) {
+	// 			attempts++;
+	// 			continue;
+	// 		}
+
+	// 		// Check distance from all existing planets
+	// 		let tooClose = false;
+	// 		for (const existingPlanet of planets) {
+	// 			const distance = Math.sqrt(
+	// 				Math.pow(existingPlanet.position.x - x, 2) + Math.pow(existingPlanet.position.y - y, 2)
+	// 			);
+	// 			if (distance < existingPlanet.radius + radius + MIN_DISTANCE) {
+	// 				tooClose = true;
+	// 				break;
+	// 			}
+	// 		}
+
+	// 		attempts++;
+
+	// 		if (!tooClose) {
+	// 			// Mark the coordinate as used
+	// 			usedCoordinates.add(coordKey);
+
+	// 			const name = planetGenerator.generatePlanetName(usedNames);
+
+	// 			// Generate planet properties
+	// 			const planet: Omit<Planet, 'id'> = {
+	// 				name,
+	// 				position: {
+	// 					chunk,
+	// 					x,
+	// 					y,
+	// 				},
+	// 				ships: {},
+	// 				defenses: {},
+	// 				structures: [],
+	// 				radius,
+	// 				is_homeworld: false,
+	// 				owner_id: null,
+	// 				biome: biomes[Math.floor(Math.random() * biomes.length)],
+	// 				created_at: Timestamp.now(),
+	// 				updated_at: Timestamp.now(),
+	// 				resources: {
+	// 					metal: 0,
+	// 					energy: 0,
+	// 					deuterium: 0,
+	// 					microchips: 0,
+	// 					last_update: Timestamp.now(),
+	// 				},
+	// 				ttl: Timestamp.fromMillis(Date.now() + 1000 * 60 * 60 * 24 * 30),
+	// 			};
+
+	// 			planets.push(planet);
+	// 		}
+	// 	}
+
+	// 	return planets;
+	// },
+
 	generatePlanets: () => {
-		const planets: Partial<Planet>[] = [];
-		const usedCoordinates = new Set<string>();
+		const planets: Omit<Planet, 'id'>[] = [];
 		const usedNames = new Set<string>();
 
-		for (let galaxy = 0; galaxy < GALAXY_COUNT; galaxy++) {
-			for (let i = 0; i < PLANETS_PER_GALAXY; i++) {
-				// Convert from 0->1000 to -500->+500 range
-				const halfGrid = GALAXY_SIZE / 2;
-				const x = Math.floor(Math.random() * GALAXY_SIZE) - halfGrid;
-				const y = Math.floor(Math.random() * GALAXY_SIZE) - halfGrid;
-				const coordKey = `${x}-${y}-${galaxy}`;
+		let attempts = 0;
+		const MAX_ATTEMPTS = 1000; // Prevent infinite loops
 
-				// Skip if coordinate is already occupied
-				if (usedCoordinates.has(coordKey)) continue;
+		while (planets.length < PLANETS_PER_GALAXY && attempts < MAX_ATTEMPTS) {
+			const x = Math.random() * WORLD_WIDTH;
+			const y = Math.random() * WORLD_HEIGHT;
+			const radius = MIN_PLANET_RADIUS + Math.random() * (MAX_PLANET_RADIUS - MIN_PLANET_RADIUS);
+			const name = planetGenerator.generatePlanetName(usedNames);
 
-				// Mark the coordinate as used
-				usedCoordinates.add(coordKey);
+			// Check distance from all existing planets
+			let tooClose = false;
+			for (const existingPlanet of planets) {
+				const distance = Math.sqrt(
+					Math.pow(existingPlanet.position.x - x, 2) + Math.pow(existingPlanet.position.y - y, 2)
+				);
+				if (distance < existingPlanet.radius + radius + MIN_DISTANCE_BETWEEN_PLANETS) {
+					tooClose = true;
+					break;
+				}
+			}
 
-				const name = planetGenerator.generatePlanetName(usedNames);
+			attempts++;
 
-				// Generate planet properties
-				const planet: Partial<Planet> = {
-					name,
+			if (!tooClose) {
+				const planet: Omit<Planet, 'id'> = {
 					position: {
-						galaxy,
 						x,
 						y,
+						chunk: planetGenerator.getChunkId(x, y),
 					},
-					size_km: Math.floor(Math.random() * (15000 - 1000) + 1000),
+					name,
+					ships: {},
+					defenses: {},
+					structures: [],
+					radius,
 					is_homeworld: false,
 					owner_id: null,
 					biome: biomes[Math.floor(Math.random() * biomes.length)],
 					created_at: Timestamp.now(),
 					updated_at: Timestamp.now(),
+					resources: {
+						metal: 0,
+						energy: 0,
+						deuterium: 0,
+						microchips: 0,
+						last_update: Timestamp.now(),
+					},
+					ttl: Timestamp.fromMillis(Date.now() + 1000 * 60 * 60 * 24 * PLANET_TTL_DAYS),
 				};
 
 				planets.push(planet);

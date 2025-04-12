@@ -9,6 +9,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
 import { useAuth } from './AuthContext';
 import planetCalculations from '@/utils/planet_calculations';
+import { api } from '@/lib/api';
 
 interface GameState {
 	activePlayers: string[];
@@ -81,6 +82,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 	);
 	const [userTasks] = useDocumentData(authedUser ? doc(db, `users/${authedUser.uid}/private/tasks`) : null);
 	const [userRewards] = useCollectionData(authedUser ? collection(db, `users/${authedUser.uid}/rewards`) : null);
+
+	useEffect(() => {
+		if (gameConfig && user) {
+			const syncSeason = async () => {
+				if (user?.season === 0 || user.season !== gameConfig?.season.current) {
+					await api.syncSeason();
+				}
+			};
+
+			syncSeason();
+		}
+	}, [gameConfig, user]);
 
 	// Initial data setup when auth changes
 	useEffect(() => {

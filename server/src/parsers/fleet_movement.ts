@@ -13,11 +13,11 @@ export function parseFleetMovement(doc: DocumentSnapshot): FleetMovement {
 		ships: data.ship || [],
 		origin: data.origin || {
 			planet_id: '',
-			coordinates: { x: 0, y: 0, galaxy: 0 },
+			coordinates: { x: 0, y: 0, chunk: 0 },
 		},
 		destination: data.destination || {
 			planet_id: '',
-			coordinates: { x: 0, y: 0, galaxy: 0 },
+			coordinates: { x: 0, y: 0, chunk: 0 },
 		},
 		mission_type: data.mission_type || 'unknown',
 		departure_time: data.departure_time || Timestamp.now(),

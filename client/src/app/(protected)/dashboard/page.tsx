@@ -90,8 +90,8 @@ export default function Dashboard() {
 		const fetchPlanetInfo = async () => {
 			setPlanetInfo({
 				name: state.selectedPlanet?.name || 'Unknown',
-				size: state.selectedPlanet?.size_km.toString() || 'Unknown',
-				coordinates: `${state.selectedPlanet?.position.x}, ${state.selectedPlanet?.position.y}, ${state.selectedPlanet?.position.galaxy}`,
+				size: state.selectedPlanet?.radius.toString() || 'Unknown',
+				coordinates: `${state.selectedPlanet?.position.x}, ${state.selectedPlanet?.position.y}, ${state.selectedPlanet?.position.chunk}`,
 				biome: state.selectedPlanet?.biome || 'Unknown',
 			});
 

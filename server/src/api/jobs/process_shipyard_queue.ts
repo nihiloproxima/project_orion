@@ -39,7 +39,7 @@ export async function processShipyardQueue(data: ProcessShipyardQueueParams) {
 
 		const shipConfig = utils.getShipConfig(gameConfig, command.ship_type);
 
-		planet.ships[command.ship_type] += command.count;
+		planet.ships[command.ship_type] = (planet.ships[command.ship_type] || 0) + command.count;
 		db.setPlanet(tx, gameConfig.season.current, params.planet_id, planet);
 
 		command.count -= 1;

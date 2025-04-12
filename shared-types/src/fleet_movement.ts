@@ -29,7 +29,7 @@ export interface FleetMovement {
     coordinates: {
       x: number;
       y: number;
-      galaxy: number;
+      chunk: number;
     };
   };
   destination: {
@@ -40,7 +40,7 @@ export interface FleetMovement {
     coordinates: {
       x: number;
       y: number;
-      galaxy: number;
+      chunk: number;
     };
   };
   mission_type: MissionType;

@@ -9,6 +9,7 @@ export function parseUser(doc: DocumentSnapshot): User {
 	return {
 		id: doc.id,
 		season: data.season,
+		discovered_chunks: data.discovered_chunks,
 		name: data.name,
 		onboarding_step: data.onboarding_step,
 		home_planet_id: data.home_planet_id,

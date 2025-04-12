@@ -11,6 +11,7 @@ export type OnboardingStep =
 export interface User {
   id: string;
   season: number;
+  discovered_chunks: number[];
   name: string;
   onboarding_step: OnboardingStep;
   home_planet_id: Planet["id"] | null;

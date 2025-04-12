@@ -1,0 +1,62 @@
+{
+	"page": {
+		"title": "Secure Communications Terminal",
+		"empty": {
+			"title": "No messages found",
+			"inbox_empty": "Your inbox is empty",
+			"category_empty": "No {{category}} available"
+		},
+		"back_to_inbox": "Back to Inbox",
+		"delete_mail": "Delete Mail",
+		"from": "From:"
+	},
+	"categories": {
+		"all": {
+			"label": "All Messages",
+			"type": "all"
+		},
+		"spy": {
+			"label": "Spy Reports",
+			"type": "spy"
+		},
+		"combat": {
+			"label": "Combat Reports",
+			"type": "combat"
+		},
+		"mission": {
+			"label": "Mission Reports",
+			"type": "mission"
+		},
+		"private_message": {
+			"label": "Private Messages",
+			"type": "private_message"
+		},
+		"game_message": {
+			"label": "Game Messages",
+			"type": "game_message"
+		}
+	},
+	"onboarding": {
+		"welcome_1": {
+			"sender": "Supreme Council",
+			"title": "Commander Assignment Protocol",
+			"content": "Greetings, Commander.\n\nOn behalf of the Galactic Council, I extend my congratulations on your graduation from the Elite Commander Academy. Your exceptional performance has not gone unnoticed.\n\nAs per protocol, you have been assigned your first command post. The coordinates of your homeworld have been transmitted to your navigation system. This planet will serve as the foundation for your future operations and contributions to our galactic civilization.\n\nThe Council has high expectations for your performance.\n\n[CLICK TO VIEW YOUR ASSIGNED HOMEWORLD]",
+			"action": "choose_homeworld",
+			"priority": "high"
+		},
+		"welcome_2": {
+			"sender": "Mom",
+			"title": "Important Reminders for My Space Commander!",
+			"content": "Sweetie! 💖\n\nI know you're about to command your very own planet, but don't forget:\n\n- Pack your warm space socks - space is cold!\n- Remember to brush your teeth after each meal (even freeze-dried ones)\n- Call me at least twice per galactic cycle\n- Don't talk to strange aliens unless they've been properly introduced\n- Keep your ray gun charged and your quarters tidy\n\nI put some homemade cosmic cookies in your cargo bay. Share them with your crew! 🍪\n\nPS: Your father says to remember the trick about reversing the polarity - whatever that means! 🤷‍♀️\n\nLots of love and virtual hugs! 🤗\nMom"
+		},
+		"welcome_3": {
+			"sender": "Jake from the Academy",
+			"title": "You Actually Made It!",
+			"content": "Hey Commander Hotshot! 🚀\n\nCan't believe they actually let YOU graduate! Remember when you accidentally activated the emergency evacuation system during naptime in Stellar Navigation 101? The look on Professor Zorblax's face when his hover-chair shot him straight into the ceiling... PRICELESS! 😂\n\nOr that time you tried to impress Sarah from Quantum Physics by \"improving\" the cafeteria's food replicator, and it spent a week producing nothing but purple spaghetti that tasted like rubber bands? Good times!\n\nBut seriously, despite all our shenanigans (like that infamous incident with the training simulator and the space hamster - which was totally YOUR fault, by the way), you've actually become a pretty decent commander. Who would've thought?\n\nCongrats on the promotion, you magnificent disaster! Try not to blow up your homeworld on the first day, okay?\n\nP.S. I still have that embarrassing hologram from the graduation party. You know, the one where you tried to demonstrate your \"perfect\" impression of an Andromedan space whale mating call? That's prime blackmail material right there! 😈\n\nYour partner in crime,\nJake\n\nP.P.S. But really, proud of you buddy! 🎉",
+			"data": {
+				"friendship_level": "best_buddies",
+				"blackmail_material": "abundant"
+			}
+		}
+	}
+}

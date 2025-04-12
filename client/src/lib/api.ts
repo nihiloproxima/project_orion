@@ -1,4 +1,4 @@
-import { StructureType } from '@/models/planet';
+import { StructureType } from 'shared-types';
 import { auth } from './firebase';
 import { MissionType, ShipType } from 'shared-types';
 
@@ -25,11 +25,14 @@ async function post(group: string, endpoint: string, data: Record<string, any>) 
 }
 
 export const api = {
+	syncSeason: async () => {
+		return post('game', 'syncSeason', {});
+	},
 	startMission: async (params: {
-		ship_ids: string[];
-		mission_type: string;
-		target_id: string;
 		origin_planet_id: string;
+		destination_planet_id: string;
+		ships_selection: Record<ShipType, number>;
+		mission_type: MissionType;
 		resources?: {
 			metal?: number;
 			microchips?: number;
@@ -46,9 +49,8 @@ export const api = {
 		});
 	},
 
-	getPlanets: async (galaxy: number, intent: 'all' | MissionType) => {
+	getPlanets: async (intent: 'all' | MissionType) => {
 		return post('game', 'getPlanets', {
-			galaxy: galaxy,
 			intent: intent,
 		});
 	},

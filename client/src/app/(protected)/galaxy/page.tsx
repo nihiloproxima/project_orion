@@ -1,14 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { Card } from '../../../components/ui/card';
 import { Eye } from 'lucide-react';
-import GalaxyMap from '@/components/ThreeMap/GalaxyMap';
-import { GalaxySelector } from '@/components/GalaxySelector';
 import { useTranslation } from '@/hooks/useTranslation';
+import GalaxyMap2D from '@/components/2DMap/GalaxyMap2D';
 
 export default function GalaxyObservation() {
-	const [currentGalaxy, setCurrentGalaxy] = useState(0);
 	const { t } = useTranslation('galaxy');
 
 	return (
@@ -21,12 +18,12 @@ export default function GalaxyObservation() {
 					</h1>
 					<p className="text-muted-foreground">{t('subtitle')}</p>
 				</div>
-				<GalaxySelector currentGalaxy={currentGalaxy} onGalaxyChange={setCurrentGalaxy} />
 			</div>
 
 			<Card className="border-2 shadow-2xl shadow-primary/20 min-h-0 flex-1">
 				<div className="h-full w-full">
-					<GalaxyMap mode="view-only" galaxyFilter={currentGalaxy} />
+					{/* <GalaxyMap mode="view-only" galaxyFilter={currentGalaxy} /> */}
+					<GalaxyMap2D />
 				</div>
 			</Card>
 		</div>

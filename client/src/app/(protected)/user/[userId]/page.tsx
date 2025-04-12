@@ -303,7 +303,7 @@ export default function UserProfilePage() {
 												[{planet.position.x}, {planet.position.y}, {planet.position.galaxy}]
 											</div>
 											<div className="text-sm">
-												{t('planets', 'size', { size: planet.size_km.toLocaleString() })}
+												{t('planets', 'size', { size: planet.radius.toLocaleString() })}
 											</div>
 											<div className="text-sm capitalize">
 												{t('planets', `biome.${planet.biome}`)}

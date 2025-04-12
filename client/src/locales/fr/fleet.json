@@ -102,7 +102,7 @@
 		}
 	},
 	"mission_setup": {
-		"title": "Déployer {ship}",
+		"title": "Déployer les vaisseaux",
 		"select_mission": "Sélectionner le type de mission",
 		"mission_placeholder": "Choisir une mission...",
 		"select_target": "Sélectionner la destination",

@@ -1,34 +1,37 @@
 'use client';
 
-import { BaseMail, MailType } from '@/models/mail';
+import { BaseMail, MailType } from 'shared-types';
 import { Bell, Eye, Mail, MessageSquare, Rocket, Sword, Trash2, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { MailContent } from '@/components/MailContent';
-import { generateOnboardingMails } from '@/lib/onboarding-mails';
+
 import { useGame } from '@/contexts/GameContext';
 import { api } from '@/lib/api';
 import { withIdConverter } from '@/lib/firebase';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { collection, limit, orderBy, query, where } from 'firebase/firestore';
+import { collection, limit, orderBy, query, Timestamp, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type FilterCategory = 'all' | MailType;
-
-const MAIL_CATEGORIES = [
-	{ type: 'all', icon: Mail, label: 'All Messages' },
-	{ type: 'spy', icon: Eye, label: 'Spy Reports' },
-	{ type: 'combat', icon: Sword, label: 'Combat Reports' },
-	{ type: 'mission', icon: Rocket, label: 'Mission Reports' },
-	{ type: 'private_message', icon: MessageSquare, label: 'Private Messages' },
-	{ type: 'game_message', icon: Bell, label: 'Game Messages' },
-] as const;
 
 const ITEMS_PER_PAGE = 20;
 
 export default function SecureCommunications() {
 	const { state } = useGame();
+	const { t } = useTranslation('mail');
+
+	const MAIL_CATEGORIES = [
+		{ type: 'all', icon: Mail, label: t('categories.all.label') },
+		{ type: 'spy', icon: Eye, label: t('categories.spy.label') },
+		{ type: 'combat', icon: Sword, label: t('categories.combat.label') },
+		{ type: 'mission', icon: Rocket, label: t('categories.mission.label') },
+		{ type: 'private_message', icon: MessageSquare, label: t('categories.private_message.label') },
+		{ type: 'game_message', icon: Bell, label: t('categories.game_message.label') },
+	] as const;
+
 	const [mails] = useCollectionData(
 		state.gameConfig && state.currentUser
 			? query(
@@ -39,7 +42,59 @@ export default function SecureCommunications() {
 			  )
 			: null
 	);
-	const onboardingMails = generateOnboardingMails();
+
+	const onboardingMails = useMemo(() => {
+		const now = Timestamp.now();
+
+		return [
+			{
+				id: 'welcome_1',
+				type: 'game_message',
+				category: 'messages',
+				created_at: now,
+				sender_name: t('onboarding.welcome_1.sender'),
+				title: t('onboarding.welcome_1.title'),
+				content: t('onboarding.welcome_1.content'),
+				read: false,
+				archived: false,
+				data: {
+					action: t('onboarding.welcome_1.action'),
+					priority: t('onboarding.welcome_1.priority'),
+				},
+				ttl: Timestamp.fromMillis(1000 * 60 * 60 * 24 * 30),
+			},
+			{
+				id: 'welcome_2',
+				type: 'private_message',
+				category: 'messages',
+				created_at: Timestamp.fromMillis(now.toMillis() - 1000),
+				sender_name: t('onboarding.welcome_2.sender'),
+				title: t('onboarding.welcome_2.title'),
+				content: t('onboarding.welcome_2.content'),
+				read: false,
+				archived: false,
+				data: {},
+				ttl: Timestamp.fromMillis(1000 * 60 * 60 * 24 * 30),
+			},
+			{
+				id: 'welcome_3',
+				type: 'private_message',
+				category: 'messages',
+				created_at: Timestamp.fromMillis(now.toMillis() - 2000),
+				sender_name: t('onboarding.welcome_3.sender'),
+				title: t('onboarding.welcome_3.title'),
+				content: t('onboarding.welcome_3.content'),
+				read: false,
+				archived: false,
+				data: {
+					friendship_level: t('onboarding.welcome_3.data.friendship_level'),
+					blackmail_material: t('onboarding.welcome_3.data.blackmail_material'),
+				},
+				ttl: Timestamp.fromMillis(1000 * 60 * 60 * 24 * 30),
+			},
+		];
+	}, [t]);
+
 	const [selectedMail, setSelectedMail] = useState<BaseMail | null>(null);
 	const [activeCategory, setActiveCategory] = useState<FilterCategory>('all');
 	const [isViewingMail, setIsViewingMail] = useState(false);
@@ -98,7 +153,7 @@ export default function SecureCommunications() {
 			<Card className="border border-primary h-[calc(100vh-12rem)] shadow-2xl shadow-primary/20 overflow-hidden">
 				<CardHeader className="border-b bg-gray-900 sticky top-0 z-10">
 					<CardTitle className="text-xl flex items-center justify-between gap-2">
-						<span className="text-primary font-mono">Secure Communications Terminal</span>
+						<span className="text-primary font-mono">{t('page.title')}</span>
 						<Button variant="ghost" className="lg:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
 							<Menu className="h-5 w-5" />
 						</Button>
@@ -145,15 +200,16 @@ export default function SecureCommunications() {
 										{displayedMails.length === 0 ? (
 											<div className="flex flex-col items-center justify-center h-48 text-gray-400">
 												<Mail className="h-12 w-12 mb-4 opacity-50" />
-												<p className="text-lg font-medium">No messages found</p>
+												<p className="text-lg font-medium">{t('page.empty.title')}</p>
 												<p className="text-sm">
 													{activeCategory === 'all'
-														? 'Your inbox is empty'
-														: `No ${
-																MAIL_CATEGORIES.find(
-																	(cat) => cat.type === activeCategory
-																)?.label.toLowerCase() || 'messages'
-														  } available`}
+														? t('page.empty.inbox_empty')
+														: t('page.empty.category_empty', {
+																category:
+																	MAIL_CATEGORIES.find(
+																		(cat) => cat.type === activeCategory
+																	)?.label.toLowerCase() || 'messages',
+														  })}
 												</p>
 											</div>
 										) : (
@@ -174,7 +230,7 @@ export default function SecureCommunications() {
 																		{mail.title}
 																	</span>
 																	<span className="text-xs text-gray-400">
-																		From: {mail.sender_name}
+																		{t('page.from')} {mail.sender_name}
 																	</span>
 																</div>
 															</div>
@@ -209,7 +265,7 @@ export default function SecureCommunications() {
 											className="gap-2"
 										>
 											<Mail className="h-4 w-4" />
-											Back to Inbox
+											{t('page.back_to_inbox')}
 										</Button>
 										{selectedMail?.type === 'game_message' ? null : (
 											<Button
@@ -218,7 +274,7 @@ export default function SecureCommunications() {
 												className="gap-2"
 											>
 												<Trash2 className="h-4 w-4" />
-												Delete Mail
+												{t('page.delete_mail')}
 											</Button>
 										)}
 									</div>

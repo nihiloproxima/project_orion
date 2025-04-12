@@ -73,14 +73,14 @@ export default {
 		return filteredRanking;
 	},
 
-	getPlanetsFromGalaxy: async (season: number, galaxy: number): Promise<Planet[]> => {
-		const cacheKey = `seasons:${season}:planets:galaxy:${galaxy}`;
+	getPlanetsFromChunk: async (season: number, chunk: number): Promise<Planet[]> => {
+		const cacheKey = `seasons:${season}:planets:chunk:${chunk}`;
 		const cachedPlanets = await redisClient.hGetAll(cacheKey);
 		if (Object.keys(cachedPlanets).length > 0) {
 			return Object.values(cachedPlanets).map((planet) => JSON.parse(planet));
 		}
 
-		const planets = await db.getPlanetsFromGalaxyNoTx(season, galaxy);
+		const planets = await db.getPlanetsFromChunkNoTx(season, chunk);
 
 		const planetEntries = planets.reduce((acc, planet) => {
 			acc[planet.id] = JSON.stringify(planet);
@@ -94,13 +94,13 @@ export default {
 		return planets;
 	},
 
-	updatePlanet: async (season: number, galaxy: number, planetId: string, planet: Planet) => {
-		const cacheKey = `seasons:${season}:planets:galaxy:${galaxy}`;
+	updatePlanet: async (season: number, chunk: number, planetId: string, planet: Planet) => {
+		const cacheKey = `seasons:${season}:planets:chunk:${chunk}`;
 		await redisClient.hSet(cacheKey, planetId, JSON.stringify(planet));
 	},
 
-	clearPlanetsFromGalaxy: async (season: number, galaxy: number) => {
-		const cacheKey = `seasons:${season}:planets:galaxy:${galaxy}`;
+	clearPlanetsFromChunk: async (season: number, chunk: number) => {
+		const cacheKey = `seasons:${season}:planets:chunk:${chunk}`;
 		await redisClient.del(cacheKey);
 	},
 };

@@ -1,0 +1,62 @@
+{
+	"page": {
+		"title": "Terminal de Communications Sécurisées",
+		"empty": {
+			"title": "Aucun message trouvé",
+			"inbox_empty": "Votre boîte de réception est vide",
+			"category_empty": "Aucun {{category}} disponible"
+		},
+		"back_to_inbox": "Retour à la Boîte de Réception",
+		"delete_mail": "Supprimer le Message",
+		"from": "De :"
+	},
+	"categories": {
+		"all": {
+			"label": "Tous les Messages",
+			"type": "all"
+		},
+		"spy": {
+			"label": "Rapports d'Espionnage",
+			"type": "spy"
+		},
+		"combat": {
+			"label": "Rapports de Combat",
+			"type": "combat"
+		},
+		"mission": {
+			"label": "Rapports de Mission",
+			"type": "mission"
+		},
+		"private_message": {
+			"label": "Messages Privés",
+			"type": "private_message"
+		},
+		"game_message": {
+			"label": "Messages du Jeu",
+			"type": "game_message"
+		}
+	},
+	"onboarding": {
+		"welcome_1": {
+			"sender": "Conseil Suprême",
+			"title": "Protocole d'Affectation du Commandant",
+			"content": "Salutations, Commandant.\n\nAu nom du Conseil Galactique, je vous félicite pour votre diplôme de l'Académie d'Élite des Commandants. Votre performance exceptionnelle n'est pas passée inaperçue.\n\nConformément au protocole, vous avez été assigné à votre premier poste de commandement. Les coordonnées de votre monde natal ont été transmises à votre système de navigation. Cette planète servira de fondation pour vos futures opérations et contributions à notre civilisation galactique.\n\nLe Conseil a de grandes attentes concernant vos performances.\n\n[CLIQUEZ POUR VOIR VOTRE MONDE NATAL ASSIGNÉ]",
+			"action": "choose_homeworld",
+			"priority": "high"
+		},
+		"welcome_2": {
+			"sender": "Maman",
+			"title": "Rappels Importants pour Mon Commandant Spatial !",
+			"content": "Mon chéri ! 💖\n\nJe sais que tu vas commander ta propre planète, mais n'oublie pas :\n\n- Emporte tes chaussettes spatiales chaudes - l'espace est froid !\n- N'oublie pas de te brosser les dents après chaque repas (même lyophilisés)\n- Appelle-moi au moins deux fois par cycle galactique\n- Ne parle pas aux extraterrestres étranges sans une présentation appropriée\n- Garde ton pistolet à rayons chargé et tes quartiers bien rangés\n\nJ'ai mis des cookies cosmiques faits maison dans ta soute. Partage-les avec ton équipage ! 🍪\n\nPS : Ton père dit de te rappeler l'astuce sur l'inversion de la polarité - peu importe ce que ça veut dire ! 🤷‍♀️\n\nPlein d'amour et de câlins virtuels ! 🤗\nMaman"
+		},
+		"welcome_3": {
+			"sender": "Jake de l'Académie",
+			"title": "Tu as Vraiment Réussi !",
+			"content": "Hé Commandant Tête Brûlée ! 🚀\n\nJ'arrive pas à croire qu'ils t'aient vraiment laissé diplômer ! Tu te souviens quand tu as accidentellement activé le système d'évacuation d'urgence pendant la sieste en Navigation Stellaire 101 ? La tête du Professeur Zorblax quand son fauteuil anti-gravité l'a propulsé droit au plafond... IMPAYABLE ! 😂\n\nOu cette fois où tu as essayé d'impressionner Sarah de Physique Quantique en \"améliorant\" le réplicateur de nourriture de la cafétéria, et il a passé une semaine à ne produire que des spaghettis violets qui avaient le goût d'élastiques ? Bon vieux temps !\n\nMais sérieusement, malgré toutes nos bêtises (comme ce fameux incident avec le simulateur d'entraînement et le hamster spatial - qui était totalement DE TA FAUTE, soit dit en passant), tu es vraiment devenu un commandant plutôt décent. Qui l'aurait cru ?\n\nFélicitations pour la promotion, magnifique catastrophe ambulante ! Essaie de ne pas faire exploser ton monde natal dès le premier jour, d'accord ?\n\nP.S. J'ai toujours cet hologramme embarrassant de la fête de remise des diplômes. Tu sais, celui où tu as essayé de faire ta \"parfaite\" imitation du cri d'accouplement d'une baleine spatiale d'Andromède ? C'est du matériel de chantage de première qualité ! 😈\n\nTon partenaire de crime,\nJake\n\nP.P.S. Mais vraiment, fier de toi mon pote ! 🎉",
+			"data": {
+				"friendship_level": "meilleurs_amis",
+				"blackmail_material": "abondant"
+			}
+		}
+	}
+}

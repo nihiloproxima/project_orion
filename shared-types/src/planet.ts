@@ -34,21 +34,21 @@ export interface Planet {
     last_update: Timestamp;
   };
   ships: {
-    [shipType in ShipType]: number;
+    [shipType in ShipType]?: number;
   };
   defenses: {
-    [defenseType in DefenseType]: number;
+    [defenseType in DefenseType]?: number;
   };
   position: {
     x: number;
     y: number;
-    galaxy: number;
+    chunk: number;
   };
   owner_id: string | null;
   is_homeworld: boolean;
   owner_name?: string;
   biome: PlanetBiome;
-  size_km: number;
+  radius: number;
   created_at: Timestamp;
   updated_at: Timestamp;
   ttl: Timestamp;

@@ -22,7 +22,7 @@ export const socketEmitters = {
 	emitPlanets: async () => {
 		const gameConfig = await cache.getGameConfig();
 
-		const planets = await cache.getPlanetsFromGalaxy(gameConfig?.season.current || 1, 1);
+		const planets = await cache.getPlanetsFromChunk(gameConfig?.season.current || 1, 1);
 		io.emit('planets', planets);
 	},
 };

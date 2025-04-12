@@ -102,7 +102,7 @@
 		}
 	},
 	"mission_setup": {
-		"title": "Deploy {ship}",
+		"title": "Deploy ships",
 		"select_mission": "Select Mission Type",
 		"mission_placeholder": "Choose a mission...",
 		"select_target": "Select Target Location",

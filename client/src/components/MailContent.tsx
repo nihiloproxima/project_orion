@@ -1,4 +1,4 @@
-import { BaseMail, CombatMail, MissionMail, SpyMail } from '@/models/mail';
+import { BaseMail, CombatMail, MissionMail, SpyMail } from 'shared-types';
 import { Beaker, Bell, Building, Eye, MessageSquare, Rocket, Ship, Sword } from 'lucide-react';
 
 import { Button } from './ui/button';
@@ -84,26 +84,29 @@ export function MailContent({ mail }: MailContentProps) {
 						</div>
 					</div>
 				)}
-				{spyData.ships.length > 0 && (
+				{Object.values(spyData.ships).some((value) => value && value > 0) && (
 					<div className="space-y-4">
 						<h3 className="font-semibold text-primary flex items-center gap-2">
 							<Ship className="h-4 w-4" />
 							Ships Detected
 						</h3>
 						<div className="grid grid-cols-2 gap-4 text-sm">
-							{spyData.ships.map((ship: { type: string; count: number }) => (
-								<div key={ship.type} className="flex items-center gap-2">
-									<Image
-										src={`/images/ships/${ship.type}.webp`}
-										width={24}
-										height={24}
-										alt={ship.type}
-										className="w-6 h-6"
-									/>
-									<span className="capitalize">{ship.type.replace(/_/g, ' ')}:</span>
-									<span>{ship.count}</span>
-								</div>
-							))}
+							{Object.entries(spyData.ships).map(([shipType, count]) => {
+								if (!count) return null;
+								return (
+									<div key={shipType} className="flex items-center gap-2">
+										<Image
+											src={`/images/ships/${shipType}.webp`}
+											width={24}
+											height={24}
+											alt={shipType}
+											className="w-6 h-6"
+										/>
+										<span className="capitalize">{shipType.replace(/_/g, ' ')}:</span>
+										<span>{count}</span>
+									</div>
+								);
+							})}
 						</div>
 					</div>
 				)}
@@ -139,21 +142,27 @@ export function MailContent({ mail }: MailContentProps) {
 									<div className="space-y-2">
 										<div className="text-sm">
 											<h5 className="text-gray-400 mb-1">Initial Fleet:</h5>
-											{attacker.ships.map((ship, idx) => (
-												<div key={idx} className="flex justify-between">
-													<span>{ship.type}</span>
-													<span>{ship.count}</span>
-												</div>
-											))}
+											{Object.entries(attacker.ships).map(([shipType, count]) => {
+												if (!count) return null;
+												return (
+													<div key={shipType} className="flex justify-between">
+														<span>{shipType.replace(/_/g, ' ')}</span>
+														<span>{count}</span>
+													</div>
+												);
+											})}
 										</div>
 										<div className="text-sm text-red-400">
 											<h5 className="mb-1">Losses:</h5>
-											{attacker.losses.map((loss, idx) => (
-												<div key={idx} className="flex justify-between">
-													<span>{loss.type}</span>
-													<span>-{loss.count}</span>
-												</div>
-											))}
+											{Object.entries(attacker.losses).map(([shipType, count]) => {
+												if (!count) return null;
+												return (
+													<div key={shipType} className="flex justify-between">
+														<span>{shipType.replace(/_/g, ' ')}</span>
+														<span>-{count}</span>
+													</div>
+												);
+											})}
 										</div>
 									</div>
 								</div>
@@ -169,21 +178,27 @@ export function MailContent({ mail }: MailContentProps) {
 									<div className="space-y-2">
 										<div className="text-sm">
 											<h5 className="text-gray-400 mb-1">Initial Fleet:</h5>
-											{defender.ships.map((ship, idx) => (
-												<div key={idx} className="flex justify-between">
-													<span>{ship.type}</span>
-													<span>{ship.count}</span>
-												</div>
-											))}
+											{Object.entries(defender.ships).map(([shipType, count]) => {
+												if (!count) return null;
+												return (
+													<div key={shipType} className="flex justify-between">
+														<span>{shipType.replace(/_/g, ' ')}</span>
+														<span>{count}</span>
+													</div>
+												);
+											})}
 										</div>
 										<div className="text-sm text-red-400">
 											<h5 className="mb-1">Losses:</h5>
-											{defender.losses.map((loss, idx) => (
-												<div key={idx} className="flex justify-between">
-													<span>{loss.type}</span>
-													<span>-{loss.count}</span>
-												</div>
-											))}
+											{Object.entries(defender.losses).map(([shipType, count]) => {
+												if (!count) return null;
+												return (
+													<div key={shipType} className="flex justify-between">
+														<span>{shipType.replace(/_/g, ' ')}</span>
+														<span>-{count}</span>
+													</div>
+												);
+											})}
 										</div>
 									</div>
 								</div>
@@ -306,10 +321,10 @@ export function MailContent({ mail }: MailContentProps) {
 						<div className="whitespace-pre-wrap font-mono text-primary/90">{mail.content}</div>
 					)}
 
-					{mail.data.action === 'choose_homeworld' && (
+					{mail.data.action === 'goto_dashboard' && (
 						<div className="flex justify-center">
 							<Button
-								onClick={() => router.push('/choose-homeworld')}
+								onClick={() => router.push('/dashboard')}
 								className="mt-4 animate-pulse bg-primary hover:bg-primary/80 text-lg font-bold"
 							>
 								Choose Your Homeworld

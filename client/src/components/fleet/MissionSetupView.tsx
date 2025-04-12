@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MissionType, Planet } from 'shared-types';
+import { MissionType, Planet, ShipType } from 'shared-types';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -16,7 +16,7 @@ import utils from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 
 type MissionSetupViewProps = {
-	shipSelections: Record<string, number>;
+	shipSelections: Record<ShipType, number>;
 	onBack: () => void;
 };
 
@@ -58,15 +58,9 @@ export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewPro
 	useEffect(() => {
 		if (!selectedTarget || !state.selectedPlanet || !state.gameConfig) return;
 
-		const shipTypes = Object.entries(shipSelections).map(([type]) => {
-			const ship = state.gameConfig?.ships.find((s) => s.type === type);
-			if (!ship) throw new Error(`Ship type ${type} not found`);
-			return ship;
-		});
-
 		const { arrivalTime, travelTimeSeconds } = fleetCalculations.calculateFleetArrivalTime(
 			state.gameConfig,
-			shipTypes,
+			shipSelections,
 			state.selectedPlanet.position,
 			selectedTarget.position
 		);
@@ -120,9 +114,9 @@ export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewPro
 		try {
 			// Start mission with ship types and counts
 			await api.startMission({
-				ship_ids: Object.entries(shipSelections).flatMap(([type, count]) => Array(count).fill(type)),
+				ships_selection: shipSelections,
 				mission_type: selectedMission,
-				target_id: selectedTarget.id,
+				destination_planet_id: selectedTarget.id,
 				origin_planet_id: state.selectedPlanet.id,
 				resources: resources,
 			});
@@ -152,11 +146,7 @@ export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewPro
 						<ArrowLeft className="h-4 w-4" />
 						{commonT('back')}
 					</Button>
-					<h2 className="text-xl font-bold">
-						{t('mission_setup.title', {
-							ship: `${Object.values(shipSelections).reduce((a, b) => a + b, 0)} ships`,
-						})}
-					</h2>
+					<h2 className="text-xl font-bold">{t('mission_setup.title')}</h2>
 				</div>
 			</div>
 
@@ -198,49 +188,51 @@ export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewPro
 			</Card>
 
 			{/* Resources Selection */}
-			<Card className="p-4">
-				<div className="space-y-4">
-					<div className="flex justify-between items-center">
-						<h3 className="font-medium">Resources to Send</h3>
-						<div className="text-sm text-muted-foreground">
-							{totalResourcesSelected} / {totalCargoCapacity}
+			{['move', 'transport'].includes(selectedMission) && (
+				<Card className="p-4">
+					<div className="space-y-4">
+						<div className="flex justify-between items-center">
+							<h3 className="font-medium">Resources to Send</h3>
+							<div className="text-sm text-muted-foreground">
+								{totalResourcesSelected} / {totalCargoCapacity}
+							</div>
 						</div>
-					</div>
 
-					<div className="grid grid-cols-3 gap-4">
-						<div>
-							<label className="text-sm font-medium">Metal</label>
-							<Input
-								type="number"
-								value={resources.metal}
-								onChange={(e) => handleResourceChange('metal', e.target.value)}
-								min="0"
-								max={totalCargoCapacity}
-							/>
-						</div>
-						<div>
-							<label className="text-sm font-medium">Deuterium</label>
-							<Input
-								type="number"
-								value={resources.deuterium}
-								onChange={(e) => handleResourceChange('deuterium', e.target.value)}
-								min="0"
-								max={totalCargoCapacity}
-							/>
-						</div>
-						<div>
-							<label className="text-sm font-medium">Microchips</label>
-							<Input
-								type="number"
-								value={resources.microchips}
-								onChange={(e) => handleResourceChange('microchips', e.target.value)}
-								min="0"
-								max={totalCargoCapacity}
-							/>
+						<div className="grid grid-cols-3 gap-4">
+							<div>
+								<label className="text-sm font-medium">Metal</label>
+								<Input
+									type="number"
+									value={resources.metal}
+									onChange={(e) => handleResourceChange('metal', e.target.value)}
+									min="0"
+									max={totalCargoCapacity}
+								/>
+							</div>
+							<div>
+								<label className="text-sm font-medium">Deuterium</label>
+								<Input
+									type="number"
+									value={resources.deuterium}
+									onChange={(e) => handleResourceChange('deuterium', e.target.value)}
+									min="0"
+									max={totalCargoCapacity}
+								/>
+							</div>
+							<div>
+								<label className="text-sm font-medium">Microchips</label>
+								<Input
+									type="number"
+									value={resources.microchips}
+									onChange={(e) => handleResourceChange('microchips', e.target.value)}
+									min="0"
+									max={totalCargoCapacity}
+								/>
+							</div>
 						</div>
 					</div>
-				</div>
-			</Card>
+				</Card>
+			)}
 
 			{/* Mission Selection */}
 			<Card className="p-4">

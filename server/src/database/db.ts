@@ -86,8 +86,15 @@ export default {
 	},
 
 	// Planet
-	getPlanetsFromGalaxyNoTx: async (season: number, galaxy: number) => {
-		const ref = db.collection(`seasons/${season}/planets`).where('position.galaxy', '==', galaxy);
+	getUnclaimedPlanet: async (tx: Transaction, season: number): Promise<Planet | undefined> => {
+		const ref = db.collection(`seasons/${season}/planets`).where('owner_id', '==', null).limit(1);
+		const planets = await tx.get(ref);
+
+		return planets.docs.map((doc) => parsePlanet(doc)).at(0);
+	},
+
+	getPlanetsFromChunkNoTx: async (season: number, chunk: number) => {
+		const ref = db.collection(`seasons/${season}/planets`).where('position.chunk', '==', chunk);
 		const planets = await ref.get();
 
 		return planets.docs.map((doc) => parsePlanet(doc));

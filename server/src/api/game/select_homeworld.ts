@@ -31,6 +31,7 @@ export async function selectHomeworld(userId: string, body: SelectHomeworldParam
 
 		db.setPlanet(tx, gameConfig.season.current, params.planet_id, {
 			owner_id: userId,
+			owner_name: user.name,
 			is_homeworld: true,
 			resources: {
 				metal: 500,

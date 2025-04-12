@@ -4,5 +4,9 @@
     "client",
     "server",
     "shared-types"
-  ]
+  ],
+  "dependencies": {
+    "konva": "^9.3.20",
+    "react-konva": "^19.0.3"
+  }
 }
