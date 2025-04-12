@@ -1,5 +1,4 @@
-import { FleetMovement, MissionMail, Ship, ShipType, SpyMail, UserResearchs, Planet } from 'shared-types';
-import _ from 'lodash';
+import { FleetMovement, MissionMail, SpyMail, UserResearchs, Planet } from 'shared-types';
 
 const mailGenerator = {
 	planetAlreadyColonized: (fleetMovement: FleetMovement, targetPlanet: Planet): Omit<MissionMail, 'id'> => {
@@ -71,8 +70,7 @@ const mailGenerator = {
 	spyMissionSuccess: (
 		fleetMovement: FleetMovement,
 		targetPlanet: Planet,
-		userResearchs: UserResearchs,
-		planetShips: Ship[]
+		userResearchs: UserResearchs
 	): Omit<SpyMail, 'id'> => {
 		return {
 			type: 'spy',
@@ -108,10 +106,7 @@ const mailGenerator = {
 					level: research.level,
 					is_researching: research.is_researching,
 				})),
-				ships: Object.entries(_.countBy(planetShips, 'type')).map(([type, count]) => ({
-					type: type as ShipType,
-					count,
-				})),
+				ships: targetPlanet.ships,
 			},
 			ttl: fleetMovement.arrival_time,
 		};

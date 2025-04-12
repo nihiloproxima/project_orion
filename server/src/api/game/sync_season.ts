@@ -38,6 +38,7 @@ export async function syncSeason(userId: string) {
 			season: gameConfig.season.current,
 			score: 0,
 			home_planet_id: unclaimedPlanet.id,
+			discovered_chunks: [unclaimedPlanet.position.chunk],
 		});
 
 		db.setUserInventory(tx, userId, {

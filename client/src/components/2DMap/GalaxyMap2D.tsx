@@ -1,9 +1,13 @@
 import { useEffect, useState, Fragment, memo } from 'react';
-import { Stage, Layer, Rect, Circle, Text, Group } from 'react-konva';
+import { Stage, Layer, Rect, Circle, Text, Group, Line } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
-import { Planet } from 'shared-types';
+import { Planet, FleetMovement } from 'shared-types';
 import { api } from '@/lib/api';
 import { useGame } from '@/contexts/GameContext';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { collection, query, where } from 'firebase/firestore';
+import { db, withIdConverter } from '@/lib/firebase';
+import utils from '@/lib/utils';
 
 // Planet component (Memoized and Simplified)
 const PlanetComponent = memo(
@@ -16,6 +20,7 @@ const PlanetComponent = memo(
 		onMouseEnter,
 		onMouseLeave,
 		isDiscovered,
+		isHighlighted,
 	}: {
 		planet: Planet;
 		index: number;
@@ -25,6 +30,7 @@ const PlanetComponent = memo(
 		onMouseEnter: () => void;
 		onMouseLeave: () => void;
 		isDiscovered: boolean;
+		isHighlighted?: boolean;
 	}) => {
 		// Only render planets in discovered chunks
 		if (!isDiscovered) return null;
@@ -38,8 +44,8 @@ const PlanetComponent = memo(
 					zIndex={100}
 					radius={planet.radius}
 					fill={planet.biome === 'desert' ? '#d2b48c' : planet.biome === 'ice' ? '#add8e6' : '#4caf50'}
-					stroke={isSelected || isHovered ? '#ffffff' : 'transparent'} // Stroke for hover/selection
-					strokeWidth={1.5} // Slightly thicker stroke
+					stroke={isHighlighted ? '#ffff00' : isSelected || isHovered ? '#ffffff' : 'transparent'} // Stroke for hover/selection/highlight
+					strokeWidth={isHighlighted ? 2 : 1.5} // Slightly thicker stroke for highlighted planets
 					opacity={1} // Make sure it's fully visible
 					name="planet-circle" // Name for click detection
 					onClick={onClick}
@@ -75,9 +81,9 @@ const PlanetComponent = memo(
 PlanetComponent.displayName = 'PlanetComponent';
 
 // InfoCard component (remains the same for now)
-const InfoCardComponent = ({ planet }: { planet: Planet }) => {
+const InfoCardComponent = ({ planet, onSelect }: { planet: Planet; onSelect?: () => void }) => {
 	const cardWidth = 150;
-	const cardHeight = 100;
+	const cardHeight = onSelect ? 120 : 100; // Increase height if we have a select button
 	const cardX = planet.position.x + planet.radius + 10;
 	const cardY = planet.position.y - cardHeight / 2;
 
@@ -138,11 +144,187 @@ const InfoCardComponent = ({ planet }: { planet: Planet }) => {
 				listening={true}
 				perfectDrawEnabled={false} // Optimization
 			/>
+
+			{/* Select button for mission-target mode */}
+			{onSelect && (
+				<Group name="select-button" x={cardX + cardWidth / 2 - 40} y={cardY + 95}>
+					<Rect
+						width={80}
+						height={20}
+						fill="#00aa44"
+						cornerRadius={3}
+						name="select-button-rect"
+						onClick={onSelect}
+						listening={true}
+						perfectDrawEnabled={false}
+					/>
+					<Text
+						text="Select Target"
+						fontSize={10}
+						fill="#ffffff"
+						width={80}
+						align="center"
+						y={5}
+						name="select-button-text"
+						onClick={onSelect}
+						listening={true}
+						perfectDrawEnabled={false}
+					/>
+				</Group>
+			)}
 		</Group>
 	);
 };
 
-const GalaxyMap2D = () => {
+// Fleet Movement Tracker Component
+const FleetMovementTracker = ({ fleetMovement }: { fleetMovement: FleetMovement }) => {
+	const { state } = useGame();
+	const [position, setPosition] = useState({ x: 0, y: 0 });
+	const [isVisible, setIsVisible] = useState(true);
+
+	// Determine movement type
+	const isAllyMovement =
+		fleetMovement.owner_id !== state.currentUser?.id && fleetMovement.mission_type === 'transport';
+	const isHostileMovement =
+		fleetMovement.owner_id !== state.currentUser?.id && !['transport', 'spy'].includes(fleetMovement.mission_type);
+
+	// Get color based on movement type
+	const getMovementColor = () => {
+		if (isHostileMovement) {
+			return '#ef4444'; // Red color for hostile movements
+		}
+		if (isAllyMovement) {
+			return '#3b82f6'; // Blue color for ally transports
+		}
+		return '#20e0a0'; // Default green color for own movements
+	};
+
+	// Calculate current position based on journey progress
+	useEffect(() => {
+		const updatePosition = () => {
+			// Calculate current position
+			const now = Date.now();
+			const startTime = fleetMovement.departure_time.toMillis();
+			const endTime = fleetMovement.arrival_time.toMillis();
+			const progress = Math.min(Math.max((now - startTime) / (endTime - startTime), 0), 1);
+
+			// Lerp between start and end coordinates
+			const x =
+				fleetMovement.origin.coordinates.x +
+				(fleetMovement.destination.coordinates.x - fleetMovement.origin.coordinates.x) * progress;
+			const y =
+				fleetMovement.origin.coordinates.y +
+				(fleetMovement.destination.coordinates.y - fleetMovement.origin.coordinates.y) * progress;
+
+			setPosition({ x, y });
+		};
+
+		// Initial update
+		updatePosition();
+
+		// Set up interval for continuous updates
+		const intervalId = setInterval(updatePosition, 1000);
+
+		// Clean up interval on unmount
+		return () => clearInterval(intervalId);
+	}, [fleetMovement]);
+
+	const movementColor = getMovementColor();
+
+	if (!isVisible) return null;
+
+	return (
+		<Group>
+			{/* Dotted line path */}
+			<Line
+				points={[
+					fleetMovement.origin.coordinates.x,
+					fleetMovement.origin.coordinates.y,
+					fleetMovement.destination.coordinates.x,
+					fleetMovement.destination.coordinates.y,
+				]}
+				stroke={movementColor}
+				strokeWidth={1}
+				dash={[5, 5]}
+				opacity={0.4}
+				perfectDrawEnabled={false}
+			/>
+
+			{/* Fleet marker */}
+			<Group x={position.x} y={position.y}>
+				<Circle radius={5} fill={movementColor} opacity={0.8} perfectDrawEnabled={false} />
+
+				{/* Info card */}
+				<Group x={10} y={-30}>
+					<Rect
+						width={120}
+						height={60}
+						fill="#1a1a1a"
+						opacity={0.9}
+						stroke={movementColor}
+						strokeWidth={1}
+						cornerRadius={3}
+						perfectDrawEnabled={false}
+					/>
+					<Text
+						x={5}
+						y={5}
+						text={`→ ${fleetMovement.destination.planet_name}`}
+						fontSize={10}
+						fill={movementColor}
+						width={110}
+						perfectDrawEnabled={false}
+					/>
+					<Text
+						x={5}
+						y={20}
+						text={`Arrival: ${utils.formatTimeString(fleetMovement.arrival_time.toMillis() - Date.now())}`}
+						fontSize={8}
+						fill="#cccccc"
+						width={110}
+						perfectDrawEnabled={false}
+					/>
+					<Text
+						x={5}
+						y={35}
+						text={fleetMovement.status === 'returning' ? 'Returning' : fleetMovement.mission_type}
+						fontSize={8}
+						fill="#cccccc"
+						width={110}
+						perfectDrawEnabled={false}
+					/>
+					{(isAllyMovement || isHostileMovement) && (
+						<Text
+							x={5}
+							y={50}
+							text={`From: ${fleetMovement.owner_name}`}
+							fontSize={8}
+							fill="#cccccc"
+							width={110}
+							perfectDrawEnabled={false}
+						/>
+					)}
+				</Group>
+			</Group>
+		</Group>
+	);
+};
+
+interface GalaxyMapProps {
+	mode: 'view-only' | 'mission-target';
+	onPlanetSelect?: (planet: Planet) => void;
+	allowedPlanets?: string[];
+	highlightedPlanets?: string[];
+	focusedPlanet?: Planet | null;
+}
+
+const GalaxyMap2D = ({
+	mode = 'view-only',
+	onPlanetSelect,
+	allowedPlanets,
+	highlightedPlanets,
+	focusedPlanet = null,
+}: GalaxyMapProps) => {
 	const { state } = useGame();
 
 	const [planets, setPlanets] = useState<Planet[]>([]);
@@ -151,33 +333,48 @@ const GalaxyMap2D = () => {
 	const [position, setPosition] = useState({ x: 0, y: 0 });
 	const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null);
 	const [hoveredPlanet, setHoveredPlanet] = useState<Planet | null>(null);
-	// const [fleetMovements] = useCollectionData(
-	// 	state.currentUser?.id && state.gameConfig
-	// 		? query(
-	// 				collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`).withConverter(
-	// 					withIdConverter
-	// 				),
-	// 				where('owner_id', '==', state.currentUser?.id)
-	// 		  )
-	// 		: null
-	// );
-	// const [hostileFleetMovements] = useCollectionData(
-	// 	state.currentUser?.id && state.gameConfig
-	// 		? query(
-	// 				collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`),
-	// 				where('destination.planet_id', 'array-contains', state.userPlanets?.map((p) => p.id) || [])
-	// 		  ).withConverter(withIdConverter)
-	// 		: null
-	// );
+	const [fleetMovements] = useCollectionData(
+		state.currentUser?.id && state.gameConfig
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`).withConverter(
+						withIdConverter
+					),
+					where('owner_id', '==', state.currentUser?.id)
+			  )
+			: null
+	);
+	const [hostileFleetMovements] = useCollectionData(
+		state.currentUser?.id && state.gameConfig
+			? query(
+					collection(db, `seasons/${state.gameConfig.season.current}/fleet_movements`),
+					where('destination.planet_id', 'array-contains', state.userPlanets?.map((p) => p.id) || [])
+			  ).withConverter(withIdConverter)
+			: null
+	);
 
 	useEffect(() => {
 		const getPlanets = async () => {
+			// Adapt fetching strategy based on mode
 			const data = await api.getPlanets('all');
 			setPlanets(data.planets);
 		};
 
 		getPlanets();
 	}, [state.currentUser?.discovered_chunks]);
+
+	// Focus on a specific planet if provided
+	useEffect(() => {
+		if (focusedPlanet) {
+			// Center the view on the focused planet
+			setPosition({
+				x: window.innerWidth / 2 - focusedPlanet.position.x * scale,
+				y: window.innerHeight / 2 - focusedPlanet.position.y * scale,
+			});
+
+			// Optionally select the focused planet
+			setSelectedPlanet(focusedPlanet);
+		}
+	}, [focusedPlanet, scale]);
 
 	const handleWheel = (e: KonvaEventObject<WheelEvent>) => {
 		e.evt.preventDefault();
@@ -249,6 +446,12 @@ const GalaxyMap2D = () => {
 		// Check if click was on an interactive part of the info card or planet
 		const isPlanetClicked = target.hasName('planet-circle');
 		const isInfoCardClicked = target.hasName('info-card') || target.hasName('info-card-text');
+		const isSelectButtonClicked = target.hasName('select-button-rect') || target.hasName('select-button-text');
+
+		// If select button was clicked, don't deselect the planet
+		if (isSelectButtonClicked) {
+			return;
+		}
 
 		// If the click is not on a planet or the info card, deselect
 		if (!isPlanetClicked && !isInfoCardClicked) {
@@ -273,6 +476,13 @@ const GalaxyMap2D = () => {
 	// Helper function to check if a chunk is discovered
 	const isChunkDiscovered = (chunkId: number) => {
 		return state.currentUser?.discovered_chunks.includes(chunkId);
+	};
+
+	// Handle planet selection for mission target
+	const handleSelectPlanet = (planet: Planet) => {
+		if (mode === 'mission-target' && onPlanetSelect) {
+			onPlanetSelect(planet);
+		}
 	};
 
 	return (
@@ -319,6 +529,15 @@ const GalaxyMap2D = () => {
 					const isPlanetDiscovered = isChunkDiscovered(planet.position.chunk);
 					if (!isPlanetDiscovered) return null;
 
+					// Check if this planet is highlighted
+					const isHighlighted = highlightedPlanets?.includes(planet.id);
+
+					// In mission-target mode, check if this planet is allowed
+					const isAllowed =
+						mode === 'mission-target' ? !allowedPlanets || allowedPlanets.includes(planet.id) : true;
+
+					if (!isAllowed) return null;
+
 					return (
 						<PlanetComponent
 							key={`planet-${index}`}
@@ -330,9 +549,32 @@ const GalaxyMap2D = () => {
 							onMouseEnter={() => handlePlanetMouseEnter(planet)}
 							onMouseLeave={handlePlanetMouseLeave}
 							isDiscovered={isPlanetDiscovered}
+							isHighlighted={isHighlighted}
 						/>
 					);
 				})}
+
+				{/* Selected Planet Info Card with Select Button in mission-target mode */}
+				{selectedPlanet && (
+					<InfoCardComponent
+						planet={selectedPlanet}
+						onSelect={
+							mode === 'mission-target' && onPlanetSelect
+								? () => handleSelectPlanet(selectedPlanet)
+								: undefined
+						}
+					/>
+				)}
+
+				{/* Fleet Movements */}
+				{fleetMovements?.map((movement) => (
+					<FleetMovementTracker key={movement.id} fleetMovement={movement} />
+				))}
+
+				{/* Hostile Fleet Movements */}
+				{hostileFleetMovements?.map((movement) => (
+					<FleetMovementTracker key={movement.id} fleetMovement={movement} />
+				))}
 
 				{/* Radar-like circular overlay - fixed at center of canvas (500, 500) */}
 				<Circle

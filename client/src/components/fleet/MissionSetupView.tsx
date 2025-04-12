@@ -14,6 +14,7 @@ import { GalaxyMap } from '@/components/ThreeMap/GalaxyMap';
 import fleetCalculations from '@/utils/fleet_calculations';
 import utils from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import GalaxyMap2D from '../2DMap/GalaxyMap2D';
 
 type MissionSetupViewProps = {
 	shipSelections: Record<ShipType, number>;
@@ -27,7 +28,6 @@ export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewPro
 	const { toast } = useToast();
 	const [selectedMission, setSelectedMission] = useState<MissionType | ''>('');
 	const [selectedTarget, setSelectedTarget] = useState<Planet | null>(null);
-	const [selectedGalaxy, setSelectedGalaxy] = useState<number>(state.selectedPlanet?.position.galaxy || 0);
 	const [isLoading, setIsLoading] = useState(false);
 	const [allowedPlanets, setAllowedPlanets] = useState<string[]>([]);
 	const [arrivalTime, setArrivalTime] = useState<{ arrivalTime: Date; travelTimeSeconds: number } | null>(null);
@@ -48,12 +48,12 @@ export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewPro
 		if (!selectedMission) return;
 
 		const fetchAllowedPlanets = async () => {
-			const response = await api.getPlanets(selectedGalaxy, selectedMission as MissionType);
+			const response = await api.getPlanets(selectedMission as MissionType);
 			setAllowedPlanets(response.planets.map((planet: Planet) => planet.id));
 		};
 
 		fetchAllowedPlanets();
-	}, [selectedGalaxy, selectedMission]);
+	}, [selectedMission]);
 
 	useEffect(() => {
 		if (!selectedTarget || !state.selectedPlanet || !state.gameConfig) return;
@@ -265,30 +265,11 @@ export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewPro
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
 							<h3 className="font-medium">{t('mission_setup.select_target')}</h3>
-							<Select
-								value={selectedGalaxy.toString()}
-								onValueChange={(value) => {
-									setSelectedGalaxy(parseInt(value));
-									setSelectedTarget(null);
-								}}
-							>
-								<SelectTrigger className="w-[180px]">
-									<SelectValue placeholder="Select Galaxy" />
-								</SelectTrigger>
-								<SelectContent>
-									{Array.from({ length: 10 }, (_, i) => (
-										<SelectItem key={i} value={i.toString()}>
-											{t('galaxy')} {i + 1}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
 						</div>
 						<div className="h-[400px] relative border rounded-lg overflow-hidden">
-							<GalaxyMap
+							<GalaxyMap2D
 								mode="mission-target"
 								onPlanetSelect={(planet) => setSelectedTarget(planet)}
-								galaxyFilter={selectedGalaxy}
 								highlightedPlanets={selectedTarget ? [selectedTarget.id] : []}
 								allowedPlanets={allowedPlanets}
 							/>
@@ -309,7 +290,7 @@ export const MissionSetupView = ({ shipSelections, onBack }: MissionSetupViewPro
 							</div>
 							<div>
 								<span className="font-medium">Position: </span>
-								{selectedTarget.position.galaxy}:{selectedTarget.position.x}:{selectedTarget.position.y}
+								{selectedTarget.position.x}:{selectedTarget.position.y}
 							</div>
 							<div>
 								<span className="font-medium">Biome: </span>

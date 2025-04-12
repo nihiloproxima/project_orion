@@ -6,10 +6,12 @@ import cache from '../../cache/cache';
 
 interface GetPlanetsParams {
 	intent: 'all' | 'attack' | 'spy' | 'colonize' | 'transport';
+	planet_ids?: string[];
 }
 
 const getPlanetsSchema = Joi.object<GetPlanetsParams>({
 	intent: Joi.string().valid('all', 'attack', 'spy', 'colonize', 'transport').required(),
+	planet_ids: Joi.array().items(Joi.string()).optional(),
 });
 
 export async function getPlanets(userId: string, body: GetPlanetsParams) {

@@ -27,6 +27,7 @@ export async function createUser(userId: string, body: CreateUserParams) {
 			xp: 0,
 			level: 1,
 			home_planet_id: null,
+			discovered_chunks: [],
 			season: 0,
 			onboarding_step: 'check-mails',
 			created_at: admin.firestore.Timestamp.now(),
