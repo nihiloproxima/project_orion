@@ -1,6 +1,15 @@
 FROM node:20 as builder
 
 WORKDIR /app
+
+# Build shared-types first
+COPY shared-types ./shared-types/
+WORKDIR /app/shared-types
+RUN npm install
+RUN npm run build
+
+# Build main application
+WORKDIR /app
 COPY . .
 RUN npm install
 RUN npm run build

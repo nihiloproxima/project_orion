@@ -10,6 +10,8 @@ services:
     command: ["node", "build/server.js"]
     environment:
       - REDIS_URL=${REDIS_URL}
+    volumes:
+      - ./shared-types:/app/shared-types
     depends_on:
       - redis
     restart: always
@@ -20,12 +22,16 @@ services:
     command: ["node", "build/worker/worker.js"]
     environment:
       - REDIS_URL=${REDIS_URL}
+    volumes:
+      - ./shared-types:/app/shared-types
     depends_on:
       - redis
     restart: always
 
   frontend:
     build: ./client
+    volumes:
+      - ./shared-types:/app/shared-types
     depends_on:
       - backend
     ports:
