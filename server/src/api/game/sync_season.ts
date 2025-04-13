@@ -41,10 +41,6 @@ export async function syncSeason(userId: string) {
 			discovered_chunks: [unclaimedPlanet.position.chunk],
 		});
 
-		db.setUserInventory(tx, userId, {
-			credits: 0,
-		});
-
 		db.setPlanet(tx, gameConfig.season.current, unclaimedPlanet.id, {
 			owner_id: userId,
 			owner_name: user.name,
