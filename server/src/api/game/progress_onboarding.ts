@@ -1,7 +1,7 @@
 import admin from 'firebase-admin';
 import db from '../../database/db';
 import Joi from 'joi';
-import { OnboardingStep } from 'shared-types';
+import { OnboardingStep } from '../../models';
 
 interface ProgressOnboardingParams {
 	step: OnboardingStep;

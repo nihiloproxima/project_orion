@@ -1,5 +1,5 @@
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
-import { ShipyardQueue, Planet } from 'shared-types';
+import { ShipyardQueue, Planet } from '../models';
 
 export function parseShipyardQueue(planetId: Planet['id'], doc: DocumentSnapshot): ShipyardQueue {
 	const data = doc.data();

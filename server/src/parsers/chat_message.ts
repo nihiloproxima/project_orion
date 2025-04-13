@@ -1,4 +1,4 @@
-import { ChatMessage } from 'shared-types';
+import { ChatMessage } from '../models';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 
 export function parseChatMessage(doc: DocumentSnapshot): ChatMessage {

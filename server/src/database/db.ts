@@ -12,7 +12,7 @@ import {
 	UserResearchs,
 	UserTasks,
 	UserReward,
-} from 'shared-types';
+} from '../models';
 import {
 	parseFleetMovement,
 	parseMail,
@@ -20,6 +20,7 @@ import {
 	parseShipyardQueue,
 	parseUser,
 	parseUserInventory,
+	parseUserResearchs,
 	parseUserReward,
 	parseUserTasks,
 } from '../parsers';
@@ -127,7 +128,7 @@ export default {
 	getUserResearchs: async (tx: Transaction, userId: string) => {
 		const ref = db.doc(`users/${userId}/private/researchs`);
 		const researchs = await tx.get(ref);
-		return researchs.data() as UserResearchs;
+		return parseUserResearchs(researchs);
 	},
 
 	setUserResearchs: (tx: Transaction, userId: string, data: PartialWithFieldValue<UserResearchs>, merge = true) => {

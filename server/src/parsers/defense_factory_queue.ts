@@ -1,5 +1,5 @@
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
-import { DefenseFactoryQueue, Planet } from 'shared-types';
+import { DefenseFactoryQueue, Planet } from '../models';
 
 export function parseDefenseFactoryQueue(planetId: Planet['id'], doc: DocumentSnapshot): DefenseFactoryQueue {
 	const data = doc.data();

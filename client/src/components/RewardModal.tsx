@@ -1,4 +1,4 @@
-import { UserReward } from 'shared-types';
+import { UserReward } from '@/models';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { motion } from 'framer-motion';

@@ -1,4 +1,4 @@
-import { Mail } from 'shared-types';
+import { Mail } from '../models';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 
 export function parseMail(doc: DocumentSnapshot): Mail {

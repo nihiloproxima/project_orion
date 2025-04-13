@@ -6,8 +6,7 @@ import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
 import React, { useEffect, useRef, useState, useMemo, useContext } from 'react';
 
-import { FleetMovement } from 'shared-types';
-import { Planet } from 'shared-types';
+import { FleetMovement, Planet } from '@/models';
 import utils from '@/lib/utils';
 import _ from 'lodash';
 import { useGame } from '@/contexts/GameContext';

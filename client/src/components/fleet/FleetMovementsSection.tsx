@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowRight, Flame, Gift, Hammer, Microchip, Rocket, X } 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { FleetMovement } from 'shared-types';
+import { FleetMovement } from '@/models';
 import Image from 'next/image';
 import { Timer } from '@/components/Timer';
 import { useGame } from '@/contexts/GameContext';

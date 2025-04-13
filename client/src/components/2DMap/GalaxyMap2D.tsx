@@ -1,7 +1,7 @@
 import { useEffect, useState, Fragment, memo } from 'react';
 import { Stage, Layer, Rect, Circle, Text, Group, Line } from 'react-konva';
 import { KonvaEventObject } from 'konva/lib/Node';
-import { Planet, FleetMovement } from 'shared-types';
+import { Planet, FleetMovement } from '@/models';
 import { api } from '@/lib/api';
 import { useGame } from '@/contexts/GameContext';
 import { useCollectionData } from 'react-firebase-hooks/firestore';

@@ -1,4 +1,4 @@
-import { GameConfig, UserResearchs, TechnologyId, UnlockableType } from 'shared-types';
+import { GameConfig, UserResearchs, TechnologyId, UnlockableType } from '@/models';
 import utils from '../lib/utils';
 
 const researchsCalculations = {

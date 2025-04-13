@@ -1,4 +1,4 @@
-import { Outpost } from 'shared-types';
+import { Outpost } from '../models';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 
 export function parseOutpost(doc: DocumentSnapshot): Outpost {

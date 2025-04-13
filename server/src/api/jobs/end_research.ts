@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import admin from 'firebase-admin';
 import db from '../../database/db';
-import { TechnologyId } from 'shared-types';
+import { TechnologyId } from '../../models';
 
 export interface EndResearchParams {
 	user_id: string;

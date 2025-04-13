@@ -1,4 +1,4 @@
-import { BaseMail, CombatMail, MissionMail, SpyMail } from 'shared-types';
+import { BaseMail, CombatMail, MissionMail, SpyMail } from '@/models';
 import { Beaker, Bell, Building, Eye, MessageSquare, Rocket, Ship, Sword } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';

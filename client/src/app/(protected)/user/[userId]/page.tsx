@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '../../../../components/ui/button';
 import Image from 'next/image';
 import { Input } from '../../../../components/ui/input';
-import { User } from 'shared-types';
+import { User } from '@/models';
 import { api } from '../../../../lib/api';
 import { motion } from 'framer-motion';
 import { useGame } from '../../../../contexts/GameContext';
@@ -22,7 +22,7 @@ import { collection, doc, query, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Planet } from 'shared-types';
+import { Planet } from '@/models';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function UserProfilePage() {

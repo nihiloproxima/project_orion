@@ -2,7 +2,7 @@ import Joi from 'joi';
 import admin from 'firebase-admin';
 import db from '../../database/db';
 import assert from '../../rules/asserts';
-import { FleetMovement, GameConfig } from 'shared-types';
+import { FleetMovement, GameConfig } from '../../models';
 import { Timestamp, Transaction } from 'firebase-admin/firestore';
 import fleetCalculations from '../../rules/fleet_calculations';
 import { addJob } from '../../bullmq/queue';

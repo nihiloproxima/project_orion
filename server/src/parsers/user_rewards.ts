@@ -1,5 +1,5 @@
 import { DocumentSnapshot } from 'firebase-admin/firestore';
-import { UserReward } from 'shared-types';
+import { UserReward } from '../models';
 
 export function parseUserReward(doc: DocumentSnapshot): UserReward {
 	const data = doc.data();

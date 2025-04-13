@@ -4,7 +4,7 @@ import { Anchor, Factory, Minus, Plus, Rocket, Shield, Ship, Zap, Wind, Target, 
 import { useState } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useTranslation } from '@/hooks/useTranslation';
-import { ShipType } from 'shared-types';
+import { ShipType } from '@/models';
 import { Button } from '@/components/ui/button';
 import { ShipControls } from './ShipControls';
 import { useRouter } from 'next/navigation';

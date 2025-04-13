@@ -20,7 +20,7 @@ import { DialogFooter } from '../../../components/ui/dialog';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { collection, query, limit, orderBy, where } from 'firebase/firestore';
 import { db, withIdConverter } from '@/lib/firebase';
-import { ChatMessage, ResourceType } from 'shared-types';
+import { ChatMessage, ResourceType } from '@/models';
 import { useTranslation } from '@/hooks/useTranslation';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';

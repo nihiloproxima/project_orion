@@ -1,4 +1,4 @@
-import { UserTasks } from 'shared-types';
+import { UserTasks } from '../models';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 
 export function parseUserTasks(doc: DocumentSnapshot): UserTasks {

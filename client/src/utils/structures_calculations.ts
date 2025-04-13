@@ -1,4 +1,4 @@
-import { GameConfig, Planet, ResourceType, StructureType, UserResearchs } from 'shared-types';
+import { GameConfig, Planet, ResourceType, StructureType, UserResearchs } from '@/models';
 import _ from 'lodash';
 import planetCalculations from './planet_calculations';
 import utils from '@/lib/utils';

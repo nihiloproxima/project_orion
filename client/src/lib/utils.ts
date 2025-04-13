@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-import { GameConfig, Planet, StructureType, TechnologyId, UserResearchs } from 'shared-types';
+import { GameConfig, Planet, StructureType, TechnologyId, UserResearchs } from '@/models';
 import { Timestamp } from 'firebase/firestore';
 
 const utils = {

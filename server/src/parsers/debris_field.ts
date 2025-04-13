@@ -1,4 +1,4 @@
-import { DebrisField } from 'shared-types';
+import { DebrisField } from '../models';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 
 export function parseDebrisField(doc: DocumentSnapshot): DebrisField {

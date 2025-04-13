@@ -34,7 +34,7 @@ import { Button } from '../../../components/ui/button';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import Image from 'next/image';
 import { ScrollArea } from '../../../components/ui/scroll-area';
-import { ShipType, ShipyardQueue } from 'shared-types';
+import { ShipType, ShipyardQueue } from '@/models';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';
 import utils from '../../../lib/utils';

@@ -1,9 +1,9 @@
 import admin from 'firebase-admin';
 import Joi from 'joi';
 import db from '../../database/db';
-import utils from 'server/src/rules/utils';
+import utils from '../../rules/utils';
 import { Timestamp } from 'firebase-admin/firestore';
-import { addJob } from 'server/src/bullmq/queue';
+import { addJob } from '../../bullmq/queue';
 
 interface ProcessShipyardQueueParams {
 	planet_id: string;

@@ -1,5 +1,5 @@
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
-import { FleetMovement } from 'shared-types';
+import { FleetMovement } from '../models';
 
 export function parseFleetMovement(doc: DocumentSnapshot): FleetMovement {
 	const data = doc.data();

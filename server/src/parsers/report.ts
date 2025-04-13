@@ -1,5 +1,6 @@
 import { DocumentSnapshot } from 'firebase-admin/firestore';
-import { BaseReport } from 'shared-types';
+import { BaseReport } from '../models';
+
 export function parseReport(doc: DocumentSnapshot): BaseReport {
 	const data = doc.data();
 	if (!data) {

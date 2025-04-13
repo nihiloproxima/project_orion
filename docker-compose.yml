@@ -1,43 +1,40 @@
 services:
+  # Build shared-types first
+  shared-types:
+    image: node:20
+    volumes:
+      - ./shared-types:/app
+    working_dir: /app
+    command: sh -c "npm install && npm run build"
+    profiles:
+      - build
+
   redis:
     image: redis:7
     container_name: orion-redis
     restart: always
-
   backend:
-    build:
-      context: .
-      dockerfile: server/Dockerfile
+    build: ./server
     working_dir: /app
-    command: ["node", "build/server/src/server.js"]
+    command: ["node", "build/server.js"]
     environment:
       - REDIS_URL=${REDIS_URL}
-    # volumes:
-    #   - ./shared-types:/app/shared-types # Shared types are copied during build
     depends_on:
       - redis
     restart: always
 
   worker:
-    build:
-      context: .
-      dockerfile: server/Dockerfile
+    build: ./server
     working_dir: /app
-    command: ["node", "build/server/src/worker/worker.js"]
+    command: ["node", "build/worker/worker.js"]
     environment:
       - REDIS_URL=${REDIS_URL}
-    # volumes:
-    #   - ./shared-types:/app/shared-types # Shared types are copied during build
     depends_on:
       - redis
     restart: always
 
   frontend:
-    build:
-      context: .
-      dockerfile: client/Dockerfile
-    # volumes:
-    #   - ./shared-types:/app/shared-types # Shared types are copied during build
+    build: ./client
     depends_on:
       - backend
     ports:

@@ -4,7 +4,7 @@ import millify from 'millify';
 import { Flame, Hammer, Microchip, Zap, Menu, Coins } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
-import { ResourceType } from 'shared-types';
+import { ResourceType } from '@/models';
 import { useEffect, useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';

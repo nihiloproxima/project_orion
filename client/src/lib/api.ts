@@ -1,6 +1,6 @@
-import { OnboardingStep, StructureType } from 'shared-types';
+import { OnboardingStep, StructureType } from '@/models';
 import { auth } from './firebase';
-import { MissionType, ShipType } from 'shared-types';
+import { MissionType, ShipType } from '@/models';
 
 function getAuthToken() {
 	return auth.currentUser?.getIdToken();

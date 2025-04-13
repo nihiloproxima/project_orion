@@ -1,9 +1,9 @@
 import admin from 'firebase-admin';
 import _ from 'lodash';
 import Joi from 'joi';
-import { GameConfig } from 'shared-types';
+import { GameConfig } from '../../models';
 import db from '../../database/db';
-import { DEFAULT_GAME_CONFIG } from 'server/src/rules/constants';
+import { DEFAULT_GAME_CONFIG } from '../../rules/constants';
 
 interface SetGameConfigParams {
 	game_config?: Partial<GameConfig>;

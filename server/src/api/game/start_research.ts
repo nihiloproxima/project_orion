@@ -4,7 +4,7 @@ import db from '../../database/db';
 import planetCalculations from '../../rules/planet_calculations';
 import researchsCalculations from '../../rules/researchs_calculations';
 import utils from '../../rules/utils';
-import { Planet, TechnologyId } from 'shared-types';
+import { Planet, TechnologyId } from '../../models';
 import { Timestamp } from 'firebase-admin/firestore';
 import { addJob } from '../../bullmq/queue';
 import { assert } from '../../rules/asserts';

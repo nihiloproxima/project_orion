@@ -1,4 +1,4 @@
-import { FleetMovement, MissionMail, SpyMail, UserResearchs, Planet } from 'shared-types';
+import { FleetMovement, MissionMail, SpyMail, UserResearchs, Planet } from '../models';
 
 const mailGenerator = {
 	planetAlreadyColonized: (fleetMovement: FleetMovement, targetPlanet: Planet): Omit<MissionMail, 'id'> => {

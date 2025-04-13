@@ -1,4 +1,4 @@
-import { User } from 'shared-types';
+import { User } from '../models';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 
 export function parseUser(doc: DocumentSnapshot): User {

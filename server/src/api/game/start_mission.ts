@@ -1,14 +1,14 @@
 import Joi from 'joi';
 import _ from 'lodash';
 import admin from 'firebase-admin';
-import { GameConfig, MissionType, Planet, ShipType } from 'shared-types';
+import { GameConfig, MissionType, Planet, ShipType } from '../../models';
 import db from '../../database/db';
 import assert from '../../rules/asserts';
 import planetCalculations from '../../rules/planet_calculations';
 import { Timestamp } from 'firebase-admin/firestore';
 import fleetCalculations from '../../rules/fleet_calculations';
 import { addJob } from '../../bullmq/queue';
-import utils from 'server/src/rules/utils';
+import utils from '../../rules/utils';
 
 interface StartMissionBody {
 	origin_planet_id: string;

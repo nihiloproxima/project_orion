@@ -1,6 +1,6 @@
 'use client';
 
-import { BaseMail, MailType } from 'shared-types';
+import { BaseMail, MailType } from '@/models';
 import { Bell, Eye, Mail, MessageSquare, Rocket, Sword, Trash2, Menu } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useMemo } from 'react';

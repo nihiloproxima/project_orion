@@ -1,4 +1,4 @@
-import { GameConfig } from 'shared-types';
+import { GameConfig } from '../models';
 import { Timestamp } from 'firebase-admin/firestore';
 
 export const BASE_POINTS = 100;

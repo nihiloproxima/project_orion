@@ -1,4 +1,4 @@
-import { Planet } from 'shared-types';
+import { Planet } from '../models';
 import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 
 export function parsePlanet(doc: DocumentSnapshot): Planet {

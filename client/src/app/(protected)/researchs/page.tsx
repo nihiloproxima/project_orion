@@ -27,7 +27,7 @@ import { Button } from '../../../components/ui/button';
 import { ErrorBoundary } from '../../../components/ErrorBoundary';
 import Image from 'next/image';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { ResearchConfig, TechnologyId, Technology } from 'shared-types';
+import { ResearchConfig, TechnologyId, Technology } from '@/models';
 import { TECHNOLOGIES } from '../../../lib/constants';
 import { Timer } from '../../../components/Timer';
 import { api } from '../../../lib/api';

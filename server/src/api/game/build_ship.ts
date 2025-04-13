@@ -5,9 +5,9 @@ import db from '../../database/db';
 import assert from '../../rules/asserts';
 import planetCalculations from '../../rules/planet_calculations';
 import { Timestamp } from 'firebase-admin/firestore';
-import { ShipType, ShipyardQueueCommand } from 'shared-types';
+import { ShipType, ShipyardQueueCommand } from '../../models';
 import utils from '../../rules/utils';
-import { addJob } from 'server/src/bullmq/queue';
+import { addJob } from '../../bullmq/queue';
 
 interface BuildShipParams {
 	planet_id: string;

@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { Planet } from 'shared-types';
+import { Planet } from '../models';
 
 // World configuration constants
 const WORLD_WIDTH = 1000;
