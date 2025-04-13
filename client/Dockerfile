@@ -21,6 +21,10 @@ RUN apt-get update && apt-get install -y \
 COPY package.json package-lock.json ./
 COPY tsconfig.base.json ./
 
+# Copy environment files from root and client directory
+COPY .env* ./
+COPY client/.env* ./client/
+
 # Copy workspace manifests and TS configs (if they exist)
 COPY client/package.json ./client/
 COPY shared-types/package.json ./shared-types/
@@ -67,9 +71,12 @@ RUN apt-get update && apt-get install -y \
     libcairo2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy necessary package manifests from the 'base' stage for installing prod dependencies
+# Copy necessary package manifests and environment files from the 'base' stage
 COPY --from=base /app/ ./
 
+# Copy environment files explicitly (in case they're overwritten)
+COPY --from=base /app/.env* ./
+COPY --from=base /app/client/.env* ./client/
 
 # Install production dependencies ONLY for the client workspace
 WORKDIR /app/client
@@ -78,7 +85,6 @@ RUN npm install --omit=dev
 # Copy the built Next.js application (.next folder, public folder, next.config.js)
 # from the 'builder' stage to the final image
 WORKDIR /app
-
 
 # Expose the port Next.js runs on (default 3000)
 EXPOSE 3000

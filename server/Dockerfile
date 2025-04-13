@@ -10,6 +10,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY tsconfig.base.json ./
 
+# Copy environment files from root and server directory
+COPY .env* ./
+COPY server/.env* ./server/
+
 # Copy only server and shared-types workspace manifests and TS configs
 COPY server/package.json ./server/
 COPY shared-types/package.json ./shared-types/
@@ -51,6 +55,10 @@ ENV NODE_ENV=production
 COPY --from=base /app/package.json /app/package-lock.json ./
 COPY --from=base /app/server/package.json ./server/
 
+# Copy environment files from base stage
+COPY --from=base /app/.env* ./
+COPY --from=base /app/server/.env* ./server/
+
 # Install production dependencies ONLY for the server workspace
 WORKDIR /app/server
 RUN npm install --omit=dev
@@ -61,7 +69,7 @@ COPY --from=builder /app/server/build ./build/
 
 # Debug: List copied build artifacts in detail
 RUN echo "=== Production build files ===" && ls -la build/server/src && \
-    echo "=== Worker directory ===" && ls -la build/server/src/worker/ 
+    echo "=== Worker directory ===" && ls -la build/server/src/worker/
 
 
 # Default command is overridden in docker-compose.yml, but good to have a sensible default
