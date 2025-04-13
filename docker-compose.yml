@@ -9,11 +9,11 @@ services:
       context: .
       dockerfile: server/Dockerfile
     working_dir: /app
-    command: ["node", "build/server.js"]
+    command: ["node", "build/server/src/server.js"]
     environment:
       - REDIS_URL=${REDIS_URL}
-    volumes:
-      - ./shared-types:/app/shared-types
+    # volumes:
+    #   - ./shared-types:/app/shared-types # Shared types are copied during build
     depends_on:
       - redis
     restart: always
@@ -23,11 +23,11 @@ services:
       context: .
       dockerfile: server/Dockerfile
     working_dir: /app
-    command: ["node", "build/worker/worker.js"]
+    command: ["node", "build/server/src/worker/worker.js"]
     environment:
       - REDIS_URL=${REDIS_URL}
-    volumes:
-      - ./shared-types:/app/shared-types
+    # volumes:
+    #   - ./shared-types:/app/shared-types # Shared types are copied during build
     depends_on:
       - redis
     restart: always
@@ -36,8 +36,8 @@ services:
     build:
       context: .
       dockerfile: client/Dockerfile
-    volumes:
-      - ./shared-types:/app/shared-types
+    # volumes:
+    #   - ./shared-types:/app/shared-types # Shared types are copied during build
     depends_on:
       - backend
     ports:
